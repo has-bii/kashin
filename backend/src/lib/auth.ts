@@ -35,11 +35,11 @@ export const auth = betterAuth({
     },
     cookiePrefix: process.env.COOKIE_PREFIX,
   },
-  // rateLimit: {
-  //   enabled: true,
-  //   window: 15 * 60, // 15 minutes in seconds
-  //   max: 10, // 10 requests per 15 minutes for auth endpoints
-  // },
+  rateLimit: {
+    enabled: true,
+    window: 15 * 60, // 15 minutes in seconds
+    max: 10, // 10 requests per 15 minutes for auth endpoints
+  },
   trustedOrigins: [process.env.FRONTEND_URL!],
   plugins: [openAPI()],
 })
