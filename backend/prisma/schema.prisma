@@ -1,0 +1,320 @@
+// ============================================================
+// Prisma Schema — AI Expense & Income Tracker
+// Prisma 7 | MySQL (TiDB Cloud)
+// Auth: Better Auth (user, session, account, verification)
+// PK strategy: UUID v7 Char(36) for user-facing tables,
+//              BigInt AUTO_INCREMENT for internal tables
+// ============================================================
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+generator prismabox {
+  provider                    = "prismabox"
+  typeboxImportDependencyName = "elysia"
+  typeboxImportVariableName   = "t"
+  inputModel                  = true
+  output                      = "../src/generated/prismabox"
+}
+
+datasource db {
+  provider     = "mysql"
+  relationMode = "prisma"
+}
+
+// -----------------------------------------------------------
+// Enums
+// -----------------------------------------------------------
+
+enum TransactionType {
+  expense
+  income
+}
+
+enum TransactionSource {
+  manual
+  email
+  recurring
+}
+
+enum EmailLogStatus {
+  received
+  processing
+  parsed
+  failed
+}
+
+enum AiExtractionStatus {
+  pending
+  confirmed
+  rejected
+  edited
+}
+
+enum RecurringFrequency {
+  weekly
+  biweekly
+  monthly
+  yearly
+}
+
+// -----------------------------------------------------------
+// Better Auth tables (do not modify)
+// -----------------------------------------------------------
+
+model User {
+  id            String    @id @default(uuid(7)) @db.Char(36)
+  name          String    @db.VarChar(255)
+  email         String    @db.VarChar(255)
+  emailVerified Boolean   @default(false)
+  image         String?   @db.Text
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+
+  // App-specific profile fields
+  currency String @default("IDR") @db.VarChar(3)
+  timezone String @default("Asia/Jakarta") @db.VarChar(64)
+
+  // App relations
+  categories            Category[]
+  transactions          Transaction[]
+  emailInboxes          EmailInbox[]
+  emailLogs             EmailLog[]
+  aiExtractions         AiExtraction[]
+  recurringTransactions RecurringTransaction[]
+
+  @@unique([email])
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(uuid(7)) @db.Char(36)
+  expiresAt DateTime
+  token     String   @db.VarChar(255)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?  @db.VarChar(45)
+  userAgent String?  @db.VarChar(512)
+  userId    String   @db.Char(36)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+  @@map("sessions")
+}
+
+model Account {
+  id                    String    @id @default(uuid(7)) @db.Char(36)
+  accountId             String    @db.VarChar(255)
+  providerId            String    @db.VarChar(255)
+  userId                String    @db.Char(36)
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?   @db.Text
+  refreshToken          String?   @db.Text
+  idToken               String?   @db.Text
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?   @db.VarChar(255)
+  password              String?   @db.VarChar(255)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Verification {
+  id         String   @id @default(uuid(7)) @db.Char(36)
+  identifier String   @db.VarChar(255)
+  value      String   @db.VarChar(255)
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verifications")
+}
+
+// -----------------------------------------------------------
+// App tables — User-facing (UUID v7, Char(36))
+// -----------------------------------------------------------
+
+model Category {
+  id        String          @id @default(uuid(7)) @db.Char(36)
+  userId    String          @db.Char(36)
+  name      String          @db.VarChar(100)
+  type      TransactionType
+  icon      String?         @db.VarChar(50)
+  color     String?         @db.VarChar(7)
+  isDefault Boolean         @default(false)
+  sortOrder Int             @default(0)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions          Transaction[]
+  aiExtractions         AiExtraction[]         @relation("SuggestedCategory")
+  recurringTransactions RecurringTransaction[]
+
+  @@index([userId])
+  @@index([userId, type])
+  @@map("categories")
+}
+
+model Transaction {
+  id              String            @id @default(uuid(7)) @db.Char(36)
+  userId          String            @db.Char(36)
+  categoryId      String?           @db.Char(36)
+  recurringTxnId  String?           @db.Char(36)
+  aiExtractionId  String?           @unique @db.Char(36)
+  type            TransactionType
+  amount          Decimal           @db.Decimal(15, 2)
+  currency        String            @default("IDR") @db.VarChar(3)
+  transactionDate DateTime          @db.Date
+  description     String?           @db.VarChar(500)
+  notes           String?           @db.Text
+  source          TransactionSource @default(manual)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  user                 User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category             Category?             @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  recurringTransaction RecurringTransaction? @relation(fields: [recurringTxnId], references: [id], onDelete: SetNull)
+  aiExtraction         AiExtraction?         @relation(fields: [aiExtractionId], references: [id], onDelete: SetNull)
+  attachments          Attachment[]
+
+  @@index([userId])
+  @@index([userId, transactionDate])
+  @@index([userId, type])
+  @@index([userId, categoryId])
+  @@index([source])
+  @@map("transactions")
+}
+
+model EmailInbox {
+  id           String   @id @default(uuid(7)) @db.Char(36)
+  userId       String   @db.Char(36)
+  emailAddress String   @unique @db.VarChar(255)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emailLogs EmailLog[]
+
+  @@index([userId])
+  @@map("email_inboxes")
+}
+
+model AiExtraction {
+  id                  String             @id @default(uuid(7)) @db.Char(36)
+  emailLogId          BigInt             @unique
+  userId              String             @db.Char(36)
+  extractedVendor     String?            @db.VarChar(255)
+  extractedAmount     Decimal?           @db.Decimal(15, 2)
+  extractedCurrency   String?            @db.VarChar(3)
+  extractedDate       DateTime?          @db.Date
+  suggestedCategoryId String?            @db.Char(36)
+  extractedType       TransactionType?
+  extractedNotes      String?            @db.Text
+  confidenceScore     Float?             @db.Float
+  status              AiExtractionStatus @default(pending)
+  confirmedAt         DateTime?
+  createdAt           DateTime           @default(now())
+
+  emailLog          EmailLog     @relation(fields: [emailLogId], references: [id], onDelete: Cascade)
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  suggestedCategory Category?    @relation("SuggestedCategory", fields: [suggestedCategoryId], references: [id], onDelete: SetNull)
+  transaction       Transaction?
+
+  @@index([emailLogId])
+  @@index([userId])
+  @@index([status])
+  @@map("ai_extractions")
+}
+
+model RecurringTransaction {
+  id                String             @id @default(uuid(7)) @db.Char(36)
+  userId            String             @db.Char(36)
+  categoryId        String?            @db.Char(36)
+  type              TransactionType
+  amount            Decimal            @db.Decimal(15, 2)
+  currency          String             @default("IDR") @db.VarChar(3)
+  description       String             @db.VarChar(500)
+  frequency         RecurringFrequency
+  nextDueDate       DateTime           @db.Date
+  lastGeneratedDate DateTime?          @db.Date
+  isActive          Boolean            @default(true)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category     Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  transactions Transaction[]
+
+  @@index([userId])
+  @@index([isActive, nextDueDate])
+  @@map("recurring_transactions")
+}
+
+// -----------------------------------------------------------
+// App tables — Internal (BigInt AUTO_INCREMENT)
+// -----------------------------------------------------------
+
+model EmailLog {
+  id           BigInt         @id @default(autoincrement())
+  inboxId      String         @db.Char(36)
+  userId       String         @db.Char(36)
+  fromAddress  String         @db.VarChar(255)
+  subject      String?        @db.VarChar(500)
+  rawBody      String?        @db.MediumText
+  status       EmailLogStatus @default(received)
+  errorMessage String?        @db.Text
+  receivedAt   DateTime       @default(now())
+  processedAt  DateTime?
+  createdAt    DateTime       @default(now())
+
+  inbox        EmailInbox    @relation(fields: [inboxId], references: [id], onDelete: Cascade)
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  aiExtraction AiExtraction?
+  attachments  Attachment[]
+
+  @@index([inboxId])
+  @@index([userId])
+  @@index([status])
+  @@index([receivedAt])
+  @@map("email_logs")
+}
+
+model Attachment {
+  id            BigInt   @id @default(autoincrement())
+  transactionId String?  @db.Char(36)
+  emailLogId    BigInt?
+  fileUrl       String   @db.VarChar(1024)
+  fileName      String   @db.VarChar(255)
+  fileType      String?  @db.VarChar(100)
+  fileSize      Int?
+  createdAt     DateTime @default(now())
+
+  transaction Transaction? @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  emailLog    EmailLog?    @relation(fields: [emailLogId], references: [id], onDelete: Cascade)
+
+  @@index([transactionId])
+  @@index([emailLogId])
+  @@map("attachments")
+}
+
+model DefaultCategory {
+  id        BigInt          @id @default(autoincrement())
+  name      String          @db.VarChar(100)
+  type      TransactionType
+  icon      String?         @db.VarChar(50)
+  color     String?         @db.VarChar(7)
+  sortOrder Int             @default(0)
+
+  @@map("default_categories")
+}
