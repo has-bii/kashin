@@ -1,7 +1,8 @@
+import { betterAuthView } from "./modules/auth"
 import cors from "@elysiajs/cors"
 import { Elysia } from "elysia"
 
-const app = new Elysia()
+const app = new Elysia({ prefix: "/api" })
   .use(
     cors({
       origin: process.env.FRONTEND_URL,
@@ -10,6 +11,7 @@ const app = new Elysia()
       allowedHeaders: ["Content-Type", "Authorization"],
     }),
   )
+  .all("/auth/*", betterAuthView)
   .listen(Number(process.env.PORT || 3030))
 
 console.log(`🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`)
