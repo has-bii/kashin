@@ -19,6 +19,7 @@ import { useSearchParams } from "next/navigation"
 export default function LoginForm() {
   const searchParams = useSearchParams()
   const verified = searchParams.get("verified") === "true"
+  const reset = searchParams.get("reset") === "true"
   const { form, loginWithGoogle, error } = useLoginForm()
 
   return (
@@ -42,6 +43,15 @@ export default function LoginForm() {
             <AlertTitle>Email verified</AlertTitle>
             <AlertDescription className="text-emerald-600/90">
               Your email has been verified successfully. You can now log in.
+            </AlertDescription>
+          </Alert>
+        )}
+        {reset && (
+          <Alert className="text-emerald-600">
+            <CircleCheck />
+            <AlertTitle>Password reset</AlertTitle>
+            <AlertDescription className="text-emerald-600/90">
+              Your password has been reset successfully. You can now log in.
             </AlertDescription>
           </Alert>
         )}
