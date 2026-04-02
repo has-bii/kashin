@@ -1,6 +1,6 @@
 "use client"
 
-import { useLoginForm } from "../hooks/use-login-form"
+import { useRegisterForm } from "../hooks/use-register-form"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import {
@@ -8,18 +8,15 @@ import {
   FieldDescription,
   FieldError,
   FieldGroup,
-  FieldLabel,
   FieldSeparator,
+  FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { CircleCheck, InfoIcon, Loader2 } from "lucide-react"
+import { InfoIcon, Loader2 } from "lucide-react"
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
 
-export default function LoginForm() {
-  const searchParams = useSearchParams()
-  const verified = searchParams.get("verified") === "true"
-  const { form, loginWithGoogle, error } = useLoginForm()
+export default function RegisterForm() {
+  const { form, registerWithGoogle, error } = useRegisterForm()
 
   return (
     <form
@@ -31,20 +28,11 @@ export default function LoginForm() {
     >
       <FieldGroup>
         <div className="flex flex-col items-center gap-1 text-center">
-          <h1 className="text-2xl font-bold">Login to your account</h1>
+          <h1 className="text-2xl font-bold">Create an account</h1>
           <p className="text-muted-foreground text-sm text-balance">
-            Enter your email below to login to your account
+            Enter your details below to create your account
           </p>
         </div>
-        {verified && (
-          <Alert className="text-emerald-600">
-            <CircleCheck />
-            <AlertTitle>Email verified</AlertTitle>
-            <AlertDescription className="text-emerald-600/90">
-              Your email has been verified successfully. You can now log in.
-            </AlertDescription>
-          </Alert>
-        )}
         {error && (
           <Alert variant="destructive">
             <InfoIcon />
@@ -52,6 +40,28 @@ export default function LoginForm() {
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
+        <form.Field
+          name="name"
+          children={(field) => {
+            const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+            return (
+              <Field data-invalid={isInvalid}>
+                <FieldLabel htmlFor={field.name}>Name</FieldLabel>
+                <Input
+                  id={field.name}
+                  name={field.name}
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  aria-invalid={isInvalid}
+                  placeholder="John Doe"
+                  autoComplete="name"
+                />
+                {isInvalid && <FieldError errors={field.state.meta.errors} />}
+              </Field>
+            )
+          }}
+        />
         <form.Field
           name="email"
           children={(field) => {
@@ -80,16 +90,7 @@ export default function LoginForm() {
             const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
             return (
               <Field data-invalid={isInvalid}>
-                <div className="flex items-center">
-                  <FieldLabel htmlFor={field.name}>Password</FieldLabel>
-                  <Link
-                    href="/auth/forgot-password"
-                    className="ml-auto text-sm underline-offset-4 hover:underline"
-                  >
-                    Forgot your password?
-                  </Link>
-                </div>
-
+                <FieldLabel htmlFor={field.name}>Password</FieldLabel>
                 <Input
                   id={field.name}
                   name={field.name}
@@ -98,7 +99,29 @@ export default function LoginForm() {
                   onChange={(e) => field.handleChange(e.target.value)}
                   aria-invalid={isInvalid}
                   type="password"
-                  autoComplete="off"
+                  autoComplete="new-password"
+                />
+                {isInvalid && <FieldError errors={field.state.meta.errors} />}
+              </Field>
+            )
+          }}
+        />
+        <form.Field
+          name="confirmPassword"
+          children={(field) => {
+            const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+            return (
+              <Field data-invalid={isInvalid}>
+                <FieldLabel htmlFor={field.name}>Confirm Password</FieldLabel>
+                <Input
+                  id={field.name}
+                  name={field.name}
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  aria-invalid={isInvalid}
+                  type="password"
+                  autoComplete="new-password"
                 />
                 {isInvalid && <FieldError errors={field.state.meta.errors} />}
               </Field>
@@ -109,7 +132,7 @@ export default function LoginForm() {
           children={({ isSubmitting, canSubmit }) => (
             <Field>
               <Button type="submit" disabled={isSubmitting || !canSubmit}>
-                Login
+                Sign up
                 {isSubmitting && <Loader2 className="animate-spin" />}
               </Button>
             </Field>
@@ -117,7 +140,7 @@ export default function LoginForm() {
         />
         <FieldSeparator>Or continue with</FieldSeparator>
         <Field>
-          <Button variant="outline" type="button" onClick={loginWithGoogle}>
+          <Button variant="outline" type="button" onClick={registerWithGoogle}>
             <svg
               viewBox="-3 0 262 262"
               xmlns="http://www.w3.org/2000/svg"
@@ -145,12 +168,12 @@ export default function LoginForm() {
                 ></path>
               </g>
             </svg>
-            Login with Google
+            Sign up with Google
           </Button>
           <FieldDescription className="text-center">
-            Don&apos;t have an account?{" "}
-            <Link href="/auth/register" className="underline underline-offset-4">
-              Sign up
+            Already have an account?{" "}
+            <Link href="/auth/login" className="underline underline-offset-4">
+              Sign in
             </Link>
           </FieldDescription>
         </Field>

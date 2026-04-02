@@ -1,7 +1,7 @@
 import { prisma } from "./prisma"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { betterAuth } from "better-auth/minimal"
-import { openAPI } from "better-auth/plugins"
+import { emailOTP, openAPI } from "better-auth/plugins"
 
 export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL,
@@ -10,7 +10,8 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: false,
+    autoSignIn: false,
+    requireEmailVerification: true,
   },
   socialProviders: {
     google: {
@@ -34,6 +35,7 @@ export const auth = betterAuth({
       generateId: false,
     },
     cookiePrefix: process.env.COOKIE_PREFIX,
+    useSecureCookies: true,
   },
   rateLimit: {
     enabled: true,
@@ -41,5 +43,12 @@ export const auth = betterAuth({
     max: 10, // 10 requests per 15 minutes for auth endpoints
   },
   trustedOrigins: [process.env.FRONTEND_URL!],
-  plugins: [openAPI()],
+  plugins: [
+    openAPI(),
+    emailOTP({
+      async sendVerificationOTP({ email, otp, type }) {
+        console.log(`[OTP] ${email}: ${otp} (${type})`)
+      },
+    }),
+  ],
 })
