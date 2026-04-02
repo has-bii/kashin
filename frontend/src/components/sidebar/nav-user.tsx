@@ -24,7 +24,10 @@ import {
   EllipsisVerticalIcon,
   LogOutIcon,
 } from "lucide-react"
-import { useMemo } from "react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useCallback, useMemo } from "react"
+import { toast } from "sonner"
 
 interface UserData {
   name: string
@@ -33,6 +36,7 @@ interface UserData {
 }
 
 export function NavUser() {
+  const router = useRouter()
   const { data, isPending } = authClient.useSession()
 
   const { isMobile } = useSidebar()
@@ -42,6 +46,17 @@ export function NavUser() {
 
     return { name: data.user.name, email: data.user.email, avatar: data.user.image ?? undefined }
   }, [data, isPending])
+
+  const logoutHandler = useCallback(async () => {
+    const { error } = await authClient.signOut()
+
+    if (error) {
+      toast.error(error.message ?? "Unexpected error has occurred")
+      return
+    }
+
+    router.push("/auth/login")
+  }, [router])
 
   return (
     <SidebarMenu>
@@ -83,9 +98,11 @@ export function NavUser() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <CircleUserRoundIcon />
-                Account
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard/settings">
+                  <CircleUserRoundIcon />
+                  Settings
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <CreditCardIcon />
@@ -97,7 +114,7 @@ export function NavUser() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={logoutHandler}>
               <LogOutIcon />
               Log out
             </DropdownMenuItem>
