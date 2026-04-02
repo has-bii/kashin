@@ -12,14 +12,10 @@ import {
   FieldSeparator,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { CircleCheck, InfoIcon, Loader2 } from "lucide-react"
+import { InfoIcon, Loader2 } from "lucide-react"
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
 
 export default function LoginForm() {
-  const searchParams = useSearchParams()
-  const verified = searchParams.get("verified") === "true"
-  const reset = searchParams.get("reset") === "true"
   const { form, loginWithGoogle, error } = useLoginForm()
 
   return (
@@ -37,24 +33,6 @@ export default function LoginForm() {
             Enter your email below to login to your account
           </p>
         </div>
-        {verified && (
-          <Alert className="text-emerald-600">
-            <CircleCheck />
-            <AlertTitle>Email verified</AlertTitle>
-            <AlertDescription className="text-emerald-600/90">
-              Your email has been verified successfully. You can now log in.
-            </AlertDescription>
-          </Alert>
-        )}
-        {reset && (
-          <Alert className="text-emerald-600">
-            <CircleCheck />
-            <AlertTitle>Password reset</AlertTitle>
-            <AlertDescription className="text-emerald-600/90">
-              Your password has been reset successfully. You can now log in.
-            </AlertDescription>
-          </Alert>
-        )}
         {error && (
           <Alert variant="destructive">
             <InfoIcon />

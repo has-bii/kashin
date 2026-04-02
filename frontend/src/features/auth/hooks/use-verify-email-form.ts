@@ -1,11 +1,10 @@
 import { verifyEmailSchema } from "../validations/verify-email.schema"
 import { authClient } from "@/lib/auth-client"
 import { useForm } from "@tanstack/react-form"
-import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useRef, useState } from "react"
 
 export const useVerifyEmailForm = (email: string) => {
-  const router = useRouter()
+  const [isSuccess, setIsSuccess] = useState(false)
   const [error, setError] = useState("")
   const [resendCooldown, setResendCooldown] = useState(0)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -50,7 +49,7 @@ export const useVerifyEmailForm = (email: string) => {
           return
         }
 
-        router.push("/auth/login?verified=true")
+        setIsSuccess(true)
       } catch (error) {
         if (error instanceof Error) {
           setError(error.message ?? "Unexpected error has occurred")
@@ -78,5 +77,5 @@ export const useVerifyEmailForm = (email: string) => {
     }
   }, [email, resendCooldown])
 
-  return { form, error, resendOtp, resendCooldown }
+  return { form, error, resendOtp, resendCooldown, isSuccess }
 }

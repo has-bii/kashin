@@ -32,11 +32,6 @@ export const useRegisterForm = () => {
           return
         }
 
-        await authClient.emailOtp.sendVerificationOtp({
-          email: value.email,
-          type: "email-verification",
-        })
-
         router.push(`/auth/verify-email?email=${encodeURIComponent(value.email)}`)
       } catch (error) {
         if (error instanceof Error) {

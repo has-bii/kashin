@@ -5,7 +5,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { InfoIcon, Loader2 } from "lucide-react"
+import { CircleCheck, InfoIcon, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useEffect } from "react"
@@ -29,7 +29,7 @@ export default function ResetPasswordForm() {
 }
 
 function ResetPasswordFormInner({ email }: { email: string }) {
-  const { form, error, resendOtp, resendCooldown } = useResetPasswordForm(email)
+  const { form, error, resendOtp, resendCooldown, isSuccess } = useResetPasswordForm(email)
 
   return (
     <form
@@ -43,10 +43,19 @@ function ResetPasswordFormInner({ email }: { email: string }) {
         <div className="flex flex-col items-center gap-1 text-center">
           <h1 className="text-2xl font-bold">Reset your password</h1>
           <p className="text-muted-foreground text-sm text-balance">
-            Enter the code sent to{" "}
-            <span className="text-foreground font-medium">{email}</span> and your new password
+            Enter the code sent to <span className="text-foreground font-medium">{email}</span> and
+            your new password
           </p>
         </div>
+        {isSuccess && (
+          <Alert className="text-emerald-600">
+            <CircleCheck />
+            <AlertTitle>Password reset</AlertTitle>
+            <AlertDescription className="text-emerald-600/90">
+              Your password has been reset successfully. You can now log in.
+            </AlertDescription>
+          </Alert>
+        )}
         {error && (
           <Alert variant="destructive">
             <InfoIcon />
@@ -54,95 +63,101 @@ function ResetPasswordFormInner({ email }: { email: string }) {
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-        <form.Field
-          name="otp"
-          children={(field) => {
-            const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
-            return (
-              <Field data-invalid={isInvalid}>
-                <FieldLabel htmlFor={field.name}>Verification Code</FieldLabel>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  aria-invalid={isInvalid}
-                  placeholder="123456"
-                  maxLength={6}
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  autoComplete="one-time-code"
-                  className="text-center text-lg tracking-widest"
-                />
-                {isInvalid && <FieldError errors={field.state.meta.errors} />}
-              </Field>
-            )
-          }}
-        />
-        <form.Field
-          name="password"
-          children={(field) => {
-            const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
-            return (
-              <Field data-invalid={isInvalid}>
-                <FieldLabel htmlFor={field.name}>New Password</FieldLabel>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  aria-invalid={isInvalid}
-                  type="password"
-                  autoComplete="new-password"
-                />
-                {isInvalid && <FieldError errors={field.state.meta.errors} />}
-              </Field>
-            )
-          }}
-        />
-        <form.Field
-          name="confirmPassword"
-          children={(field) => {
-            const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
-            return (
-              <Field data-invalid={isInvalid}>
-                <FieldLabel htmlFor={field.name}>Confirm Password</FieldLabel>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  aria-invalid={isInvalid}
-                  type="password"
-                  autoComplete="new-password"
-                />
-                {isInvalid && <FieldError errors={field.state.meta.errors} />}
-              </Field>
-            )
-          }}
-        />
-        <form.Subscribe
-          children={({ isSubmitting, canSubmit }) => (
-            <Field>
-              <Button type="submit" disabled={isSubmitting || !canSubmit}>
-                Reset password
-                {isSubmitting && <Loader2 className="animate-spin" />}
-              </Button>
-            </Field>
-          )}
-        />
+        {!isSuccess && (
+          <>
+            <form.Field
+              name="otp"
+              children={(field) => {
+                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                return (
+                  <Field data-invalid={isInvalid}>
+                    <FieldLabel htmlFor={field.name}>Verification Code</FieldLabel>
+                    <Input
+                      id={field.name}
+                      name={field.name}
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      aria-invalid={isInvalid}
+                      placeholder="123456"
+                      maxLength={6}
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      autoComplete="one-time-code"
+                      className="text-center text-lg tracking-widest"
+                    />
+                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                  </Field>
+                )
+              }}
+            />
+            <form.Field
+              name="password"
+              children={(field) => {
+                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                return (
+                  <Field data-invalid={isInvalid}>
+                    <FieldLabel htmlFor={field.name}>New Password</FieldLabel>
+                    <Input
+                      id={field.name}
+                      name={field.name}
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      aria-invalid={isInvalid}
+                      type="password"
+                      autoComplete="new-password"
+                    />
+                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                  </Field>
+                )
+              }}
+            />
+            <form.Field
+              name="confirmPassword"
+              children={(field) => {
+                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                return (
+                  <Field data-invalid={isInvalid}>
+                    <FieldLabel htmlFor={field.name}>Confirm Password</FieldLabel>
+                    <Input
+                      id={field.name}
+                      name={field.name}
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      aria-invalid={isInvalid}
+                      type="password"
+                      autoComplete="new-password"
+                    />
+                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                  </Field>
+                )
+              }}
+            />
+            <form.Subscribe
+              children={({ isSubmitting, canSubmit }) => (
+                <Field>
+                  <Button type="submit" disabled={isSubmitting || !canSubmit}>
+                    Reset password
+                    {isSubmitting && <Loader2 className="animate-spin" />}
+                  </Button>
+                </Field>
+              )}
+            />
+          </>
+        )}
         <Field>
-          <Button
-            variant="outline"
-            type="button"
-            onClick={resendOtp}
-            disabled={resendCooldown > 0}
-          >
-            {resendCooldown > 0 ? `Resend code (${resendCooldown}s)` : "Resend code"}
-          </Button>
+          {!isSuccess && (
+            <Button
+              variant="outline"
+              type="button"
+              onClick={resendOtp}
+              disabled={resendCooldown > 0}
+            >
+              {resendCooldown > 0 ? `Resend code (${resendCooldown}s)` : "Resend code"}
+            </Button>
+          )}
           <FieldDescription className="text-center">
             <Link href="/auth/login" className="underline underline-offset-4">
               Back to login
