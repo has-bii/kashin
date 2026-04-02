@@ -92,9 +92,9 @@ function VerifyEmailFormInner({ email }: { email: string }) {
               }}
             />
             <form.Subscribe
-              children={({ isSubmitting, canSubmit }) => (
+              children={({ isSubmitting, canSubmit, isDirty }) => (
                 <Field>
-                  <Button type="submit" disabled={isSubmitting || !canSubmit}>
+                  <Button type="submit" disabled={isSubmitting || !canSubmit || !isDirty}>
                     Verify
                     {isSubmitting && <Loader2 className="animate-spin" />}
                   </Button>

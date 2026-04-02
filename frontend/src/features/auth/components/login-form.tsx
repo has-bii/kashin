@@ -94,9 +94,9 @@ export default function LoginForm() {
           }}
         />
         <form.Subscribe
-          children={({ isSubmitting, canSubmit }) => (
+          children={({ isSubmitting, canSubmit, isDirty }) => (
             <Field>
-              <Button type="submit" disabled={isSubmitting || !canSubmit}>
+              <Button type="submit" disabled={isSubmitting || !canSubmit || !isDirty}>
                 Login
                 {isSubmitting && <Loader2 className="animate-spin" />}
               </Button>

@@ -56,9 +56,9 @@ export default function ForgotPasswordForm() {
           }}
         />
         <form.Subscribe
-          children={({ isSubmitting, canSubmit }) => (
+          children={({ isSubmitting, canSubmit, isDirty }) => (
             <Field>
-              <Button type="submit" disabled={isSubmitting || !canSubmit}>
+              <Button type="submit" disabled={isSubmitting || !canSubmit || !isDirty}>
                 Send reset code
                 {isSubmitting && <Loader2 className="animate-spin" />}
               </Button>
