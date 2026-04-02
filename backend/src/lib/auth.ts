@@ -50,6 +50,7 @@ export const auth = betterAuth({
     emailOTP({
       changeEmail: {
         enabled: true,
+        verifyCurrentEmail: true,
       },
       overrideDefaultEmailVerification: true,
       async sendVerificationOTP({ email, otp, type }) {
