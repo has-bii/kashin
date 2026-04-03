@@ -41,7 +41,7 @@ export const useLoginForm = () => {
       setError("")
       const { error } = await authClient.signIn.social({
         provider: "google",
-        callbackURL: process.env.NEXT_PUBLIC_APP_URL,
+        callbackURL: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
       })
 
       if (error) {
