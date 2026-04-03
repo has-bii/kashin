@@ -1,5 +1,3 @@
-@AGENTS.md
-
 # Frontend — Next.js 16 + React 19 + shadcn/ui
 
 ## Feature module pattern
@@ -15,6 +13,7 @@ src/features/<name>/
 ```
 
 ### Validation pattern
+
 ```ts
 import { z } from "zod/v4"
 export const fooSchema = z.object({ ... })
@@ -22,6 +21,7 @@ export type FooDto = z.infer<typeof fooSchema>
 ```
 
 ### Query pattern
+
 ```ts
 import { queryOptions } from "@tanstack/react-query"
 import { authClient } from "@/lib/auth-client"
@@ -34,16 +34,19 @@ export const getFooQueryOptions = (id: string) => queryOptions({
 ## Feature modules
 
 ### `src/features/auth/`
+
 - **Components**: login-form, register-form, verify-email-form, forgot-password-form, reset-password-form
 - **Hooks**: use-register-form, use-forgot-password-form, use-verify-email-form
 - **Validations**: login, register, verify-email, forgot-password, reset-password
 
 ### `src/features/settings/profile/`
+
 - **Components**: change-avatar-form, change-email-form, change-name-form
 - **Hooks**: use-change-email-form, use-change-name-form
 - **Validations**: change-email, change-name
 
 ### `src/features/settings/authentication/`
+
 - **Components**: oauth-error-handler, change-password-form, sign-in-methods, social-method
 - **Hooks**: use-register-form
 - **Validations**: change-password
