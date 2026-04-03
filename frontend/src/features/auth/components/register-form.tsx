@@ -8,8 +8,8 @@ import {
   FieldDescription,
   FieldError,
   FieldGroup,
-  FieldSeparator,
   FieldLabel,
+  FieldSeparator,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { InfoIcon, Loader2 } from "lucide-react"
@@ -129,9 +129,9 @@ export default function RegisterForm() {
           }}
         />
         <form.Subscribe
-          children={({ isSubmitting, canSubmit }) => (
+          children={({ isSubmitting, canSubmit, isDirty }) => (
             <Field>
-              <Button type="submit" disabled={isSubmitting || !canSubmit}>
+              <Button type="submit" disabled={isSubmitting || !canSubmit || !isDirty}>
                 Sign up
                 {isSubmitting && <Loader2 className="animate-spin" />}
               </Button>

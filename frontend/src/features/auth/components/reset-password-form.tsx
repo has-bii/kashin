@@ -136,9 +136,9 @@ function ResetPasswordFormInner({ email }: { email: string }) {
               }}
             />
             <form.Subscribe
-              children={({ isSubmitting, canSubmit }) => (
+              children={({ isSubmitting, canSubmit, isDirty }) => (
                 <Field>
-                  <Button type="submit" disabled={isSubmitting || !canSubmit}>
+                  <Button type="submit" disabled={isSubmitting || !canSubmit || !isDirty}>
                     Reset password
                     {isSubmitting && <Loader2 className="animate-spin" />}
                   </Button>

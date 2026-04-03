@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { Wallet } from "lucide-react"
 import Link from "next/link"
 import { ReactNode } from "react"
@@ -22,7 +23,13 @@ export default function AuthLayout({ children }: Props) {
           <div className="w-full max-w-xs">{children}</div>
         </div>
       </div>
-      <div className="bg-muted relative hidden lg:block"></div>
+      <div className="bg-muted relative hidden lg:block">
+        <img
+          src="/images/calculator.webp"
+          alt="calculator"
+          className="absolute inset-0 size-full object-cover object-center"
+        />
+      </div>
     </div>
   )
 }

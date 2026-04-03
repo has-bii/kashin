@@ -48,6 +48,11 @@ export const auth = betterAuth({
   trustedOrigins: [process.env.FRONTEND_URL!],
   plugins: [
     emailOTP({
+      changeEmail: {
+        enabled: true,
+        verifyCurrentEmail: true,
+      },
+      overrideDefaultEmailVerification: true,
       async sendVerificationOTP({ email, otp, type }) {
         console.log(`[OTP] ${email}: ${otp} (${type})`)
       },

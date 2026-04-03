@@ -1,3 +1,5 @@
-import { VerifyEmailPage } from "@/features/auth/pages/verify-email.page"
+import VerifyEmailForm from "@/features/auth/components/verify-email-form"
 
-export default VerifyEmailPage
+export default function VerifyEmailPage() {
+  return <VerifyEmailForm />
+}

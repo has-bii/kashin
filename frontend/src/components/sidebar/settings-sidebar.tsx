@@ -1,7 +1,6 @@
 "use client"
 
 import { NavMain } from "@/components/sidebar/nav-main"
-import { NavSecondary } from "@/components/sidebar/nav-secondary"
 import { NavUser } from "@/components/sidebar/nav-user"
 import {
   Sidebar,
@@ -12,7 +11,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { ArrowLeft, UserCog } from "lucide-react"
+import { ArrowLeft, KeyRound, UserCog } from "lucide-react"
 import Link from "next/link"
 import * as React from "react"
 
@@ -22,6 +21,11 @@ const data = {
       title: "Profile",
       url: "/dashboard/settings",
       icon: <UserCog />,
+    },
+    {
+      title: "Authentication",
+      url: "/dashboard/settings/authentication",
+      icon: <KeyRound />,
     },
   ],
 }
