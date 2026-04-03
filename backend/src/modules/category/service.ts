@@ -1,44 +1,85 @@
+import { TransactionType } from "../../generated/prisma/enums"
+import {
+  CategoryPlainInputCreate,
+  CategoryPlainInputUpdate,
+} from "../../generated/prismabox/Category"
+import { Conflict } from "../../global/error"
 import { prisma } from "../../lib/prisma"
-import { CreateCategoryDto, UpdateCategoryDto } from "./model"
-import { TransactionType } from "../../generated/prisma/client"
+import { NotFoundError, status } from "elysia"
 
-export const categoryService = {
-  async list(userId: string, type?: TransactionType) {
+export abstract class CategoryService {
+  static async getAll(userId: string, type?: TransactionType) {
     return prisma.category.findMany({
-      where: { userId, ...(type ? { type } : {}) },
-      orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+      where: { userId, type },
+      orderBy: {
+        createdAt: "desc",
+      },
     })
-  },
+  }
 
-  async getById(id: string, userId: string) {
-    const category = await prisma.category.findFirst({ where: { id, userId } })
-
-    if (!category) throw { status: 404, message: "Category not found" }
-
-    return category
-  },
-
-  async create(userId: string, data: CreateCategoryDto) {
-    return prisma.category.create({
-      data: { ...data, userId },
+  static async getById(userId: string, id: string) {
+    return prisma.category.findUnique({
+      where: {
+        id,
+        userId,
+      },
     })
-  },
+  }
 
-  async update(id: string, userId: string, data: UpdateCategoryDto) {
-    const existing = await prisma.category.findFirst({ where: { id } })
+  static async create(userId: string, input: (typeof CategoryPlainInputCreate)["static"]) {
+    // Check unique name
+    const isExist = await prisma.category.findUnique({
+      where: {
+        name_userId: {
+          name: input.name,
+          userId,
+        },
+      },
+    })
+    if (isExist) throw new Conflict("Category with the same name already exists")
 
-    if (!existing) throw { status: 404, message: "Category not found" }
-    if (existing.userId !== userId) throw { status: 403, message: "Forbidden" }
+    const data = await prisma.category.create({
+      data: { ...input, userId },
+    })
 
-    return prisma.category.update({ where: { id }, data })
-  },
+    return status(201, data)
+  }
 
-  async delete(id: string, userId: string) {
-    const existing = await prisma.category.findFirst({ where: { id } })
+  static async update(
+    userId: string,
+    id: string,
+    input: (typeof CategoryPlainInputUpdate)["static"],
+  ) {
+    // Check unique name
+    if (input.name) {
+      const isExist = await prisma.category.findUnique({
+        where: {
+          name_userId: {
+            name: input.name,
+            userId,
+          },
+        },
+      })
 
-    if (!existing) throw { status: 404, message: "Category not found" }
-    if (existing.userId !== userId) throw { status: 403, message: "Forbidden" }
+      if (isExist) throw new Conflict("Category with the same name already exists")
+    }
 
-    return prisma.category.delete({ where: { id } })
-  },
+    return prisma.category.update({
+      where: { id, userId },
+      data: input,
+    })
+  }
+
+  static async delete(userId: string, id: string) {
+    // Check if exist
+    const isExist = await prisma.category.findUnique({
+      where: { id, userId },
+    })
+
+    if (!isExist) throw new NotFoundError("Category doesn't exist")
+
+    return prisma.category.delete({
+      where: { id, userId },
+    })
+  }
 }

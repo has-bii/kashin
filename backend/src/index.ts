@@ -1,5 +1,5 @@
 import { betterAuthView } from "./modules/auth"
-import { categoryModule } from "./modules/category"
+import { categoryController } from "./modules/category"
 import cors from "@elysiajs/cors"
 import { Elysia } from "elysia"
 
@@ -13,7 +13,7 @@ const app = new Elysia({ prefix: "/api" })
     }),
   )
   .all("/auth/*", betterAuthView)
-  .use(categoryModule)
+  .use(categoryController)
   .listen(Number(process.env.PORT || 3030))
 
 console.log(`🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`)

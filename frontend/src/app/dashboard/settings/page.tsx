@@ -1,4 +1,4 @@
-import MainPage from "@/components/sidebar/main-page"
+import { MainPage } from "@/components/sidebar/main-page"
 import { SiteHeader } from "@/components/sidebar/site-header"
 import ChangeAvatarForm from "@/features/settings/profile/components/change-avatar-form"
 import ChangeEmailForm from "@/features/settings/profile/components/change-email-form"
