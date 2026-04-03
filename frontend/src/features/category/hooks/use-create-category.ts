@@ -41,7 +41,7 @@ export const useCategoryCreateForm = ({ onSuccess }: Args = {}) => {
       toast.success(`${data.name} category has been added successfully`)
       form.reset()
       queryClient.invalidateQueries({
-        queryKey: getCategoriesQueryKey(),
+        queryKey: getCategoriesQueryKey({ type: null }),
       })
     },
     onError: (error) => {

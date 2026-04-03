@@ -5,10 +5,10 @@ import { useGetCategoryFilter } from "../hooks/use-get-category-filter"
 import { Button } from "@/components/ui/button"
 import { TransactionType } from "@/types/enums"
 
-const TYPES: Array<{ label: string; value: null | TransactionType }> = [
-  { label: "all", value: null },
-  { label: "expense", value: "expense" },
-  { label: "income", value: "income" },
+const TYPES: Array<{ label: string; value: TransactionType | null }> = [
+  { label: "All", value: null },
+  { label: "Expense", value: "expense" },
+  { label: "Income", value: "income" },
 ]
 
 export function CategoryFilterTab() {
@@ -19,7 +19,6 @@ export function CategoryFilterTab() {
       {TYPES.map((item) => (
         <Button
           key={item.label}
-          className="capitalize"
           variant={type === item.value ? "secondary" : "ghost"}
           onClick={() => setType(item.value as any)}
         >

@@ -35,14 +35,14 @@ export const useResponsiveDialog = () => {
   return ctx
 }
 
-type Props = {
+type ResponsiveDialogProps = {
   title: string
   description: string
   children: React.ReactNode
   trigger?: React.ReactNode
 }
 
-const ResponsiveDialog = React.memo(({ title, description, children, trigger }: Props) => {
+function ResponsiveDialog({ title, description, trigger, children }: ResponsiveDialogProps) {
   const [open, setOpen] = React.useState(false)
   const isMobile = useIsMobile()
 
@@ -78,7 +78,7 @@ const ResponsiveDialog = React.memo(({ title, description, children, trigger }: 
       </Dialog>
     </ResponsiveDialogContext.Provider>
   )
-})
+}
 
 ResponsiveDialog.displayName = "ResponsiveDialog"
 
@@ -86,14 +86,12 @@ type ResponsiveDialogFooterProps = {
   children?: React.ReactNode
 }
 
-const ResponsiveDialogFooter = React.memo(({ children }: ResponsiveDialogFooterProps) => {
+function ResponsiveDialogFooter({ children }: ResponsiveDialogFooterProps) {
   const { isMobile } = useResponsiveDialog()
 
   if (isMobile) return <DrawerFooter className="flex-col-reverse">{children}</DrawerFooter>
 
   return <DialogFooter>{children}</DialogFooter>
-})
-
-ResponsiveDialogFooter.displayName = "ResponsiveDialogFooter"
+}
 
 export { ResponsiveDialog, ResponsiveDialogFooter }

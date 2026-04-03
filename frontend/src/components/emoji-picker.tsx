@@ -20,14 +20,14 @@ export function EmojiPicker({ value, onChangeValue }: Props) {
   }
 
   return (
-    <div className="flex items-center justify-between gap-1">
+    <div className="flex items-center justify-between gap-3">
       {DEFAULT_ICON.map((icon, i) => (
         <Button
           key={i}
           type="button"
           variant="outline"
           className={cn(
-            "size-14 rounded-full p-0 text-3xl",
+            "aspect-square h-auto flex-1 shrink-0 rounded-full p-0 text-3xl",
             value === icon && "bg-primary/25 border-primary",
           )}
           onClick={() => handleChangeValue(icon)}
@@ -38,7 +38,10 @@ export function EmojiPicker({ value, onChangeValue }: Props) {
 
       <Popover open={open} modal onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button variant="outline" className="text-primary size-14 rounded-full p-0">
+          <Button
+            variant="outline"
+            className="text-primary aspect-square h-auto flex-1 rounded-full p-0"
+          >
             Search
           </Button>
         </PopoverTrigger>

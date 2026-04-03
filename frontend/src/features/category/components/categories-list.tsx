@@ -8,7 +8,7 @@ import { useSuspenseQuery } from "@tanstack/react-query"
 export default function CategoriesList() {
   const { type } = useGetCategoryFilter()
 
-  const { data } = useSuspenseQuery({ ...getCategoriesQueryOptions({ type: type ?? undefined }) })
+  const { data } = useSuspenseQuery({ ...getCategoriesQueryOptions({ type }) })
 
   return (
     <>

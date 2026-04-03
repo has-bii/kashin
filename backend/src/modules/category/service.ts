@@ -10,7 +10,7 @@ import { NotFoundError, status } from "elysia"
 export abstract class CategoryService {
   static async getAll(userId: string, type?: TransactionType) {
     return prisma.category.findMany({
-      where: { userId, type },
+      where: { userId, ...(type ? { type } : undefined) },
       orderBy: {
         createdAt: "desc",
       },
