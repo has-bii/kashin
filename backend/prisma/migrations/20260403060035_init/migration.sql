@@ -206,15 +206,3 @@ CREATE TABLE `attachments` (
     INDEX `attachments_emailLogId_idx`(`emailLogId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
-CREATE TABLE `default_categories` (
-    `id` BIGINT NOT NULL AUTO_INCREMENT,
-    `name` VARCHAR(100) NOT NULL,
-    `type` ENUM('expense', 'income') NOT NULL,
-    `icon` VARCHAR(50) NULL,
-    `color` VARCHAR(7) NULL,
-    `sortOrder` INTEGER NOT NULL DEFAULT 0,
-
-    PRIMARY KEY (`id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

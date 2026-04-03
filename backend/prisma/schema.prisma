@@ -311,14 +311,3 @@ model Attachment {
   @@index([emailLogId])
   @@map("attachments")
 }
-
-model DefaultCategory {
-  id        BigInt          @id @default(autoincrement())
-  name      String          @db.VarChar(100)
-  type      TransactionType
-  icon      String?         @db.VarChar(50)
-  color     String?         @db.VarChar(7)
-  sortOrder Int             @default(0)
-
-  @@map("default_categories")
-}
