@@ -188,6 +188,8 @@ model Transaction {
   attachments          Attachment[]
 
   @@index([userId])
+  @@index([categoryId])
+  @@index([recurringTxnId])
   @@index([userId, transactionDate])
   @@index([userId, type])
   @@index([userId, categoryId])
@@ -233,6 +235,7 @@ model AiExtraction {
 
   @@index([emailLogId])
   @@index([userId])
+  @@index([suggestedCategoryId])
   @@index([status])
   @@map("ai_extractions")
 }
@@ -257,6 +260,7 @@ model RecurringTransaction {
   transactions Transaction[]
 
   @@index([userId])
+  @@index([categoryId])
   @@index([isActive, nextDueDate])
   @@map("recurring_transactions")
 }

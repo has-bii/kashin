@@ -100,6 +100,8 @@ CREATE TABLE `transactions` (
 
     UNIQUE INDEX `transactions_aiExtractionId_key`(`aiExtractionId`),
     INDEX `transactions_userId_idx`(`userId`),
+    INDEX `transactions_categoryId_idx`(`categoryId`),
+    INDEX `transactions_recurringTxnId_idx`(`recurringTxnId`),
     INDEX `transactions_userId_transactionDate_idx`(`userId`, `transactionDate`),
     INDEX `transactions_userId_type_idx`(`userId`, `type`),
     INDEX `transactions_userId_categoryId_idx`(`userId`, `categoryId`),
@@ -141,6 +143,7 @@ CREATE TABLE `ai_extractions` (
     UNIQUE INDEX `ai_extractions_emailLogId_key`(`emailLogId`),
     INDEX `ai_extractions_emailLogId_idx`(`emailLogId`),
     INDEX `ai_extractions_userId_idx`(`userId`),
+    INDEX `ai_extractions_suggestedCategoryId_idx`(`suggestedCategoryId`),
     INDEX `ai_extractions_status_idx`(`status`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -162,6 +165,7 @@ CREATE TABLE `recurring_transactions` (
     `updatedAt` DATETIME(3) NOT NULL,
 
     INDEX `recurring_transactions_userId_idx`(`userId`),
+    INDEX `recurring_transactions_categoryId_idx`(`categoryId`),
     INDEX `recurring_transactions_isActive_nextDueDate_idx`(`isActive`, `nextDueDate`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

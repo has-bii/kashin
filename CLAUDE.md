@@ -8,23 +8,10 @@ Kashin is a full-stack expense/income tracker with AI-powered email receipt proc
 
 ## Architecture
 
-Two separate packages (not a monorepo — no shared workspaces):
+Two separate packages (not a monorepo — no shared workspaces). Each package has its own `CLAUDE.md` with detailed file maps and patterns:
 
 - **`backend/`** — Bun + Elysia framework, Prisma 7 ORM, TiDB Cloud (MySQL serverless), Better Auth
 - **`frontend/`** — Next.js 16 (App Router), React 19, Tailwind CSS 4, shadcn/ui, TanStack React Form
-
-### Backend structure
-- `src/index.ts` — Elysia app entry point, CORS config, route mounting
-- `src/lib/` — Core setup (Prisma client with TiDB adapter, Better Auth config)
-- `src/modules/` — Feature modules (e.g., `auth/`) mounted as Elysia routes
-- `prisma/schema.prisma` — 13 models, uses `relationMode = "prisma"` (no FK constraints)
-- `src/generated/` — Auto-generated Prisma client and Prismabox types (do not edit)
-
-### Frontend structure
-- `src/app/` — Next.js App Router pages
-- `src/features/` — Feature modules with co-located components, hooks, validations, pages
-- `src/components/ui/` — shadcn/ui components
-- `src/lib/` — Shared utilities (Axios API client, Better Auth client, cn helper)
 
 ### Auth flow
 Better Auth handles email/password + Google OAuth. Backend proxies all auth at `/api/auth/*`. Sessions use secure HTTP-only cookies. Frontend uses `better-auth/react` client hooks.
@@ -33,6 +20,13 @@ Better Auth handles email/password + Google OAuth. Backend proxies all auth at `
 - Base path: `/api`, port 3030
 - CORS configured for frontend origin
 - Rate limiting on auth endpoints (10 req / 15 min)
+
+### Database models (Prisma, `relationMode = "prisma"`)
+- **Auth**: User, Session, Account, Verification
+- **App core**: Category, Transaction, RecurringTransaction
+- **Email/AI**: EmailInbox, EmailLog, AiExtraction, Attachment
+- **System**: DefaultCategory
+- **Enums**: TransactionType (expense/income), TransactionSource (manual/email/recurring), EmailLogStatus, AiExtractionStatus, RecurringFrequency
 
 ## Commands
 
@@ -48,10 +42,10 @@ bunx prisma db push  # Push schema to database
 ### Frontend
 ```bash
 cd frontend
-npm install
-npm run dev          # Dev server (port 3000)
-npm run build        # Production build
-npm run lint         # ESLint
+pnpm install
+pnpm dev             # Dev server (port 3000)
+pnpm build           # Production build
+pnpm lint            # ESLint
 ```
 
 ## Key conventions
