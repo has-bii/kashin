@@ -1,6 +1,6 @@
 "use client"
 
-import { getAccountInfoQueryOptions } from "../api/get-account-info"
+import { getAccountInfoQueryOptions } from "../api/get-account-info.query"
 import { Button } from "@/components/ui/button"
 import { authClient } from "@/lib/auth-client"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
