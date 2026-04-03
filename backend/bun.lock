@@ -12,6 +12,7 @@
         "better-auth": "^1.5.6",
         "elysia": "latest",
         "prismabox": "^1.1.26",
+        "zod": "^4.3.6",
       },
       "devDependencies": {
         "@trivago/prettier-plugin-sort-imports": "^6.0.2",
