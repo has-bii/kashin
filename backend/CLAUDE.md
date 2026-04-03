@@ -6,16 +6,17 @@
 src/index.ts                         — Elysia entry, CORS config, mounts all modules at /api
 src/lib/auth.ts                      — Better Auth server config (email/password, Google OAuth, rate limiting)
 src/lib/prisma.ts                    — Prisma client with TiDB Cloud serverless adapter
+src/macros/
+  auth.macro.ts                      — Elysia macro: auth guard via { auth: true } route option
+src/global/
+  error.ts                           — Custom error classes (Conflict 409)
 src/modules/
   auth/
     index.ts                         — Raw handler proxying all auth requests to Better Auth
   category/
-    index.ts                         — Elysia plugin (controller): routes, auth guard, Zod validation
+    index.ts                         — Elysia plugin (controller): routes, auth guard, prismabox validation
     service.ts                       — Business logic and Prisma queries (always userId-scoped)
-    model.ts                         — Zod v4 schemas and inferred TS types for request bodies
-src/utils/
-  session/
-    index.ts                         — getSession(request) — wraps auth.api.getSession()
+    query.ts                         — Elysia typebox schemas for query parameters
 src/generated/prisma/                — Auto-generated Prisma client (DO NOT EDIT)
 src/generated/prismabox/             — Auto-generated Elysia validation schemas from Prisma models (DO NOT EDIT)
 prisma/schema.prisma                 — 13 models, relationMode = "prisma" (no FK constraints)
@@ -24,7 +25,7 @@ prisma/schema.prisma                 — 13 models, relationMode = "prisma" (no 
 ## Database models
 
 ### Auth tables (managed by Better Auth)
-- **User** — id (UUID v7), name, email, emailVerified, image, currency, createdAt, updatedAt
+- **User** — id (UUID v7), name, email, emailVerified, image, currency, timezone, createdAt, updatedAt
 - **Session** — id, expiresAt, token, ipAddress, userAgent → User
 - **Account** — id, providerId, accountId, password hash → User
 - **Verification** — id, identifier, value, expiresAt
@@ -36,7 +37,7 @@ prisma/schema.prisma                 — 13 models, relationMode = "prisma" (no 
 
 ### Email/AI pipeline
 - **EmailInbox** — id (UUID v7), email, imapHost/Port/User/Password → User
-- **EmailLog** — id (BigInt), status (received/processing/parsed/skipped/error), subject, from → User, EmailInbox
+- **EmailLog** — id (BigInt), status (received/processing/parsed/failed), subject, from → User, EmailInbox
 - **AiExtraction** — id (BigInt), status (pending/confirmed/rejected/edited), extractedData → EmailLog, Transaction
 - **Attachment** — id (BigInt), fileName, fileUrl, fileType → Transaction
 
@@ -47,71 +48,99 @@ prisma/schema.prisma                 — 13 models, relationMode = "prisma" (no 
 
 Each app module lives in `src/modules/<name>/` with three files:
 
-| File         | Role                                                                 |
-|--------------|----------------------------------------------------------------------|
-| `model.ts`   | Zod v4 schemas (`createXSchema`, `updateXSchema`) + inferred types  |
-| `service.ts` | Prisma queries — all methods receive `userId` and scope queries to it |
-| `index.ts`   | Elysia plugin (controller) — routes, auth guard, Zod validation      |
+| File         | Role                                                                         |
+|--------------|------------------------------------------------------------------------------|
+| `query.ts`   | Elysia typebox schemas (`t.Object(...)`) for query string validation         |
+| `service.ts` | Abstract class with static methods — all methods receive `userId` first      |
+| `index.ts`   | Elysia plugin (controller) — routes, auth macro, prismabox body validation   |
 
 **Steps to add a module:**
-1. Create `src/modules/<name>/{model,service,index}.ts`
+1. Create `src/modules/<name>/{query,service,index}.ts`
 2. Export an Elysia plugin from `index.ts` using the pattern below
-3. Mount in `src/index.ts` with `.use(<name>Module)`
+3. Mount in `src/index.ts` with `.use(<name>Controller)`
 
 **Controller pattern (`index.ts`):**
 ```typescript
-export const xModule = new Elysia({ prefix: "/xs" })
-  .derive(async ({ request }) => ({ session: await getSession(request) }))
-  .onBeforeHandle(({ session, status }) => {
-    if (!session) return status(401, { error: "Unauthorized" })
+import { XPlainInputCreate, XPlainInputUpdate } from "../../generated/prismabox/X"
+import { authMacro } from "../../macros/auth.macro"
+import { getAllQuery } from "./query"
+import { XService } from "./service"
+import Elysia from "elysia"
+
+export const xController = new Elysia({ prefix: "/x" })
+  .use(authMacro)
+  .get("/", async ({ user, query }) => XService.getAll(user.id, query.type), {
+    auth: true,
+    query: getAllQuery,
   })
-  .get("/", async ({ session, status }) => { ... })
-  .post("/", async ({ session, body, status }) => { ... })
-  // etc.
+  .post("/", async ({ user, body }) => XService.create(user.id, body), {
+    auth: true,
+    body: XPlainInputCreate,
+  })
+  .put("/:id", async ({ user, body, params }) => XService.update(user.id, params.id, body), {
+    auth: true,
+    body: XPlainInputUpdate,
+  })
+  .delete("/:id", async ({ user, params }) => XService.delete(user.id, params.id), {
+    auth: true,
+  })
 ```
 
 **Service pattern (`service.ts`):**
 ```typescript
-export const xService = {
-  async list(userId: string) { ... },
-  async getById(id: string, userId: string) {
-    const item = await prisma.x.findFirst({ where: { id, userId } })
-    if (!item) throw { status: 404, message: "Not found" }
-    return item
-  },
-  async update(id: string, userId: string, data: UpdateXDto) {
-    const existing = await prisma.x.findFirst({ where: { id } })
-    if (!existing) throw { status: 404, message: "Not found" }
-    if (existing.userId !== userId) throw { status: 403, message: "Forbidden" }
-    return prisma.x.update({ where: { id }, data })
-  },
+import { XPlainInputCreate } from "../../generated/prismabox/X"
+import { Conflict } from "../../global/error"
+import { prisma } from "../../lib/prisma"
+import { NotFoundError, status } from "elysia"
+
+export abstract class XService {
+  static async getAll(userId: string) {
+    return prisma.x.findMany({ where: { userId } })
+  }
+
+  static async create(userId: string, input: (typeof XPlainInputCreate)["static"]) {
+    // Check uniqueness constraints
+    const exists = await prisma.x.findUnique({ where: { name_userId: { name: input.name, userId } } })
+    if (exists) throw new Conflict("X with the same name already exists")
+
+    return status(201, await prisma.x.create({ data: { ...input, userId } }))
+  }
+
+  static async delete(userId: string, id: string) {
+    const exists = await prisma.x.findUnique({ where: { id, userId } })
+    if (!exists) throw new NotFoundError("X doesn't exist")
+
+    return prisma.x.delete({ where: { id, userId } })
+  }
 }
 ```
 
-**Model pattern (`model.ts`):**
+**Query pattern (`query.ts`):**
 ```typescript
-import { z } from "zod/v4"
-export const createXSchema = z.object({ ... })
-export const updateXSchema = createXSchema.partial()
-export type CreateXDto = z.infer<typeof createXSchema>
-export type UpdateXDto = z.infer<typeof updateXSchema>
+import { t } from "elysia"
+
+export const getAllQuery = t.Object({
+  type: t.Optional(t.Union([t.Literal("expense"), t.Literal("income")])),
+})
 ```
 
 ## Key patterns
 - **Auth module** uses a raw handler pattern (not a plugin) — exception, not the rule
-- **App modules** use the Elysia plugin pattern with `.derive()` + `.onBeforeHandle()` for auth
-- **Session utility** — always use `getSession(request)` from `src/utils/session/index.ts`
-- **Ownership checks** — service throws `{ status, message }` plain objects; controller catches and forwards via `status(code, body)`
-- **Zod v4** — `import { z } from "zod/v4"` for all validation schemas
+- **Auth macro** — `src/macros/auth.macro.ts` provides `{ auth: true }` route option; injects `user` and `session` into context
+- **Body validation** — use prismabox auto-generated types from `src/generated/prismabox/` (e.g., `XPlainInputCreate`)
+- **Query validation** — use Elysia's `t` typebox in `query.ts` files
+- **Type extraction** — `(typeof XPlainInputCreate)["static"]` to get the TS type from prismabox validators
+- **Non-200 status codes** — `import { status } from "elysia"` and return `status(201, data)`
+- **Error classes** — `NotFoundError` from elysia (404), `Conflict` from `src/global/error.ts` (409)
 - **Prisma client** — import from `src/lib/prisma.ts` (uses `@tidbcloud/prisma-adapter`, not standard MySQL)
 - **No FK enforcement** — `relationMode = "prisma"`, so always filter by `userId` explicitly
 - Run `bunx prisma generate` after any schema change to regenerate client + prismabox types
 
 ## Error response convention
 
-| Scenario           | Status | Body                        |
-|--------------------|--------|-----------------------------|
-| No session         | 401    | `{ error: "Unauthorized" }` |
-| Zod parse failure  | 422    | `{ error: issues[] }`       |
-| Record not found   | 404    | `{ error: "Not found" }`    |
-| Wrong user         | 403    | `{ error: "Forbidden" }`    |
+| Scenario           | Status | Thrown with                                      |
+|--------------------|--------|--------------------------------------------------|
+| No session         | 401    | Auth macro returns `status(401, { error })` auto |
+| Validation failure | 422    | Elysia handles automatically from schema         |
+| Record not found   | 404    | `throw new NotFoundError("message")`             |
+| Duplicate/conflict | 409    | `throw new Conflict("message")`                  |
