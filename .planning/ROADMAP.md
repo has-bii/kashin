@@ -12,7 +12,7 @@ From working auth and categories to a fully functional personal finance tracker.
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Transaction Backend** - CRUD API with server-side filtering, pagination, and v2-ready schema
+- [x] **Phase 1: Transaction Backend** - CRUD API with server-side filtering, pagination, and v2-ready schema (completed 2026-04-04)
 - [ ] **Phase 2: Transaction Frontend** - Form, list, filters, bulk actions, and CSV export
 - [ ] **Phase 3: Dashboard Backend** - Read-only aggregation endpoints for summary, trends, and category breakdown
 - [ ] **Phase 4: Dashboard Frontend** - Connect existing dashboard shell to real data with charts and widgets
@@ -33,7 +33,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 Plans:
 - [x] 01-01-PLAN.md — Query schemas + TransactionService with full CRUD, pagination, search, and bulk-delete
-- [ ] 01-02-PLAN.md — Transaction controller routes + mount in app entry point
+- [x] 01-02-PLAN.md — Transaction controller routes + mount in app entry point
 
 ### Phase 2: Transaction Frontend
 **Goal**: Users can manage their transactions through the UI — creating, editing, deleting, filtering, and exporting
@@ -95,7 +95,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Transaction Backend | 0/2 | Not started | - |
+| 1. Transaction Backend | 2/2 | Complete   | 2026-04-04 |
 | 2. Transaction Frontend | 0/4 | Not started | - |
 | 3. Dashboard Backend | 0/3 | Not started | - |
 | 4. Dashboard Frontend | 0/3 | Not started | - |
