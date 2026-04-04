@@ -6,7 +6,7 @@ Kashin — full-stack expense/income tracker with AI-powered email receipt proce
 
 ## Architecture
 
-- **`backend/`** — Bun + Elysia, Prisma 7 ORM, TiDB Cloud (MySQL serverless), Better Auth
+- **`backend/`** — Bun + Elysia, Prisma 7 ORM, PostgreSQL via `@prisma/adapter-pg`, Better Auth
 - **`frontend/`** — Next.js 16 (App Router), React 19, Tailwind CSS 4, shadcn/ui, TanStack React Form
 
 Each package has its own `CLAUDE.md` with directory maps.
@@ -26,8 +26,8 @@ cd frontend && pnpm install && pnpm dev
 ## Key conventions
 
 - **IDs**: UUID v7 for user-facing tables, BigInt auto-increment for internal
-- **DB adapter**: TiDB Cloud serverless via `@tidbcloud/prisma-adapter` (not standard MySQL)
-- **No FK enforcement**: `relationMode = "prisma"` — always filter by `userId`
+- **DB adapter**: PostgreSQL via `@prisma/adapter-pg`
+- **FK enforcement**: Real foreign keys with `onDelete` cascade — always filter by `userId`
 - **Validation**: Backend uses prismabox (auto-generated from Prisma). Frontend uses Zod v4
 - **Styling**: Tailwind CSS 4 + shadcn/ui, `cn()` utility (clsx + tailwind-merge)
 - **Formatting**: Prettier with import sorting + Tailwind class sorting

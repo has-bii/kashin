@@ -13,7 +13,7 @@ src/modules/<name>/service.ts        — Business logic (abstract class, static 
 src/modules/<name>/query.ts          — Typebox query param schemas
 src/generated/prisma/                — Auto-generated Prisma client (DO NOT EDIT)
 src/generated/prismabox/             — Auto-generated Elysia validation schemas (DO NOT EDIT)
-prisma/schema.prisma                 — All models, relationMode = "prisma"
+prisma/schema.prisma                 — All models, PostgreSQL with real FKs
 ```
 
 ## Key patterns

@@ -75,7 +75,7 @@ model User {
   accounts      Account[]
 
   // App-specific profile fields
-  currency String @default("IDR") @db.VarChar(3)
+  currency String @default("IDR") @db.Char(3)
   timezone String @default("Asia/Jakarta") @db.VarChar(64)
 
   // App relations
@@ -96,7 +96,7 @@ model Session {
   token     String   @db.VarChar(255)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  ipAddress String?  @db.VarChar(45)
+  ipAddress String?  @db.Inet
   userAgent String?  @db.VarChar(512)
   userId    String   @db.Uuid
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -148,7 +148,7 @@ model Category {
   name      String          @db.VarChar(100)
   type      TransactionType
   icon      String          @db.VarChar(50)
-  color     String          @db.VarChar(7)
+  color     String          @db.Char(7)
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
 
@@ -171,7 +171,7 @@ model Transaction {
   aiExtractionId  String?           @unique @db.Uuid
   type            TransactionType
   amount          Decimal           @db.Decimal(15, 2)
-  currency        String            @default("IDR") @db.VarChar(3)
+  currency        String            @default("IDR") @db.Char(3)
   transactionDate DateTime          @db.Date
   description     String?           @db.VarChar(500)
   notes           String?           @db.Text
@@ -191,7 +191,7 @@ model Transaction {
   @@index([userId, transactionDate])
   @@index([userId, type])
   @@index([userId, categoryId])
-  @@index([source])
+  @@index([userId, source])
   @@map("transactions")
 }
 
@@ -216,25 +216,25 @@ model AiExtraction {
   userId              String             @db.Uuid
   extractedVendor     String?            @db.VarChar(255)
   extractedAmount     Decimal?           @db.Decimal(15, 2)
-  extractedCurrency   String?            @db.VarChar(3)
+  extractedCurrency   String?            @db.Char(3)
   extractedDate       DateTime?          @db.Date
   suggestedCategoryId String?            @db.Uuid
   extractedType       TransactionType?
   extractedNotes      String?            @db.Text
-  confidenceScore     Float?             @db.DoublePrecision
+  confidenceScore     Float?             @db.Real
   status              AiExtractionStatus @default(pending)
   confirmedAt         DateTime?
   createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
 
   emailLog          EmailLog     @relation(fields: [emailLogId], references: [id], onDelete: Cascade)
   user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   suggestedCategory Category?    @relation("SuggestedCategory", fields: [suggestedCategoryId], references: [id], onDelete: SetNull)
   transaction       Transaction?
 
-  @@index([emailLogId])
   @@index([userId])
   @@index([suggestedCategoryId])
-  @@index([status])
+  @@index([userId, status])
   @@map("ai_extractions")
 }
 
@@ -244,7 +244,7 @@ model RecurringTransaction {
   categoryId        String?            @db.Uuid
   type              TransactionType
   amount            Decimal            @db.Decimal(15, 2)
-  currency          String             @default("IDR") @db.VarChar(3)
+  currency          String             @default("IDR") @db.Char(3)
   description       String             @db.VarChar(500)
   frequency         RecurringFrequency
   nextDueDate       DateTime           @db.Date
@@ -287,7 +287,7 @@ model EmailLog {
 
   @@index([inboxId])
   @@index([userId])
-  @@index([status])
+  @@index([userId, status])
   @@index([receivedAt])
   @@map("email_logs")
 }
@@ -299,8 +299,9 @@ model Attachment {
   fileUrl       String   @db.VarChar(1024)
   fileName      String   @db.VarChar(255)
   fileType      String?  @db.VarChar(100)
-  fileSize      Int?
+  fileSize      BigInt?
   createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   transaction Transaction? @relation(fields: [transactionId], references: [id], onDelete: Cascade)
   emailLog    EmailLog?    @relation(fields: [emailLogId], references: [id], onDelete: Cascade)
