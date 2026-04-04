@@ -49,7 +49,7 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Transaction feature module scaffold + TanStack Query options (list, create, update, delete)
+- [x] 02-01-PLAN.md — Transaction feature module scaffold + TanStack Query options (list, create, update, delete)
 - [ ] 02-02-PLAN.md — TransactionForm (create/edit) + delete confirm dialog
 - [ ] 02-03-PLAN.md — TransactionList with filters (nuqs URL state), search, pagination
 - [ ] 02-04-PLAN.md — Bulk-select UI + bulk-delete action + CSV export
@@ -96,6 +96,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Transaction Backend | 2/2 | Complete   | 2026-04-04 |
-| 2. Transaction Frontend | 0/4 | Not started | - |
+| 2. Transaction Frontend | 1/4 | In Progress|  |
 | 3. Dashboard Backend | 0/3 | Not started | - |
 | 4. Dashboard Frontend | 0/3 | Not started | - |
