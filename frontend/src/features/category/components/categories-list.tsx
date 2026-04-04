@@ -4,6 +4,7 @@ import { getCategoriesQueryOptions } from "../api/get-categories.query"
 import { useGetCategoryFilter } from "../hooks/use-get-category-filter"
 import { Category } from "../types"
 import { CategoryCard } from "./category-card"
+import CategoryDelete from "./category-delete"
 import { CategoryForm } from "./category-form"
 import { ResponsiveDialog } from "@/components/responsive-dialog"
 import { Button } from "@/components/ui/button"
@@ -23,6 +24,14 @@ export default function CategoriesList() {
   const selectCategoryUpdate = (data: Category) => setCategoryUpdate({ state: true, data })
   const closeCategoryUpdate = () => setCategoryUpdate((prev) => ({ ...prev, state: false }))
 
+  // Delete state
+  const [categoryDelete, setCategoryDelete] = React.useState<{
+    state: boolean
+    data: Category | null
+  }>({ state: false, data: null })
+  const selectCategoryDelete = (data: Category) => setCategoryDelete({ state: true, data })
+  const closeCategoryDelete = () => setCategoryDelete((prev) => ({ ...prev, state: false }))
+
   return (
     <>
       {data.map((category) => (
@@ -30,6 +39,7 @@ export default function CategoriesList() {
           key={category.id}
           data={category}
           onUpdate={() => selectCategoryUpdate(category)}
+          onDelete={() => selectCategoryDelete(category)}
         />
       ))}
 
@@ -59,6 +69,15 @@ export default function CategoriesList() {
         onOpenChange={closeCategoryUpdate}
       >
         <CategoryForm mode="update" data={categoryUpdate.data} />
+      </ResponsiveDialog>
+
+      <ResponsiveDialog
+        title={`Delete "${categoryDelete.data?.name}"?`}
+        description="This will permanently delete the category. This action cannot be undone."
+        open={categoryDelete.state}
+        onOpenChange={closeCategoryDelete}
+      >
+        <CategoryDelete data={categoryDelete.data} close={closeCategoryDelete} />
       </ResponsiveDialog>
     </>
   )
