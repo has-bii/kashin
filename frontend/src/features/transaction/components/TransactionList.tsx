@@ -7,6 +7,7 @@ import { getTransactionsQueryOptions } from "@/features/transaction/api/get-tran
 import { useTransactionFilters } from "@/features/transaction/hooks/use-transaction-filters"
 import type { Transaction } from "@/features/transaction/types"
 import { Badge } from "@/components/ui/badge"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { cn } from "@/lib/utils"
 import { useQuery } from "@tanstack/react-query"
@@ -16,6 +17,9 @@ import { TransactionPagination } from "./TransactionPagination"
 
 type TransactionListProps = {
   onRowClick?: (transaction: Transaction) => void
+  selectedIds?: Set<string>
+  onToggleId?: (id: string) => void
+  onToggleAll?: (ids: string[]) => void
 }
 
 function formatAmount(amount: string, type: Transaction["type"]): string {
@@ -28,7 +32,12 @@ function formatAmount(amount: string, type: Transaction["type"]): string {
   return type === "expense" ? `-${formatted}` : `+${formatted}`
 }
 
-export function TransactionList({ onRowClick }: TransactionListProps) {
+export function TransactionList({
+  onRowClick,
+  selectedIds,
+  onToggleId,
+  onToggleAll,
+}: TransactionListProps) {
   const { filters, setFilters, resolvedDateFrom, resolvedDateTo } = useTransactionFilters()
 
   const queryParams = {
@@ -50,6 +59,13 @@ export function TransactionList({ onRowClick }: TransactionListProps) {
   const totalPages = data?.totalPages ?? 1
   const currentPage = data?.page ?? 1
 
+  const hasCheckboxes = !!selectedIds && !!onToggleId && !!onToggleAll
+
+  const allSelected =
+    hasCheckboxes && transactions.length > 0 && transactions.every((tx) => selectedIds.has(tx.id))
+  const someSelected =
+    hasCheckboxes && transactions.some((tx) => selectedIds.has(tx.id)) && !allSelected
+
   if (transactions.length === 0) {
     return (
       <Empty>
@@ -69,7 +85,21 @@ export function TransactionList({ onRowClick }: TransactionListProps) {
   return (
     <div className="flex flex-col gap-1">
       {/* Table header */}
-      <div className="grid grid-cols-[1fr_1fr_1fr_auto_2fr] gap-4 px-4 py-2 text-xs font-medium text-muted-foreground">
+      <div
+        className={cn(
+          "grid items-center gap-4 px-4 py-2 text-xs font-medium text-muted-foreground",
+          hasCheckboxes
+            ? "grid-cols-[auto_1fr_1fr_1fr_auto_2fr]"
+            : "grid-cols-[1fr_1fr_1fr_auto_2fr]",
+        )}
+      >
+        {hasCheckboxes && (
+          <Checkbox
+            checked={allSelected ? true : someSelected ? "indeterminate" : false}
+            onCheckedChange={() => onToggleAll(transactions.map((tx) => tx.id))}
+            aria-label="Select all"
+          />
+        )}
         <span>Date</span>
         <span>Amount</span>
         <span>Category</span>
@@ -80,33 +110,54 @@ export function TransactionList({ onRowClick }: TransactionListProps) {
       {/* Rows */}
       <div className="flex flex-col gap-1">
         {transactions.map((transaction) => (
-          <button
+          <div
             key={transaction.id}
-            onClick={() => onRowClick?.(transaction)}
             className={cn(
-              "grid grid-cols-[1fr_1fr_1fr_auto_2fr] items-center gap-4 rounded-xl px-4 py-3 text-sm transition-colors text-left",
-              onRowClick
-                ? "hover:bg-muted/50 cursor-pointer"
-                : "cursor-default",
+              "grid items-center gap-4 rounded-xl px-4 py-3 text-sm transition-colors",
+              hasCheckboxes
+                ? "grid-cols-[auto_1fr_1fr_1fr_auto_2fr]"
+                : "grid-cols-[1fr_1fr_1fr_auto_2fr]",
+              onRowClick ? "hover:bg-muted/50" : "",
             )}
           >
+            {/* Checkbox */}
+            {hasCheckboxes && (
+              <div onClick={(e) => e.stopPropagation()}>
+                <Checkbox
+                  checked={selectedIds.has(transaction.id)}
+                  onCheckedChange={() => onToggleId(transaction.id)}
+                  aria-label="Select transaction"
+                />
+              </div>
+            )}
+
             {/* Date */}
-            <span className="text-muted-foreground">
+            <button
+              className="text-left text-muted-foreground"
+              onClick={() => onRowClick?.(transaction)}
+              tabIndex={-1}
+            >
               {format(new Date(transaction.transactionDate), "MMM dd, yyyy")}
-            </span>
+            </button>
 
             {/* Amount */}
-            <span
+            <button
               className={cn(
-                "font-medium tabular-nums",
+                "text-left font-medium tabular-nums",
                 transaction.type === "income" ? "text-green-600" : "text-red-600",
               )}
+              onClick={() => onRowClick?.(transaction)}
+              tabIndex={-1}
             >
               {formatAmount(transaction.amount, transaction.type)}
-            </span>
+            </button>
 
             {/* Category */}
-            <span className="flex items-center gap-1.5">
+            <button
+              className="flex items-center gap-1.5 text-left"
+              onClick={() => onRowClick?.(transaction)}
+              tabIndex={-1}
+            >
               {transaction.category ? (
                 <>
                   <span>{transaction.category.icon}</span>
@@ -115,22 +166,28 @@ export function TransactionList({ onRowClick }: TransactionListProps) {
               ) : (
                 <span className="text-muted-foreground">Uncategorized</span>
               )}
-            </span>
+            </button>
 
             {/* Type badge */}
-            <Badge variant={transaction.type === "income" ? "default" : "destructive"}>
-              {transaction.type === "income" ? "Income" : "Expense"}
-            </Badge>
+            <button onClick={() => onRowClick?.(transaction)} tabIndex={-1}>
+              <Badge variant={transaction.type === "income" ? "default" : "destructive"}>
+                {transaction.type === "income" ? "Income" : "Expense"}
+              </Badge>
+            </button>
 
             {/* Note */}
-            <span className="truncate text-muted-foreground">
+            <button
+              className="truncate text-left text-muted-foreground"
+              onClick={() => onRowClick?.(transaction)}
+              tabIndex={-1}
+            >
               {transaction.description
                 ? transaction.description.length > 50
                   ? `${transaction.description.slice(0, 50)}…`
                   : transaction.description
                 : "—"}
-            </span>
-          </button>
+            </button>
+          </div>
         ))}
       </div>
 
