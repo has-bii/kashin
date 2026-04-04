@@ -19,12 +19,12 @@ Requirements for Milestone 1. Each maps to a roadmap phase.
 
 ### Transaction Management
 
-- [ ] **TXN-01**: User can create a transaction with type (expense/income), amount, date, category, and optional description/notes
-- [ ] **TXN-02**: User can edit any of their own transactions
-- [ ] **TXN-03**: User can delete a transaction
-- [ ] **TXN-04**: User can view their transaction list filtered by date range, type, and/or category
-- [ ] **TXN-05**: User can search transactions by description or notes text
-- [ ] **TXN-06**: User can bulk-delete multiple selected transactions
+- [x] **TXN-01**: User can create a transaction with type (expense/income), amount, date, category, and optional description/notes
+- [x] **TXN-02**: User can edit any of their own transactions
+- [x] **TXN-03**: User can delete a transaction
+- [x] **TXN-04**: User can view their transaction list filtered by date range, type, and/or category
+- [x] **TXN-05**: User can search transactions by description or notes text
+- [x] **TXN-06**: User can bulk-delete multiple selected transactions
 
 ### Dashboard
 
@@ -76,12 +76,12 @@ Deferred to Milestone 2. Not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TXN-01 | Phase 1 | Pending |
-| TXN-02 | Phase 1 | Pending |
-| TXN-03 | Phase 1 | Pending |
-| TXN-04 | Phase 1 | Pending |
-| TXN-05 | Phase 1 | Pending |
-| TXN-06 | Phase 1 | Pending |
+| TXN-01 | Phase 1 | Complete |
+| TXN-02 | Phase 1 | Complete |
+| TXN-03 | Phase 1 | Complete |
+| TXN-04 | Phase 1 | Complete |
+| TXN-05 | Phase 1 | Complete |
+| TXN-06 | Phase 1 | Complete |
 | DASH-01 | Phase 3 + Phase 4 | Pending |
 | DASH-02 | Phase 3 + Phase 4 | Pending |
 | DASH-03 | Phase 3 + Phase 4 | Pending |
