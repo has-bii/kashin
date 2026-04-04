@@ -96,8 +96,8 @@ model Session {
   token     String   @db.VarChar(255)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  ipAddress String?  @db.Inet
-  userAgent String?  @db.VarChar(512)
+  ipAddress String?  @db.VarChar(45)
+  userAgent String?  @db.Text
   userId    String   @db.Uuid
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -117,7 +117,7 @@ model Account {
   idToken               String?   @db.Text
   accessTokenExpiresAt  DateTime?
   refreshTokenExpiresAt DateTime?
-  scope                 String?   @db.VarChar(255)
+  scope                 String?   @db.Text
   password              String?   @db.VarChar(255)
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
@@ -173,7 +173,7 @@ model Transaction {
   amount          Decimal           @db.Decimal(15, 2)
   currency        String            @default("IDR") @db.Char(3)
   transactionDate DateTime          @db.Date
-  description     String?           @db.VarChar(500)
+  description     String?           @db.VarChar(255)
   notes           String?           @db.Text
   source          TransactionSource @default(manual)
   createdAt       DateTime          @default(now())
@@ -245,7 +245,7 @@ model RecurringTransaction {
   type              TransactionType
   amount            Decimal            @db.Decimal(15, 2)
   currency          String             @default("IDR") @db.Char(3)
-  description       String             @db.VarChar(500)
+  description       String             @db.VarChar(255)
   frequency         RecurringFrequency
   nextDueDate       DateTime           @db.Date
   lastGeneratedDate DateTime?          @db.Date
@@ -272,7 +272,7 @@ model EmailLog {
   inboxId      String         @db.Uuid
   userId       String         @db.Uuid
   fromAddress  String         @db.VarChar(255)
-  subject      String?        @db.VarChar(500)
+  subject      String?        @db.Text
   rawBody      String?        @db.Text
   status       EmailLogStatus @default(received)
   errorMessage String?        @db.Text
@@ -296,7 +296,7 @@ model Attachment {
   id            BigInt   @id @default(autoincrement())
   transactionId String?  @db.Uuid
   emailLogId    BigInt?
-  fileUrl       String   @db.VarChar(1024)
+  fileUrl       String   @db.Text
   fileName      String   @db.VarChar(255)
   fileType      String?  @db.VarChar(100)
   fileSize      BigInt?
