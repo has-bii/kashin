@@ -12,7 +12,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { CommandIcon, LayersIcon, LayoutDashboardIcon, Settings2Icon } from "lucide-react"
+import { ArrowLeftRightIcon, CommandIcon, LayersIcon, LayoutDashboardIcon, Settings2Icon } from "lucide-react"
 import * as React from "react"
 
 const data = {
@@ -21,6 +21,11 @@ const data = {
       title: "Dashboard",
       url: "/dashboard",
       icon: <LayoutDashboardIcon />,
+    },
+    {
+      title: "Transactions",
+      url: "/dashboard/transactions",
+      icon: <ArrowLeftRightIcon />,
     },
     {
       title: "Category",
