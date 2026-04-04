@@ -12,7 +12,7 @@ export function MainPageHeader({ className, ...props }: Props) {
 }
 
 export function MainPageTitle({ className, ...props }: Props) {
-  return <h1 className={cn("text-3xl font-bold", className)} {...props} />
+  return <h1 className={cn("font-heading text-3xl font-bold", className)} {...props} />
 }
 
 export function MainPageAction({ className, ...props }: Props) {

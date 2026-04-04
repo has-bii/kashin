@@ -1,4 +1,5 @@
-import { useCategoryCreateForm } from "../hooks/use-create-category"
+import { useCategoryUpdateForm } from "../hooks/use-update-category"
+import { Category } from "../types"
 import { ColorPicker } from "@/components/color-picker"
 import { EmojiPicker } from "@/components/emoji-picker"
 import { ResponsiveDialogFooter, useResponsiveDialog } from "@/components/responsive-dialog"
@@ -7,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { TransactionType } from "@/types/enums"
-import { Loader2, Plus } from "lucide-react"
+import { Loader2, SaveIcon } from "lucide-react"
 import { useCallback } from "react"
 
 const types: Array<{ label: string; value: TransactionType }> = [
@@ -15,17 +16,21 @@ const types: Array<{ label: string; value: TransactionType }> = [
   { label: "Income", value: "income" },
 ] as const
 
-export function CategoryCreateForm() {
+type Props = {
+  data: Category | null
+}
+
+export function CategoryUpdateForm({ data }: Props) {
   const { setOpen } = useResponsiveDialog()
 
   const closeDialog = useCallback(() => setOpen(false), [setOpen])
 
-  const { form } = useCategoryCreateForm({ onSuccess: closeDialog })
+  const { form } = useCategoryUpdateForm({ onSuccess: closeDialog, prevData: data })
 
   return (
     <>
       <form
-        id="category-create-form"
+        id="category-update-form"
         onSubmit={(e) => {
           e.preventDefault()
           form.handleSubmit()
@@ -125,12 +130,12 @@ export function CategoryCreateForm() {
                 Cancel
               </Button>
               <Button
-                form="category-create-form"
+                form="category-update-form"
                 type="submit"
                 size="lg"
                 disabled={isSubmitting || !canSubmit || !isDirty}
               >
-                Add {isSubmitting ? <Loader2 className="animate-spin" /> : <Plus />}
+                Save {isSubmitting ? <Loader2 className="animate-spin" /> : <SaveIcon />}
               </Button>
             </>
           )}

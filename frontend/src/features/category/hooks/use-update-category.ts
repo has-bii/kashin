@@ -9,36 +9,45 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { isAxiosError } from "axios"
 import { toast } from "sonner"
 
-const categoryCreateApi = async (input: CategoryDto) => {
-  const { data } = await api.post<Category>("/category", input)
+interface Input {
+  id: string
+  input: CategoryDto
+}
+
+const categoryUpdateApi = async ({ id, input }: Input) => {
+  const { data } = await api.put<Category>(`/category/${id}`, input)
 
   return data
 }
 
 type Args = {
+  prevData: Category | null
   onSuccess?: () => void
 }
 
-export const useCategoryCreateForm = ({ onSuccess }: Args = {}) => {
+export const useCategoryUpdateForm = ({ prevData, onSuccess }: Args) => {
   const queryClient = useQueryClient()
 
   const form = useForm({
     defaultValues: {
-      name: "",
-      icon: "🍔",
-      color: CATEGORY_COLORS[0],
-      type: "expense" as TransactionType,
+      name: (prevData?.name as string) || "",
+      icon: (prevData?.icon as string) || "🍔",
+      color: (prevData?.color as string) || CATEGORY_COLORS[0],
+      type: (prevData?.type as TransactionType) || ("expense" as TransactionType),
     },
     validators: {
       onSubmit: categorySchema,
     },
-    onSubmit: async ({ value }) => await mutation.mutateAsync(value, { onSuccess }),
+    onSubmit: async ({ value }) => {
+      if (!prevData) return
+      await mutation.mutateAsync({ id: prevData.id, input: value }, { onSuccess })
+    },
   })
 
   const mutation = useMutation({
-    mutationFn: categoryCreateApi,
+    mutationFn: categoryUpdateApi,
     onSuccess: (data) => {
-      toast.success(`${data.name} category has been added successfully`)
+      toast.success(`${data.name} category has been updated successfully`)
       form.reset()
       queryClient.invalidateQueries({
         queryKey: getCategoriesQueryKey({ type: null }),

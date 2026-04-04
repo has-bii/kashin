@@ -40,10 +40,15 @@ type ResponsiveDialogProps = {
   description: string
   children: React.ReactNode
   trigger?: React.ReactNode
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
-function ResponsiveDialog({ title, description, trigger, children }: ResponsiveDialogProps) {
-  const [open, setOpen] = React.useState(false)
+function ResponsiveDialog({ title, description, trigger, children, open: openProp, onOpenChange }: ResponsiveDialogProps) {
+  const [internalOpen, setInternalOpen] = React.useState(false)
+  const isControlled = openProp !== undefined
+  const open = isControlled ? openProp : internalOpen
+  const setOpen = isControlled ? (onOpenChange ?? (() => {})) : setInternalOpen
   const isMobile = useIsMobile()
 
   const value = { open, setOpen, isMobile }

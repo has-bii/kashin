@@ -1,18 +1,9 @@
 "use client"
 
-import { ResponsiveDialog } from "@/components/responsive-dialog"
-import {
-  MainPage,
-  MainPageAction,
-  MainPageHeader,
-  MainPageTitle,
-} from "@/components/sidebar/main-page"
+import { MainPage, MainPageHeader, MainPageTitle } from "@/components/sidebar/main-page"
 import { SiteHeader } from "@/components/sidebar/site-header"
-import { Button } from "@/components/ui/button"
-import { CategoryCardSkeleton } from "@/features/category/components/category-card-skeleton"
-import { CategoryCreateForm } from "@/features/category/components/category-create-form"
+import { Skeleton } from "@/components/ui/skeleton"
 import { CategoryFilterTab } from "@/features/category/components/category-filter-tab"
-import { Plus } from "lucide-react"
 import dynamic from "next/dynamic"
 import { Suspense } from "react"
 
@@ -20,8 +11,8 @@ const CategoryList = dynamic(() => import("@/features/category/components/catego
   ssr: false,
   loading: () => (
     <>
-      {Array.from({ length: 3 }).map((_, i) => (
-        <CategoryCardSkeleton key={i} />
+      {Array.from({ length: 4 }).map((_, i) => (
+        <Skeleton key={i} className="aspect-square w-full" />
       ))}
     </>
   ),
@@ -34,20 +25,7 @@ export default function CategoryPage() {
       <MainPage>
         {/* Header */}
         <MainPageHeader>
-          <MainPageTitle>Category</MainPageTitle>
-          <MainPageAction>
-            <ResponsiveDialog
-              title="New Category"
-              description="Define your expense/income category"
-              trigger={
-                <Button>
-                  Add <Plus />
-                </Button>
-              }
-            >
-              <CategoryCreateForm />
-            </ResponsiveDialog>
-          </MainPageAction>
+          <MainPageTitle>Your Category</MainPageTitle>
         </MainPageHeader>
 
         {/* Filter tab */}
@@ -55,7 +33,7 @@ export default function CategoryPage() {
           <CategoryFilterTab />
         </Suspense>
 
-        <div className="flex flex-col gap-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <CategoryList />
         </div>
       </MainPage>

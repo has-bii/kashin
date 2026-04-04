@@ -1,18 +1,64 @@
 import { Category } from "../types"
-import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { EllipsisIcon, PencilIcon, Trash2Icon } from "lucide-react"
 
-type Props = Pick<Category, "icon" | "name" | "type" | "color">
+type Props = {
+  data: Category
+  onUpdate?: () => void
+  onDelete?: () => void
+}
 
-export function CategoryCard({ name, icon, color, type }: Props) {
+export function CategoryCard({ data, onDelete, onUpdate }: Props) {
   return (
-    <Card style={{ backgroundColor: color }}>
-      <CardContent className="flex items-center justify-between gap-4">
-        <div className="space-y-0.5">
-          <CardTitle className="text-2xl font-semibold">{name || "Category Name"}</CardTitle>
-          <CardDescription className="text-xs capitalize">{type}</CardDescription>
+    <div
+      className="flex aspect-square flex-col overflow-hidden rounded-4xl py-6"
+      style={{ backgroundColor: data.color }}
+    >
+      <div className="flex items-start justify-between px-6">
+        {/* Icon */}
+        <div className="inline-flex aspect-square size-12 items-center justify-center rounded-xl bg-white shadow-sm select-none">
+          <span className="text-2xl">{data.icon}</span>
         </div>
-        <span className="text-5xl select-none">{icon}</span>
-      </CardContent>
-    </Card>
+
+        {/* More */}
+        <DropdownMenu>
+          <DropdownMenuTrigger className="">
+            <EllipsisIcon className="size-6" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuGroup>
+              <DropdownMenuItem onClick={onUpdate}>
+                <PencilIcon />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem variant="destructive" onClick={onDelete}>
+                <Trash2Icon />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+      <div className="flex flex-1 flex-col justify-end px-6">
+        <h5
+          className="font-heading text-lg font-bold"
+          style={{ color: `color-mix(in srgb, ${data.color}, black 65%)` }}
+        >
+          {data.name}
+        </h5>
+        <p
+          className="text-sm capitalize"
+          style={{ color: `color-mix(in srgb, ${data.color}, black 40%)` }}
+        >
+          {data.type}
+        </p>
+      </div>
+    </div>
   )
 }
