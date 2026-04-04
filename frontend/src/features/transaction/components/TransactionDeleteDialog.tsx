@@ -45,7 +45,7 @@ export function TransactionDeleteDialog({ transactionId, onSuccess }: Props) {
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
-          <AlertDialogAction disabled={isPending} onClick={handleDelete}>
+          <AlertDialogAction variant="destructive" disabled={isPending} onClick={handleDelete}>
             {isPending ? <Loader2 className="animate-spin" /> : "Delete"}
           </AlertDialogAction>
         </AlertDialogFooter>
