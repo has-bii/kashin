@@ -21,6 +21,22 @@ export const transactionController = new Elysia({ prefix: "/transaction" })
       body: t.Object({ ids: t.Array(t.String(), { minItems: 1 }) }),
     },
   )
+  .get(
+    "/export",
+    async ({ user, query }) => {
+      const csv = await TransactionService.exportAll(user.id, query)
+      return new Response(csv, {
+        headers: {
+          "Content-Type": "text/csv",
+          "Content-Disposition": 'attachment; filename="transactions.csv"',
+        },
+      })
+    },
+    {
+      auth: true,
+      query: getAllQuery,
+    },
+  )
   .get("/:id", async ({ user, params }) => TransactionService.getById(user.id, params.id), {
     auth: true,
   })

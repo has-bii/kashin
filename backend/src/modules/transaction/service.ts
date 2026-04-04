@@ -113,4 +113,56 @@ export abstract class TransactionService {
   static async bulkDelete(userId: string, ids: string[]) {
     return prisma.transaction.deleteMany({ where: { id: { in: ids }, userId } })
   }
+
+  static async exportAll(userId: string, query: GetAllQuery): Promise<string> {
+    const { type, categoryId, dateFrom, dateTo, search } = query
+
+    const where: Record<string, unknown> = { userId }
+    if (type) where.type = type
+    if (categoryId) where.categoryId = categoryId
+    if (dateFrom || dateTo) {
+      where.transactionDate = {
+        ...(dateFrom ? { gte: new Date(dateFrom) } : {}),
+        ...(dateTo ? { lte: new Date(dateTo) } : {}),
+      }
+    }
+    if (search) {
+      where.OR = [
+        { description: { contains: search, mode: "insensitive" as const } },
+        { notes: { contains: search, mode: "insensitive" as const } },
+      ]
+    }
+
+    const transactions = await prisma.transaction.findMany({
+      where,
+      include: categoryInclude,
+      orderBy: { transactionDate: "desc" },
+    })
+
+    const escapeCell = (value: string | null | undefined): string => {
+      if (value == null) return ""
+      const str = String(value)
+      // Wrap in quotes if contains comma, quote, or newline
+      if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+        return `"${str.replace(/"/g, '""')}"`
+      }
+      return str
+    }
+
+    const headers = "Date,Type,Amount,Currency,Category,Description,Notes"
+    const rows = transactions.map((tx) => {
+      const date = tx.transactionDate.toISOString().slice(0, 10)
+      return [
+        date,
+        tx.type,
+        tx.amount.toString(),
+        tx.currency,
+        escapeCell(tx.category?.name ?? null),
+        escapeCell(tx.description),
+        escapeCell(tx.notes),
+      ].join(",")
+    })
+
+    return [headers, ...rows].join("\n")
+  }
 }
