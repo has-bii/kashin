@@ -46,13 +46,13 @@ Plans:
   4. User can filter the transaction list by date range, type, and category; filters persist in the URL
   5. User can select multiple transactions and bulk-delete them
   6. User can export their transaction list as a CSV file that downloads to their device
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 02-01: Transaction feature module scaffold + TanStack Query options (list, create, update, delete)
-- [ ] 02-02: TransactionForm (create/edit) + delete confirm dialog
-- [ ] 02-03: TransactionList with filters (nuqs URL state), search, pagination
-- [ ] 02-04: Bulk-select UI + bulk-delete action + CSV export
+- [ ] 02-01-PLAN.md — Transaction feature module scaffold + TanStack Query options (list, create, update, delete)
+- [ ] 02-02-PLAN.md — TransactionForm (create/edit) + delete confirm dialog
+- [ ] 02-03-PLAN.md — TransactionList with filters (nuqs URL state), search, pagination
+- [ ] 02-04-PLAN.md — Bulk-select UI + bulk-delete action + CSV export
 **UI hint**: yes
 
 ### Phase 3: Dashboard Backend
