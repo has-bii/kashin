@@ -9,36 +9,47 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { isAxiosError } from "axios"
 import { toast } from "sonner"
 
-const categoryCreateApi = async (input: CategoryDto) => {
-  const { data } = await api.post<Category>("/category", input)
+type Args =
+  | { mode: "create"; onSuccess?: () => void }
+  | { mode: "update"; prevData: Category | null; onSuccess?: () => void }
 
+const categoryApi = async (mode: "create" | "update", input: CategoryDto, id?: string) => {
+  if (mode === "create") {
+    const { data } = await api.post<Category>("/category", input)
+    return data
+  }
+  const { data } = await api.put<Category>(`/category/${id}`, input)
   return data
 }
 
-type Args = {
-  onSuccess?: () => void
-}
-
-export const useCategoryCreateForm = ({ onSuccess }: Args = {}) => {
+export const useCategoryForm = (args: Args) => {
   const queryClient = useQueryClient()
+
+  const prevData = args.mode === "update" ? args.prevData : null
 
   const form = useForm({
     defaultValues: {
-      name: "",
-      icon: "🍔",
-      color: CATEGORY_COLORS[0],
-      type: "expense" as TransactionType,
+      name: prevData?.name ?? "",
+      icon: prevData?.icon ?? "🍔",
+      color: prevData?.color ?? CATEGORY_COLORS[0],
+      type: (prevData?.type ?? "expense") as TransactionType,
     },
     validators: {
       onSubmit: categorySchema,
     },
-    onSubmit: async ({ value }) => await mutation.mutateAsync(value, { onSuccess }),
+    onSubmit: async ({ value }) => {
+      if (args.mode === "update" && !prevData) return
+      const id = prevData?.id
+      await mutation.mutateAsync({ input: value, id }, { onSuccess: args.onSuccess })
+    },
   })
 
   const mutation = useMutation({
-    mutationFn: categoryCreateApi,
+    mutationFn: ({ input, id }: { input: CategoryDto; id?: string }) =>
+      categoryApi(args.mode, input, id),
     onSuccess: (data) => {
-      toast.success(`${data.name} category has been added successfully`)
+      const verb = args.mode === "create" ? "added" : "updated"
+      toast.success(`${data.name} category has been ${verb} successfully`)
       form.reset()
       queryClient.invalidateQueries({
         queryKey: getCategoriesQueryKey({ type: null }),
@@ -51,14 +62,12 @@ export const useCategoryCreateForm = ({ onSuccess }: Args = {}) => {
           case 409:
             message = "Category with the same name already exits"
             break
-
           default:
             break
         }
       } else {
         message = error.message
       }
-
       toast.error(message)
     },
   })

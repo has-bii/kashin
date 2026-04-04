@@ -3,11 +3,12 @@
 import { getCategoriesQueryOptions } from "../api/get-categories.query"
 import { useGetCategoryFilter } from "../hooks/use-get-category-filter"
 import { Category } from "../types"
-import CategoryAddCard from "./category-add-card"
 import { CategoryCard } from "./category-card"
-import { CategoryUpdateForm } from "./category-update-form"
+import { CategoryForm } from "./category-form"
 import { ResponsiveDialog } from "@/components/responsive-dialog"
+import { Button } from "@/components/ui/button"
 import { useSuspenseQuery } from "@tanstack/react-query"
+import { Plus } from "lucide-react"
 import React from "react"
 
 export default function CategoriesList() {
@@ -32,7 +33,24 @@ export default function CategoriesList() {
         />
       ))}
 
-      <CategoryAddCard />
+      {/* Create category */}
+      <ResponsiveDialog
+        title="New Category"
+        description="Define your expense/income category"
+        trigger={
+          <div
+            role="button"
+            className="flex aspect-square w-full flex-col items-center justify-center gap-3 rounded-4xl border-4 border-dashed"
+          >
+            <Button size="icon-xl">
+              <Plus />
+            </Button>
+            <p className="text-primary text-lg font-medium">Create new</p>
+          </div>
+        }
+      >
+        <CategoryForm mode="create" />
+      </ResponsiveDialog>
 
       <ResponsiveDialog
         title="Edit Category"
@@ -40,7 +58,7 @@ export default function CategoriesList() {
         open={categoryUpdate.state}
         onOpenChange={closeCategoryUpdate}
       >
-        <CategoryUpdateForm data={categoryUpdate.data} />
+        <CategoryForm mode="update" data={categoryUpdate.data} />
       </ResponsiveDialog>
     </>
   )
