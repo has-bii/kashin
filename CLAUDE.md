@@ -34,10 +34,11 @@ cd frontend && pnpm install && pnpm dev
 
 ## Module registry
 
-| Module   | Backend | Frontend | Status   |
-| -------- | ------- | -------- | -------- |
-| auth     | done    | done     | complete |
-| category | done    | done     | complete |
+| Module      | Backend | Frontend | Status   |
+| ----------- | ------- | -------- | -------- |
+| auth        | done    | done     | complete |
+| category    | done    | done     | complete |
+| transaction | done    | —        | backend  |
 
 ## Skills
 
