@@ -18,12 +18,13 @@ A fast, frictionless way to log and visualize personal finances — before any A
 ### Validated
 
 - ✓ Transaction backend API (CRUD + bulk-delete, category/type/date filtering, pagination) — Validated in Phase 01: transaction-backend
+- ✓ Transaction frontend UI (create/edit Sheet, delete dialog, filter bar, pagination, bulk-delete, CSV export, user currency display) — Validated in Phase 02: transaction-frontend
 
 ### Active
 
 **Milestone 1 — Transaction Core + Dashboard**
 
-- [ ] Transaction CRUD: create, edit, delete entries with type (expense/income), amount, date, category, and optional note/vendor
+- [x] Transaction CRUD: create, edit, delete entries with type (expense/income), amount, date, category, and optional note/vendor
 - [ ] Dashboard: spending breakdown by category (chart)
 - [ ] Dashboard: income vs. expenses balance overview
 - [ ] Dashboard: monthly spending trends (chart)
