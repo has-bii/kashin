@@ -35,7 +35,7 @@ Requirements for Milestone 1. Each maps to a roadmap phase.
 
 ### Data Export
 
-- [ ] **EXPORT-01**: User can export their transactions as a CSV file
+- [x] **EXPORT-01**: User can export their transactions as a CSV file
 
 ## v2 Requirements
 
@@ -86,7 +86,7 @@ Deferred to Milestone 2. Not in current roadmap.
 | DASH-02 | Phase 3 + Phase 4 | Pending |
 | DASH-03 | Phase 3 + Phase 4 | Pending |
 | DASH-04 | Phase 3 + Phase 4 | Pending |
-| EXPORT-01 | Phase 2 | Pending |
+| EXPORT-01 | Phase 2 | Complete |
 
 **Coverage:**
 - v1 requirements: 11 total

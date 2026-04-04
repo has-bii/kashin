@@ -52,7 +52,7 @@ Plans:
 - [x] 02-01-PLAN.md — Transaction feature module scaffold + TanStack Query options (list, create, update, delete)
 - [x] 02-02-PLAN.md — TransactionForm (create/edit) + delete confirm dialog
 - [x] 02-03-PLAN.md — TransactionList with filters (nuqs URL state), search, pagination
-- [ ] 02-04-PLAN.md — Bulk-select UI + bulk-delete action + CSV export
+- [x] 02-04-PLAN.md — Bulk-select UI + bulk-delete action + CSV export
 **UI hint**: yes
 
 ### Phase 3: Dashboard Backend
