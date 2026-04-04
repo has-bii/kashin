@@ -29,12 +29,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. User can search transactions by description or notes text via query param
   4. User can edit or delete any of their own transactions; attempts to touch another user's transactions return 404
   5. User can bulk-delete a list of selected transaction IDs in one request
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: Prisma schema validation + transaction module scaffold (controller, service, query schemas)
-- [ ] 01-02: CRUD endpoints (create, get-list with filters/pagination, get-one, update, delete)
-- [ ] 01-03: Bulk-delete endpoint + search query param + integration smoke tests
+- [ ] 01-01-PLAN.md — Query schemas + TransactionService with full CRUD, pagination, search, and bulk-delete
+- [ ] 01-02-PLAN.md — Transaction controller routes + mount in app entry point
 
 ### Phase 2: Transaction Frontend
 **Goal**: Users can manage their transactions through the UI — creating, editing, deleting, filtering, and exporting
@@ -96,7 +95,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Transaction Backend | 0/3 | Not started | - |
+| 1. Transaction Backend | 0/2 | Not started | - |
 | 2. Transaction Frontend | 0/4 | Not started | - |
 | 3. Dashboard Backend | 0/3 | Not started | - |
 | 4. Dashboard Frontend | 0/3 | Not started | - |
