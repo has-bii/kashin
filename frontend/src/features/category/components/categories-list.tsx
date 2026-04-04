@@ -63,6 +63,7 @@ export default function CategoriesList() {
       </ResponsiveDialog>
 
       <ResponsiveDialog
+        key={categoryUpdate.data?.id}
         title="Edit Category"
         description="Define your expense/income category"
         open={categoryUpdate.state}

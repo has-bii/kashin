@@ -9,7 +9,6 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field
 import { Input } from "@/components/ui/input"
 import { TransactionType } from "@/types/enums"
 import { Loader2, Plus, SaveIcon } from "lucide-react"
-import { useCallback } from "react"
 
 const types: Array<{ label: string; value: TransactionType }> = [
   { label: "Expense", value: "expense" },
@@ -21,7 +20,7 @@ type Props = { mode: "create" } | { mode: "update"; data: Category | null }
 export function CategoryForm(props: Props) {
   const { setOpen } = useResponsiveDialog()
 
-  const closeDialog = useCallback(() => setOpen(false), [setOpen])
+  const closeDialog = () => setOpen(false)
 
   const hookArgs =
     props.mode === "create"

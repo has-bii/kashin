@@ -1,4 +1,3 @@
-import { getCategoriesQueryKey } from "../api/get-categories.query"
 import { Category } from "../types"
 import { CategoryDto, categorySchema } from "../validations/schema"
 import { CATEGORY_COLORS } from "@/constants/category-colors"
@@ -52,7 +51,7 @@ export const useCategoryForm = (args: Args) => {
       toast.success(`${data.name} category has been ${verb} successfully`)
       form.reset()
       queryClient.invalidateQueries({
-        queryKey: getCategoriesQueryKey({ type: null }),
+        queryKey: ["categories"],
       })
     },
     onError: (error) => {

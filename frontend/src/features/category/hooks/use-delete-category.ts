@@ -1,4 +1,3 @@
-import { getCategoriesQueryKey } from "../api/get-categories.query"
 import { Category } from "../types"
 import { api } from "@/lib/api"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
@@ -21,7 +20,7 @@ export const useCategoryDelete = ({ onSuccess }: Args = {}) => {
     onSuccess: (data) => {
       toast.success(`${data.name} category has been deleted`)
       queryClient.invalidateQueries({
-        queryKey: getCategoriesQueryKey({ type: null }),
+        queryKey: ["categories"],
       })
       onSuccess?.()
     },
