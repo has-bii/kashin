@@ -14,11 +14,13 @@ export const auth = betterAuth({
         type: "string",
         required: false,
         defaultValue: "IDR",
+        input: true,
       },
       timezone: {
         type: "string",
         required: false,
         defaultValue: "Asia/Jakarta",
+        input: true,
       },
     },
   },
