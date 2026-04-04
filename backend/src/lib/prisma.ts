@@ -1,8 +1,11 @@
 import { PrismaClient } from "../generated/prisma/client"
-import { PrismaTiDBCloud } from "@tidbcloud/prisma-adapter"
+import { PrismaPg } from "@prisma/adapter-pg"
 
-const adapter = new PrismaTiDBCloud({
-  url: process.env.DATABASE_URL,
-})
+const databaseUrl = process.env.DATABASE_URL
 
+if (!databaseUrl) {
+  throw new Error("Database_URL is not set")
+}
+
+const adapter = new PrismaPg({ connectionString: databaseUrl })
 export const prisma = new PrismaClient({ adapter })

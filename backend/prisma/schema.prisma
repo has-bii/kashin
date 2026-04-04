@@ -1,6 +1,6 @@
 // ============================================================
 // Prisma Schema — AI Expense & Income Tracker
-// Prisma 7 | MySQL (TiDB Cloud)
+// Prisma 7 | PostgreSQL
 // Auth: Better Auth (user, session, account, verification)
 // PK strategy: UUID v7 Char(36) for user-facing tables,
 //              BigInt AUTO_INCREMENT for internal tables
@@ -20,8 +20,7 @@ generator prismabox {
 }
 
 datasource db {
-  provider     = "mysql"
-  relationMode = "prisma"
+  provider = "postgresql"
 }
 
 // -----------------------------------------------------------
@@ -65,7 +64,7 @@ enum RecurringFrequency {
 // -----------------------------------------------------------
 
 model User {
-  id            String    @id @default(uuid(7)) @db.Char(36)
+  id            String    @id @default(uuid(7)) @db.Uuid
   name          String    @db.VarChar(255)
   email         String    @db.VarChar(255)
   emailVerified Boolean   @default(false)
@@ -92,14 +91,14 @@ model User {
 }
 
 model Session {
-  id        String   @id @default(uuid(7)) @db.Char(36)
+  id        String   @id @default(uuid(7)) @db.Uuid
   expiresAt DateTime
   token     String   @db.VarChar(255)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   ipAddress String?  @db.VarChar(45)
   userAgent String?  @db.VarChar(512)
-  userId    String   @db.Char(36)
+  userId    String   @db.Uuid
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([token])
@@ -108,10 +107,10 @@ model Session {
 }
 
 model Account {
-  id                    String    @id @default(uuid(7)) @db.Char(36)
+  id                    String    @id @default(uuid(7)) @db.Uuid
   accountId             String    @db.VarChar(255)
   providerId            String    @db.VarChar(255)
-  userId                String    @db.Char(36)
+  userId                String    @db.Uuid
   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   accessToken           String?   @db.Text
   refreshToken          String?   @db.Text
@@ -128,7 +127,7 @@ model Account {
 }
 
 model Verification {
-  id         String   @id @default(uuid(7)) @db.Char(36)
+  id         String   @id @default(uuid(7)) @db.Uuid
   identifier String   @db.VarChar(255)
   value      String   @db.VarChar(255)
   expiresAt  DateTime
@@ -144,8 +143,8 @@ model Verification {
 // -----------------------------------------------------------
 
 model Category {
-  id        String          @id @default(uuid(7)) @db.Char(36)
-  userId    String          @db.Char(36)
+  id        String          @id @default(uuid(7)) @db.Uuid
+  userId    String          @db.Uuid
   name      String          @db.VarChar(100)
   type      TransactionType
   icon      String          @db.VarChar(50)
@@ -165,11 +164,11 @@ model Category {
 }
 
 model Transaction {
-  id              String            @id @default(uuid(7)) @db.Char(36)
-  userId          String            @db.Char(36)
-  categoryId      String?           @db.Char(36)
-  recurringTxnId  String?           @db.Char(36)
-  aiExtractionId  String?           @unique @db.Char(36)
+  id              String            @id @default(uuid(7)) @db.Uuid
+  userId          String            @db.Uuid
+  categoryId      String?           @db.Uuid
+  recurringTxnId  String?           @db.Uuid
+  aiExtractionId  String?           @unique @db.Uuid
   type            TransactionType
   amount          Decimal           @db.Decimal(15, 2)
   currency        String            @default("IDR") @db.VarChar(3)
@@ -197,8 +196,8 @@ model Transaction {
 }
 
 model EmailInbox {
-  id           String   @id @default(uuid(7)) @db.Char(36)
-  userId       String   @db.Char(36)
+  id           String   @id @default(uuid(7)) @db.Uuid
+  userId       String   @db.Uuid
   emailAddress String   @unique @db.VarChar(255)
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
@@ -212,17 +211,17 @@ model EmailInbox {
 }
 
 model AiExtraction {
-  id                  String             @id @default(uuid(7)) @db.Char(36)
+  id                  String             @id @default(uuid(7)) @db.Uuid
   emailLogId          BigInt             @unique
-  userId              String             @db.Char(36)
+  userId              String             @db.Uuid
   extractedVendor     String?            @db.VarChar(255)
   extractedAmount     Decimal?           @db.Decimal(15, 2)
   extractedCurrency   String?            @db.VarChar(3)
   extractedDate       DateTime?          @db.Date
-  suggestedCategoryId String?            @db.Char(36)
+  suggestedCategoryId String?            @db.Uuid
   extractedType       TransactionType?
   extractedNotes      String?            @db.Text
-  confidenceScore     Float?             @db.Float
+  confidenceScore     Float?             @db.DoublePrecision
   status              AiExtractionStatus @default(pending)
   confirmedAt         DateTime?
   createdAt           DateTime           @default(now())
@@ -240,9 +239,9 @@ model AiExtraction {
 }
 
 model RecurringTransaction {
-  id                String             @id @default(uuid(7)) @db.Char(36)
-  userId            String             @db.Char(36)
-  categoryId        String?            @db.Char(36)
+  id                String             @id @default(uuid(7)) @db.Uuid
+  userId            String             @db.Uuid
+  categoryId        String?            @db.Uuid
   type              TransactionType
   amount            Decimal            @db.Decimal(15, 2)
   currency          String             @default("IDR") @db.VarChar(3)
@@ -270,11 +269,11 @@ model RecurringTransaction {
 
 model EmailLog {
   id           BigInt         @id @default(autoincrement())
-  inboxId      String         @db.Char(36)
-  userId       String         @db.Char(36)
+  inboxId      String         @db.Uuid
+  userId       String         @db.Uuid
   fromAddress  String         @db.VarChar(255)
   subject      String?        @db.VarChar(500)
-  rawBody      String?        @db.MediumText
+  rawBody      String?        @db.Text
   status       EmailLogStatus @default(received)
   errorMessage String?        @db.Text
   receivedAt   DateTime       @default(now())
@@ -295,7 +294,7 @@ model EmailLog {
 
 model Attachment {
   id            BigInt   @id @default(autoincrement())
-  transactionId String?  @db.Char(36)
+  transactionId String?  @db.Uuid
   emailLogId    BigInt?
   fileUrl       String   @db.VarChar(1024)
   fileName      String   @db.VarChar(255)
