@@ -15,6 +15,10 @@ A fast, frictionless way to log and visualize personal finances — before any A
 - ✓ User authentication (email/password + Google OAuth + email OTP) — existing
 - ✓ Category management (CRUD) — existing
 
+### Validated
+
+- ✓ Transaction backend API (CRUD + bulk-delete, category/type/date filtering, pagination) — Validated in Phase 01: transaction-backend
+
 ### Active
 
 **Milestone 1 — Transaction Core + Dashboard**
@@ -86,4 +90,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-04 after initialization*
+*Last updated: 2026-04-04 — Phase 01 complete (transaction-backend)*
