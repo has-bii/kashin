@@ -3,6 +3,7 @@
 import { useTransactionForm } from "../hooks/use-transaction-form"
 import { Transaction } from "../types"
 import { getCategoriesQueryOptions } from "@/features/category/api/get-categories.query"
+import { authClient } from "@/lib/auth-client"
 import { SelectTab, SelectTabItem } from "@/components/select-tab"
 import { Button } from "@/components/ui/button"
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
@@ -34,6 +35,8 @@ export function TransactionForm(props: Props) {
       ? { mode: "create", onSuccess: props.onSuccess }
       : { mode: "edit", data: props.data, onSuccess: props.onSuccess },
   )
+  const { data: session } = authClient.useSession()
+  const currency = (session?.user as { currency?: string } | undefined)?.currency ?? "IDR"
 
   return (
     <>
@@ -76,7 +79,7 @@ export function TransactionForm(props: Props) {
               const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
               return (
                 <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Amount</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>Amount ({currency})</FieldLabel>
                   <Input
                     id={field.name}
                     name={field.name}

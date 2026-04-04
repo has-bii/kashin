@@ -9,6 +9,7 @@ import type { Transaction } from "@/features/transaction/types"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { authClient } from "@/lib/auth-client"
 import { cn } from "@/lib/utils"
 import { useQuery } from "@tanstack/react-query"
 
@@ -22,11 +23,11 @@ type TransactionListProps = {
   onToggleAll?: (ids: string[]) => void
 }
 
-function formatAmount(amount: string, type: Transaction["type"]): string {
+function formatAmount(amount: string, type: Transaction["type"], currency: string): string {
   const num = parseFloat(amount)
   const formatted = new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "USD",
+    currency,
     minimumFractionDigits: 2,
   }).format(Math.abs(num))
   return type === "expense" ? `-${formatted}` : `+${formatted}`
@@ -39,6 +40,8 @@ export function TransactionList({
   onToggleAll,
 }: TransactionListProps) {
   const { filters, setFilters, resolvedDateFrom, resolvedDateTo } = useTransactionFilters()
+  const { data: session } = authClient.useSession()
+  const currency = (session?.user as { currency?: string } | undefined)?.currency ?? "IDR"
 
   const queryParams = {
     page: filters.page,
@@ -149,7 +152,7 @@ export function TransactionList({
               onClick={() => onRowClick?.(transaction)}
               tabIndex={-1}
             >
-              {formatAmount(transaction.amount, transaction.type)}
+              {formatAmount(transaction.amount, transaction.type, currency)}
             </button>
 
             {/* Category */}
