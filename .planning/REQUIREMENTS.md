@@ -74,27 +74,25 @@ Deferred to Milestone 2. Not in current roadmap.
 
 ## Traceability
 
-Populated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TXN-01 | — | Pending |
-| TXN-02 | — | Pending |
-| TXN-03 | — | Pending |
-| TXN-04 | — | Pending |
-| TXN-05 | — | Pending |
-| TXN-06 | — | Pending |
-| DASH-01 | — | Pending |
-| DASH-02 | — | Pending |
-| DASH-03 | — | Pending |
-| DASH-04 | — | Pending |
-| EXPORT-01 | — | Pending |
+| TXN-01 | Phase 1 | Pending |
+| TXN-02 | Phase 1 | Pending |
+| TXN-03 | Phase 1 | Pending |
+| TXN-04 | Phase 1 | Pending |
+| TXN-05 | Phase 1 | Pending |
+| TXN-06 | Phase 1 | Pending |
+| DASH-01 | Phase 3 + Phase 4 | Pending |
+| DASH-02 | Phase 3 + Phase 4 | Pending |
+| DASH-03 | Phase 3 + Phase 4 | Pending |
+| DASH-04 | Phase 3 + Phase 4 | Pending |
+| EXPORT-01 | Phase 2 | Pending |
 
 **Coverage:**
 - v1 requirements: 11 total
-- Mapped to phases: 0
-- Unmapped: 11 ⚠️ (populated after roadmap)
+- Mapped to phases: 11
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-04-04*
-*Last updated: 2026-04-04 after initial definition*
+*Last updated: 2026-04-04 — traceability populated after roadmap creation*
