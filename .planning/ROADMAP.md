@@ -32,7 +32,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 2 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Query schemas + TransactionService with full CRUD, pagination, search, and bulk-delete
+- [x] 01-01-PLAN.md — Query schemas + TransactionService with full CRUD, pagination, search, and bulk-delete
 - [ ] 01-02-PLAN.md — Transaction controller routes + mount in app entry point
 
 ### Phase 2: Transaction Frontend
