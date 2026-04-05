@@ -67,9 +67,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — Dashboard module scaffold with query schemas, service stubs, controller, and app mount
-- [ ] 03-02-PLAN.md — Summary and recent transactions endpoint implementations
-- [ ] 03-03-PLAN.md — Category breakdown and monthly trends endpoint implementations
+- [x] 03-01-PLAN.md — Dashboard module scaffold with query schemas, service stubs, controller, and app mount
+- [x] 03-02-PLAN.md — Summary and recent transactions endpoint implementations
+- [x] 03-03-PLAN.md — Category breakdown and monthly trends endpoint implementations
 
 ### Phase 4: Dashboard Frontend
 **Goal**: The dashboard displays real financial data through charts and widgets, replacing all mock data
