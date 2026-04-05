@@ -1,101 +1,18 @@
-# Roadmap: Kashin — Milestone 1 (Transaction Core + Dashboard)
+# Roadmap: Kashin
 
 ## Overview
 
-From working auth and categories to a fully functional personal finance tracker. Four phases follow the backend-first pattern established by existing modules: transaction CRUD API, then its frontend, then dashboard aggregation API, then dashboard UI connected to real data. Every requirement maps cleanly to one of these four delivery boundaries.
+> ✅ **v1.0 Transaction Core + Dashboard** — SHIPPED 2026-04-05. Archived to [.planning/milestones/v1.0-ROADMAP.md](./milestones/v1.0-ROADMAP.md).
 
-## Phases
+## Next Milestone
 
-**Phase Numbering:**
-- Integer phases (1, 2, 3): Planned milestone work
-- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
-
-Decimal phases appear between their surrounding integers in numeric order.
-
-- [x] **Phase 1: Transaction Backend** - CRUD API with server-side filtering, pagination, and v2-ready schema (completed 2026-04-04)
-- [ ] **Phase 2: Transaction Frontend** - Form, list, filters, bulk actions, and CSV export
-- [ ] **Phase 3: Dashboard Backend** - Read-only aggregation endpoints for summary, trends, and category breakdown
-- [ ] **Phase 4: Dashboard Frontend** - Connect existing dashboard shell to real data with charts and widgets
-
-## Phase Details
-
-### Phase 1: Transaction Backend
-**Goal**: Users' transactions can be created, read, updated, and deleted through a fully guarded API
-**Depends on**: Nothing (builds on existing auth + category modules)
-**Requirements**: TXN-01, TXN-02, TXN-03, TXN-04, TXN-05, TXN-06
-**Success Criteria** (what must be TRUE):
-  1. User can create a transaction (expense or income) with type, amount, date, category, and optional description/vendor via POST endpoint
-  2. User can retrieve their transaction list filtered by date range, type, and/or category with server-side pagination
-  3. User can search transactions by description or notes text via query param
-  4. User can edit or delete any of their own transactions; attempts to touch another user's transactions return 404
-  5. User can bulk-delete a list of selected transaction IDs in one request
-**Plans**: 2 plans
-
-Plans:
-- [x] 01-01-PLAN.md — Query schemas + TransactionService with full CRUD, pagination, search, and bulk-delete
-- [x] 01-02-PLAN.md — Transaction controller routes + mount in app entry point
-
-### Phase 2: Transaction Frontend
-**Goal**: Users can manage their transactions through the UI — creating, editing, deleting, filtering, and exporting
-**Depends on**: Phase 1
-**Requirements**: TXN-01, TXN-02, TXN-03, TXN-04, TXN-05, TXN-06, EXPORT-01
-**Success Criteria** (what must be TRUE):
-  1. User can open a form, fill in transaction fields, and save a new transaction that appears in the list
-  2. User can click a transaction to edit any field and see the updated record immediately
-  3. User can delete a single transaction after a confirmation prompt
-  4. User can filter the transaction list by date range, type, and category; filters persist in the URL
-  5. User can select multiple transactions and bulk-delete them
-  6. User can export their transaction list as a CSV file that downloads to their device
-**Plans**: 4 plans
-
-Plans:
-- [x] 02-01-PLAN.md — Transaction feature module scaffold + TanStack Query options (list, create, update, delete)
-- [x] 02-02-PLAN.md — TransactionForm (create/edit) + delete confirm dialog
-- [x] 02-03-PLAN.md — TransactionList with filters (nuqs URL state), search, pagination
-- [x] 02-04-PLAN.md — Bulk-select UI + bulk-delete action + CSV export
-**UI hint**: yes
-
-### Phase 3: Dashboard Backend
-**Goal**: Aggregated financial data is available via dedicated read-only endpoints, separated from the transaction CRUD module
-**Depends on**: Phase 1
-**Requirements**: DASH-01, DASH-02, DASH-03, DASH-04
-**Success Criteria** (what must be TRUE):
-  1. A summary endpoint returns total income, total expenses, and net balance for a requested date range
-  2. A category breakdown endpoint returns spend totals grouped by category for a date range
-  3. A monthly trends endpoint returns income and expense totals for each of the trailing N months
-  4. A recent transactions endpoint returns the last N confirmed transactions for the dashboard widget
-**Plans**: 3 plans
-
-Plans:
-- [x] 03-01-PLAN.md — Dashboard module scaffold with query schemas, service stubs, controller, and app mount
-- [x] 03-02-PLAN.md — Summary and recent transactions endpoint implementations
-- [x] 03-03-PLAN.md — Category breakdown and monthly trends endpoint implementations
-
-### Phase 4: Dashboard Frontend
-**Goal**: The dashboard displays real financial data through charts and widgets, replacing all mock data
-**Depends on**: Phase 3
-**Requirements**: DASH-01, DASH-02, DASH-03, DASH-04
-**Success Criteria** (what must be TRUE):
-  1. User can see income vs. expenses balance summary for the current month on the dashboard
-  2. User can see a donut/pie chart showing spending broken down by category
-  3. User can see a bar chart of monthly spending trends over the trailing 6 months
-  4. User can see a recent transactions widget listing their last 10 transactions on the dashboard
-**Plans**: 3 plans
-
-Plans:
-- [x] 04-01-PLAN.md — Feature module scaffold: types, query options, skeletons, vitest setup + test stubs
-- [x] 04-02-PLAN.md — SectionCards (balance summary + savings rate) + RecentTransactionsWidget with live data
-- [x] 04-03-PLAN.md — MonthlyTrendsChart (bar) + CategoryBreakdownChart (donut) + dashboard page Suspense wiring + placeholder cleanup
-**UI hint**: yes
+Use `/gsd-new-milestone` to begin v2 milestone planning (AI Email Receipt Extraction).
 
 ## Progress
 
-**Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4
-
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Transaction Backend | 2/2 | Complete   | 2026-04-04 |
-| 2. Transaction Frontend | 1/4 | In Progress|  |
-| 3. Dashboard Backend | 0/3 | Not started | - |
-| 4. Dashboard Frontend | 0/3 | Not started | - |
+| Phase | Milestone | Plans Complete | Status     | Completed  |
+|-------|-----------|----------------|------------|------------|
+| 1. Transaction Backend | v1.0 | 2/2 | Complete   | 2026-04-04 |
+| 2. Transaction Frontend | v1.0 | 4/4 | Complete   | 2026-04-04 |
+| 3. Dashboard Backend | v1.0 | 3/3 | Complete   | 2026-04-05 |
+| 4. Dashboard Frontend | v1.0 | 3/3 | Complete   | 2026-04-05 |
