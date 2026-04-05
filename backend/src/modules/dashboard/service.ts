@@ -21,11 +21,29 @@ function resolveMonthRange(dateFrom?: string, dateTo?: string) {
   }
 }
 
+const categoryInclude = {
+  category: { select: { id: true, name: true, type: true, icon: true, color: true } },
+}
+
 export abstract class DashboardService {
   static async summary(userId: string, query: SummaryQuery) {
-    void prisma
-    void resolveMonthRange(query.dateFrom, query.dateTo)
-    return { totalIncome: 0, totalExpense: 0, netBalance: 0 }
+    const transactionDate = resolveMonthRange(query.dateFrom, query.dateTo)
+
+    const [incomeResult, expenseResult] = await prisma.$transaction([
+      prisma.transaction.aggregate({
+        where: { userId, type: "income", transactionDate },
+        _sum: { amount: true },
+      }),
+      prisma.transaction.aggregate({
+        where: { userId, type: "expense", transactionDate },
+        _sum: { amount: true },
+      }),
+    ])
+
+    const totalIncome = parseFloat((incomeResult._sum.amount ?? 0).toString())
+    const totalExpense = parseFloat((expenseResult._sum.amount ?? 0).toString())
+
+    return { totalIncome, totalExpense, netBalance: totalIncome - totalExpense }
   }
 
   static async categoryBreakdown(userId: string, query: CategoryBreakdownQuery) {
@@ -41,8 +59,11 @@ export abstract class DashboardService {
   }
 
   static async recent(userId: string, limit: number = 5) {
-    void prisma
-    void limit
-    return []
+    return prisma.transaction.findMany({
+      where: { userId },
+      include: categoryInclude,
+      orderBy: { transactionDate: "desc" },
+      take: limit,
+    })
   }
 }
