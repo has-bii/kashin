@@ -64,12 +64,12 @@ Plans:
   2. A category breakdown endpoint returns spend totals grouped by category for a date range
   3. A monthly trends endpoint returns income and expense totals for each of the trailing N months
   4. A recent transactions endpoint returns the last N confirmed transactions for the dashboard widget
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 03-01: Dashboard module scaffold + DashboardService skeleton
-- [ ] 03-02: Summary + recent transactions endpoints
-- [ ] 03-03: Category breakdown + monthly trends endpoints
+- [ ] 03-01-PLAN.md — Dashboard module scaffold with query schemas, service stubs, controller, and app mount
+- [ ] 03-02-PLAN.md — Summary and recent transactions endpoint implementations
+- [ ] 03-03-PLAN.md — Category breakdown and monthly trends endpoint implementations
 
 ### Phase 4: Dashboard Frontend
 **Goal**: The dashboard displays real financial data through charts and widgets, replacing all mock data
