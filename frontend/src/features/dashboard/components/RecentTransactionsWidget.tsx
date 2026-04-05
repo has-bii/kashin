@@ -1,15 +1,14 @@
 "use client"
 
+import { getDashboardRecentQueryOptions } from "../api/get-dashboard-recent.query"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { type UserWithProfile, authClient } from "@/lib/auth-client"
+import { formatCurrency } from "@/lib/locale-utils"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { formatInTimeZone } from "date-fns-tz"
 
-import { getDashboardRecentTransactionsQueryOptions } from "../api/get-dashboard-recent.query"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { authClient, type UserWithProfile } from "@/lib/auth-client"
-import { formatCurrency } from "@/lib/locale-utils"
-
 export function RecentTransactionsWidget() {
-  const { data } = useSuspenseQuery(getDashboardRecentTransactionsQueryOptions({ limit: 10 }))
+  const { data } = useSuspenseQuery(getDashboardRecentQueryOptions({ limit: 10 }))
 
   const session = authClient.useSession()
   const user = session?.data?.user as UserWithProfile | undefined
@@ -37,15 +36,15 @@ export function RecentTransactionsWidget() {
           {data.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <p className="text-base font-medium">No transactions yet</p>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className="text-muted-foreground mt-1 text-sm">
                 Add your first transaction to get started.
               </p>
             </div>
           ) : (
-            <ul className="divide-y divide-border">
+            <ul className="divide-border divide-y">
               {data.map((tx) => (
                 <li key={tx.id} className="flex items-center justify-between gap-4 py-3">
-                  <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex min-w-0 items-center gap-3">
                     <span className="text-xl" aria-hidden="true">
                       {tx.category?.icon ?? "💸"}
                     </span>
@@ -53,7 +52,7 @@ export function RecentTransactionsWidget() {
                       <p className="truncate text-sm font-medium">
                         {tx.category?.name ?? "Uncategorized"}
                       </p>
-                      <p className="truncate text-xs text-muted-foreground">
+                      <p className="text-muted-foreground truncate text-xs">
                         {tx.description ?? "—"}
                       </p>
                     </div>
@@ -66,7 +65,7 @@ export function RecentTransactionsWidget() {
                     >
                       {formatAmount(tx.amount, tx.type)}
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-muted-foreground text-xs">
                       {formatDate(tx.transactionDate)}
                     </p>
                   </div>
