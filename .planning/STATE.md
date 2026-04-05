@@ -81,4 +81,4 @@ v1.0 milestone archived. Next step: `/gsd-new-milestone` to begin v2 planning.
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
-| 260405-jgl | Check TypeScript types for backend and frontend apps | 2026-04-05 | TBA | [260405-jgl-check-typescript-types-for-backend-and-f](./quick/260405-jgl-check-typescript-types-for-backend-and-f/) |
+| 260405-jgl | Check TypeScript types for backend and frontend apps | 2026-04-05 | 3ffbbb7 | [260405-jgl-check-typescript-types-for-backend-and-f](./quick/260405-jgl-check-typescript-types-for-backend-and-f/) |
