@@ -80,12 +80,12 @@ Plans:
   2. User can see a donut/pie chart showing spending broken down by category
   3. User can see a bar chart of monthly spending trends over the trailing 6 months
   4. User can see a recent transactions widget listing their last 10 transactions on the dashboard
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 04-01: Dashboard TanStack Query options + replace mock data wiring
-- [ ] 04-02: BalanceCard + RecentTransactions widget connected to real data
-- [ ] 04-03: CategoryChart (donut) + MonthlyChart (bar) with shadcn chart primitives + Suspense skeletons
+- [ ] 04-01-PLAN.md — Feature module scaffold: types, query options, skeletons, vitest setup + test stubs
+- [ ] 04-02-PLAN.md — SectionCards (balance summary + savings rate) + RecentTransactionsWidget with live data
+- [ ] 04-03-PLAN.md — MonthlyTrendsChart (bar) + CategoryBreakdownChart (donut) + dashboard page Suspense wiring + placeholder cleanup
 **UI hint**: yes
 
 ## Progress
