@@ -83,9 +83,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Feature module scaffold: types, query options, skeletons, vitest setup + test stubs
-- [ ] 04-02-PLAN.md — SectionCards (balance summary + savings rate) + RecentTransactionsWidget with live data
-- [ ] 04-03-PLAN.md — MonthlyTrendsChart (bar) + CategoryBreakdownChart (donut) + dashboard page Suspense wiring + placeholder cleanup
+- [x] 04-01-PLAN.md — Feature module scaffold: types, query options, skeletons, vitest setup + test stubs
+- [x] 04-02-PLAN.md — SectionCards (balance summary + savings rate) + RecentTransactionsWidget with live data
+- [x] 04-03-PLAN.md — MonthlyTrendsChart (bar) + CategoryBreakdownChart (donut) + dashboard page Suspense wiring + placeholder cleanup
 **UI hint**: yes
 
 ## Progress

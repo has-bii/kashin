@@ -1,29 +1,40 @@
-import dynamic from "next/dynamic"
+"use client"
+
 import { SiteHeader } from "@/components/sidebar/site-header"
 import {
-  SectionCardsSkeleton,
   ChartSkeleton,
+  SectionCardsSkeleton,
   TransactionsSkeleton,
 } from "@/features/dashboard/components/DashboardSkeleton"
+import dynamic from "next/dynamic"
 
 const SectionCards = dynamic(
   () => import("@/features/dashboard/components/SectionCards").then((mod) => mod.SectionCards),
-  { ssr: false, loading: () => <SectionCardsSkeleton /> }
+  { ssr: false, loading: () => <SectionCardsSkeleton /> },
 )
 
 const MonthlyTrendsChart = dynamic(
-  () => import("@/features/dashboard/components/MonthlyTrendsChart").then((mod) => mod.MonthlyTrendsChart),
-  { ssr: false, loading: () => <ChartSkeleton /> }
+  () =>
+    import("@/features/dashboard/components/MonthlyTrendsChart").then(
+      (mod) => mod.MonthlyTrendsChart,
+    ),
+  { ssr: false, loading: () => <ChartSkeleton /> },
 )
 
 const CategoryBreakdownChart = dynamic(
-  () => import("@/features/dashboard/components/CategoryBreakdownChart").then((mod) => mod.CategoryBreakdownChart),
-  { ssr: false, loading: () => <ChartSkeleton /> }
+  () =>
+    import("@/features/dashboard/components/CategoryBreakdownChart").then(
+      (mod) => mod.CategoryBreakdownChart,
+    ),
+  { ssr: false, loading: () => <ChartSkeleton /> },
 )
 
 const RecentTransactionsWidget = dynamic(
-  () => import("@/features/dashboard/components/RecentTransactionsWidget").then((mod) => mod.RecentTransactionsWidget),
-  { ssr: false, loading: () => <TransactionsSkeleton /> }
+  () =>
+    import("@/features/dashboard/components/RecentTransactionsWidget").then(
+      (mod) => mod.RecentTransactionsWidget,
+    ),
+  { ssr: false, loading: () => <TransactionsSkeleton /> },
 )
 
 export default function Page() {
