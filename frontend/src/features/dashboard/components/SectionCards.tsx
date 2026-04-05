@@ -13,14 +13,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { authClient } from "@/lib/auth-client"
+import { authClient, type UserWithProfile } from "@/lib/auth-client"
 
 export function SectionCards() {
   const { data } = useSuspenseQuery(getDashboardSummaryQueryOptions({}))
   const { totalIncome, totalExpense, netBalance } = data
 
   const session = authClient.useSession()
-  const currency = session?.data?.user?.currency ?? "USD"
+  const currency = (session?.data?.user as UserWithProfile | undefined)?.currency ?? "USD"
 
   const formatAmount = (value: number) =>
     new Intl.NumberFormat(undefined, { style: "currency", currency }).format(value)

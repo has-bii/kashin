@@ -2,7 +2,7 @@
 
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { Cell, Label, Pie, PieChart } from "recharts"
-import { authClient } from "@/lib/auth-client"
+import { authClient, type UserWithProfile } from "@/lib/auth-client"
 import { getDashboardCategoryBreakdownQueryOptions } from "../api/get-dashboard-category-breakdown.query"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -23,7 +23,7 @@ const FALLBACK_COLORS = [
 export function CategoryBreakdownChart() {
   const { data } = useSuspenseQuery(getDashboardCategoryBreakdownQueryOptions({}))
   const session = authClient.useSession()
-  const currency = session.data?.user?.currency ?? "USD"
+  const currency = (session.data?.user as UserWithProfile | undefined)?.currency ?? "USD"
 
   const chartConfig: ChartConfig = data.reduce<ChartConfig>((acc, item, index) => {
     const key = item.categoryId ?? `unknown-${index}`
