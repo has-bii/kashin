@@ -33,7 +33,7 @@ function setup(data: { totalIncome: number; totalExpense: number; netBalance: nu
   mockUseSuspenseQuery.mockReturnValue({ data } as ReturnType<typeof useSuspenseQuery>)
   mockUseSession.mockReturnValue({
     data: { user: { currency: "USD" } },
-  } as ReturnType<typeof authClient.useSession>)
+  } as unknown as ReturnType<typeof authClient.useSession>)
 }
 
 describe("SectionCards", () => {
