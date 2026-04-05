@@ -2,7 +2,7 @@ import "./globals.css"
 import { cn } from "@/lib/utils"
 import Providers from "@/providers"
 import { I18nProvider } from "@/i18n/provider"
-import enMessages from "@/../../messages/en.json"
+import enMessages from "@/messages/en.json"
 import type { Metadata } from "next"
 import { Geist, Geist_Mono, Inter, Roboto } from "next/font/google"
 import { cookies } from "next/headers"
@@ -36,7 +36,7 @@ export default async function RootLayout({
   const locale = cookieStore.get("locale")?.value ?? "en"
   const messages =
     locale === "id"
-      ? (await import("@/../../messages/id.json")).default
+      ? (await import("@/messages/id.json")).default
       : enMessages
 
   return (
