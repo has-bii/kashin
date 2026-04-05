@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { format } from "date-fns"
 import { CalendarIcon, SearchIcon } from "lucide-react"
+import { useTranslations } from "next-intl"
 import type { DateRange } from "react-day-picker"
 
 import { useTransactionFilters } from "@/features/transaction/hooks/use-transaction-filters"
@@ -22,13 +23,14 @@ import { cn } from "@/lib/utils"
 import { useQuery } from "@tanstack/react-query"
 
 const TYPE_OPTIONS = [
-  { label: "All", value: "all" },
-  { label: "Expense", value: "expense" },
-  { label: "Income", value: "income" },
+  { labelKey: "all", value: "all" as const },
+  { labelKey: "expenseFilter", value: "expense" as const },
+  { labelKey: "incomeFilter", value: "income" as const },
 ] as const
 
 export function TransactionFilterBar() {
   const { filters, setFilters, resolvedDateFrom, resolvedDateTo } = useTransactionFilters()
+  const t = useTranslations("transaction.filters")
 
   // Search debounce
   const [searchInput, setSearchInput] = useState(filters.search ?? "")
@@ -92,7 +94,7 @@ export function TransactionFilterBar() {
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
-              {opt.label}
+              {t(opt.labelKey)}
             </button>
           )
         })}

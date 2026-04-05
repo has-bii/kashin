@@ -2,6 +2,7 @@
 
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { TrendingDownIcon, TrendingUpIcon } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { getDashboardSummaryQueryOptions } from "../api/get-dashboard-summary.query"
 import { Badge } from "@/components/ui/badge"
@@ -14,16 +15,17 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { authClient, type UserWithProfile } from "@/lib/auth-client"
+import { formatCurrency } from "@/lib/locale-utils"
 
 export function SectionCards() {
   const { data } = useSuspenseQuery(getDashboardSummaryQueryOptions({}))
   const { totalIncome, totalExpense, netBalance } = data
 
   const session = authClient.useSession()
-  const currency = (session?.data?.user as UserWithProfile | undefined)?.currency ?? "USD"
+  const currency = (session?.data?.user as UserWithProfile | undefined)?.currency ?? "IDR"
+  const t = useTranslations("dashboard.section")
 
-  const formatAmount = (value: number) =>
-    new Intl.NumberFormat(undefined, { style: "currency", currency }).format(value)
+  const formatAmount = (value: number) => formatCurrency(value, currency)
 
   const savingsRate = totalIncome === 0 ? null : (netBalance / totalIncome) * 100
 
@@ -32,29 +34,29 @@ export function SectionCards() {
       {/* Card 1 — Total Income */}
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Total Income</CardDescription>
+          <CardDescription>{t("totalIncome")}</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
             {formatAmount(totalIncome)}
           </CardTitle>
         </CardHeader>
-        <CardFooter>Current month</CardFooter>
+        <CardFooter>{t("currentMonth")}</CardFooter>
       </Card>
 
       {/* Card 2 — Total Expenses */}
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Total Expenses</CardDescription>
+          <CardDescription>{t("totalExpenses")}</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
             {formatAmount(totalExpense)}
           </CardTitle>
         </CardHeader>
-        <CardFooter>Current month</CardFooter>
+        <CardFooter>{t("currentMonth")}</CardFooter>
       </Card>
 
       {/* Card 3 — Net Balance */}
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Net Balance</CardDescription>
+          <CardDescription>{t("netBalance")}</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
             {formatAmount(netBalance)}
           </CardTitle>
@@ -62,25 +64,25 @@ export function SectionCards() {
             {netBalance > 0 && (
               <Badge variant="outline" className="text-primary">
                 <TrendingUpIcon />
-                Income exceeds expenses
+                {t("incomeExceeds")}
               </Badge>
             )}
             {netBalance < 0 && (
               <Badge variant="outline" className="text-destructive">
                 <TrendingDownIcon />
-                Expenses exceed income
+                {t("expensesExceed")}
               </Badge>
             )}
-            {netBalance === 0 && <Badge variant="outline">No change</Badge>}
+            {netBalance === 0 && <Badge variant="outline">{t("noChange")}</Badge>}
           </CardAction>
         </CardHeader>
-        <CardFooter>Current month</CardFooter>
+        <CardFooter>{t("currentMonth")}</CardFooter>
       </Card>
 
       {/* Card 4 — Savings Rate */}
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Savings Rate</CardDescription>
+          <CardDescription>{t("savingsRate")}</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
             {savingsRate === null ? "\u2014" : `${savingsRate.toFixed(1)}%`}
           </CardTitle>
@@ -88,17 +90,17 @@ export function SectionCards() {
             <CardAction>
               {savingsRate >= 0 ? (
                 <Badge variant="outline" className="text-primary">
-                  On track
+                  {t("onTrack")}
                 </Badge>
               ) : (
                 <Badge variant="outline" className="text-destructive">
-                  Negative savings
+                  {t("negativeSavings")}
                 </Badge>
               )}
             </CardAction>
           )}
         </CardHeader>
-        <CardFooter>Current month</CardFooter>
+        <CardFooter>{t("currentMonth")}</CardFooter>
       </Card>
     </div>
   )

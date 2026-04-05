@@ -2,6 +2,7 @@
 
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { Cell, Label, Pie, PieChart } from "recharts"
+import { useTranslations } from "next-intl"
 import { authClient, type UserWithProfile } from "@/lib/auth-client"
 import { getDashboardCategoryBreakdownQueryOptions } from "../api/get-dashboard-category-breakdown.query"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -11,6 +12,7 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart"
+import { formatCurrency } from "@/lib/locale-utils"
 
 const FALLBACK_COLORS = [
   "var(--chart-1)",
@@ -23,7 +25,8 @@ const FALLBACK_COLORS = [
 export function CategoryBreakdownChart() {
   const { data } = useSuspenseQuery(getDashboardCategoryBreakdownQueryOptions({}))
   const session = authClient.useSession()
-  const currency = (session.data?.user as UserWithProfile | undefined)?.currency ?? "USD"
+  const currency = (session.data?.user as UserWithProfile | undefined)?.currency ?? "IDR"
+  const t = useTranslations("dashboard.category")
 
   const chartConfig: ChartConfig = data.reduce<ChartConfig>((acc, item, index) => {
     const key = item.categoryId ?? `unknown-${index}`
@@ -36,13 +39,8 @@ export function CategoryBreakdownChart() {
 
   const totalExpenses = data.reduce((sum, item) => sum + item.total, 0)
 
-  const formattedTotal = new Intl.NumberFormat(undefined, {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0,
-  }).format(totalExpenses)
+  const formattedTotal = formatCurrency(totalExpenses, currency)
 
-  // Build legend items — max 6, collapse extras into "+N more"
   const MAX_LEGEND_ITEMS = 6
   const legendItems =
     data.length > MAX_LEGEND_ITEMS
@@ -64,13 +62,13 @@ export function CategoryBreakdownChart() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Spending by Category</CardTitle>
-        <CardDescription>Current month</CardDescription>
+        <CardTitle>{t("title")}</CardTitle>
+        <CardDescription>{t("currentMonth", { defaultValue: "Current month" })}</CardDescription>
       </CardHeader>
       <CardContent>
         {data.length === 0 ? (
           <div className="flex h-[300px] items-center justify-center text-sm text-muted-foreground">
-            No spending this month
+            {t("noSpending")}
           </div>
         ) : (
           <ChartContainer config={chartConfig} className="h-[300px] w-full">
@@ -110,7 +108,7 @@ export function CategoryBreakdownChart() {
                             y={(viewBox.cy || 0) + 20}
                             className="fill-muted-foreground text-xs"
                           >
-                            Total
+                            {t("total")}
                           </tspan>
                         </text>
                       )
@@ -126,11 +124,7 @@ export function CategoryBreakdownChart() {
           <ul className="mt-4 space-y-1">
             {legendItems.map((item, index) => {
               const color = item.category?.color || FALLBACK_COLORS[index % 5]
-              const amount = new Intl.NumberFormat(undefined, {
-                style: "currency",
-                currency,
-                maximumFractionDigits: 0,
-              }).format(item.total)
+              const amount = formatCurrency(item.total, currency)
               return (
                 <li
                   key={item.categoryId ?? index}

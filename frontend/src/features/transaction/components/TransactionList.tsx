@@ -1,7 +1,8 @@
 "use client"
 
-import { format } from "date-fns"
 import { ReceiptIcon } from "lucide-react"
+import { useTranslations } from "next-intl"
+import { formatInTimeZone } from "date-fns-tz"
 
 import { getTransactionsQueryOptions } from "@/features/transaction/api/get-transactions.query"
 import { useTransactionFilters } from "@/features/transaction/hooks/use-transaction-filters"
@@ -9,28 +10,28 @@ import type { Transaction } from "@/features/transaction/types"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import { authClient } from "@/lib/auth-client"
+import { authClient, type UserWithProfile } from "@/lib/auth-client"
 import { cn } from "@/lib/utils"
 import { useQuery } from "@tanstack/react-query"
 
 import { TransactionListSkeleton } from "./TransactionListSkeleton"
 import { TransactionPagination } from "./TransactionPagination"
 
+function formatAmount(amount: string, type: Transaction["type"], currency: string): string {
+  const num = parseFloat(amount)
+  const formatted = new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency,
+    minimumFractionDigits: currency === "IDR" ? 0 : 2,
+  }).format(Math.abs(num))
+  return type === "expense" ? `-${formatted}` : `+${formatted}`
+}
+
 type TransactionListProps = {
   onRowClick?: (transaction: Transaction) => void
   selectedIds?: Set<string>
   onToggleId?: (id: string) => void
   onToggleAll?: (ids: string[]) => void
-}
-
-function formatAmount(amount: string, type: Transaction["type"], currency: string): string {
-  const num = parseFloat(amount)
-  const formatted = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
-    minimumFractionDigits: 2,
-  }).format(Math.abs(num))
-  return type === "expense" ? `-${formatted}` : `+${formatted}`
 }
 
 export function TransactionList({
@@ -41,7 +42,10 @@ export function TransactionList({
 }: TransactionListProps) {
   const { filters, setFilters, resolvedDateFrom, resolvedDateTo } = useTransactionFilters()
   const { data: session } = authClient.useSession()
-  const currency = (session?.user as { currency?: string } | undefined)?.currency ?? "IDR"
+  const user = session?.user as UserWithProfile | undefined
+  const currency = user?.currency ?? "IDR"
+  const timezone = user?.timezone ?? "Asia/Jakarta"
+  const t = useTranslations("transaction.list")
 
   const queryParams = {
     page: filters.page,
@@ -53,6 +57,10 @@ export function TransactionList({
   }
 
   const { data, isLoading } = useQuery(getTransactionsQueryOptions(queryParams))
+
+  const formatDateInTz = (dateStr: string) => {
+    return formatInTimeZone(dateStr, timezone, "MMM dd, yyyy")
+  }
 
   if (isLoading) {
     return <TransactionListSkeleton />
@@ -76,10 +84,8 @@ export function TransactionList({
           <EmptyMedia variant="icon">
             <ReceiptIcon />
           </EmptyMedia>
-          <EmptyTitle>No transactions found</EmptyTitle>
-          <EmptyDescription>
-            Try adjusting your filters or add a new transaction.
-          </EmptyDescription>
+          <EmptyTitle>{t("noResults")}</EmptyTitle>
+          <EmptyDescription>{t("noResultsDesc")}</EmptyDescription>
         </EmptyHeader>
       </Empty>
     )
@@ -103,11 +109,11 @@ export function TransactionList({
             aria-label="Select all"
           />
         )}
-        <span>Date</span>
-        <span>Amount</span>
-        <span>Category</span>
-        <span>Type</span>
-        <span>Note</span>
+        <span>{t("date")}</span>
+        <span>{t("amount")}</span>
+        <span>{t("category")}</span>
+        <span>{t("type")}</span>
+        <span>{t("note")}</span>
       </div>
 
       {/* Rows */}
@@ -140,7 +146,7 @@ export function TransactionList({
               onClick={() => onRowClick?.(transaction)}
               tabIndex={-1}
             >
-              {format(new Date(transaction.transactionDate), "MMM dd, yyyy")}
+              {formatDateInTz(transaction.transactionDate)}
             </button>
 
             {/* Amount */}
@@ -167,14 +173,14 @@ export function TransactionList({
                   <span className="truncate">{transaction.category.name}</span>
                 </>
               ) : (
-                <span className="text-muted-foreground">Uncategorized</span>
+                <span className="text-muted-foreground">{t("uncategorized")}</span>
               )}
             </button>
 
             {/* Type badge */}
             <button onClick={() => onRowClick?.(transaction)} tabIndex={-1}>
               <Badge variant={transaction.type === "income" ? "default" : "destructive"}>
-                {transaction.type === "income" ? "Income" : "Expense"}
+                {transaction.type === "income" ? t("income") : t("expense")}
               </Badge>
             </button>
 

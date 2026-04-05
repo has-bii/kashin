@@ -49,7 +49,7 @@ export default function ChangeCurrencyForm() {
   const { data, isPending } = authClient.useSession()
   const user = data?.user as UserWithProfile | undefined
 
-  const saved = user?.currency ?? "USD"
+  const saved = user?.currency ?? "IDR"
   const [currency, setCurrency] = useState(saved)
   const [isSubmitting, setIsSubmitting] = useState(false)
 

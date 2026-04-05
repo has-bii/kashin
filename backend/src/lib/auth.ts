@@ -16,6 +16,12 @@ export const auth = betterAuth({
         defaultValue: "IDR",
         input: true,
       },
+      locale: {
+        type: "string",
+        required: false,
+        defaultValue: "en",
+        input: true,
+      },
       timezone: {
         type: "string",
         required: false,
