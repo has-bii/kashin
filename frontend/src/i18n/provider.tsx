@@ -5,7 +5,7 @@ import { ReactNode } from "react"
 
 type ProviderProps = {
   locale: string
-  messages: Record<string, string>
+  messages: Record<string, unknown>
   children: ReactNode
 }
 
