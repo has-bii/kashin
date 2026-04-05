@@ -1,14 +1,30 @@
-import { Suspense } from "react"
-import { CategoryBreakdownChart } from "@/features/dashboard/components/CategoryBreakdownChart"
-import { MonthlyTrendsChart } from "@/features/dashboard/components/MonthlyTrendsChart"
-import { RecentTransactionsWidget } from "@/features/dashboard/components/RecentTransactionsWidget"
-import { SectionCards } from "@/features/dashboard/components/SectionCards"
+import dynamic from "next/dynamic"
+import { SiteHeader } from "@/components/sidebar/site-header"
 import {
-  ChartSkeleton,
   SectionCardsSkeleton,
+  ChartSkeleton,
   TransactionsSkeleton,
 } from "@/features/dashboard/components/DashboardSkeleton"
-import { SiteHeader } from "@/components/sidebar/site-header"
+
+const SectionCards = dynamic(
+  () => import("@/features/dashboard/components/SectionCards").then((mod) => mod.SectionCards),
+  { ssr: false, loading: () => <SectionCardsSkeleton /> }
+)
+
+const MonthlyTrendsChart = dynamic(
+  () => import("@/features/dashboard/components/MonthlyTrendsChart").then((mod) => mod.MonthlyTrendsChart),
+  { ssr: false, loading: () => <ChartSkeleton /> }
+)
+
+const CategoryBreakdownChart = dynamic(
+  () => import("@/features/dashboard/components/CategoryBreakdownChart").then((mod) => mod.CategoryBreakdownChart),
+  { ssr: false, loading: () => <ChartSkeleton /> }
+)
+
+const RecentTransactionsWidget = dynamic(
+  () => import("@/features/dashboard/components/RecentTransactionsWidget").then((mod) => mod.RecentTransactionsWidget),
+  { ssr: false, loading: () => <TransactionsSkeleton /> }
+)
 
 export default function Page() {
   return (
@@ -17,20 +33,12 @@ export default function Page() {
       <div className="flex flex-1 flex-col">
         <div className="@container/main flex flex-1 flex-col gap-2">
           <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-            <Suspense fallback={<SectionCardsSkeleton />}>
-              <SectionCards />
-            </Suspense>
+            <SectionCards />
             <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2">
-              <Suspense fallback={<ChartSkeleton />}>
-                <MonthlyTrendsChart />
-              </Suspense>
-              <Suspense fallback={<ChartSkeleton />}>
-                <CategoryBreakdownChart />
-              </Suspense>
+              <MonthlyTrendsChart />
+              <CategoryBreakdownChart />
             </div>
-            <Suspense fallback={<TransactionsSkeleton />}>
-              <RecentTransactionsWidget />
-            </Suspense>
+            <RecentTransactionsWidget />
           </div>
         </div>
       </div>
