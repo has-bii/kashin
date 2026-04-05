@@ -2,7 +2,6 @@
 
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { TrendingDownIcon, TrendingUpIcon } from "lucide-react"
-import { useTranslations } from "next-intl"
 
 import { getDashboardSummaryQueryOptions } from "../api/get-dashboard-summary.query"
 import { Badge } from "@/components/ui/badge"
@@ -23,7 +22,6 @@ export function SectionCards() {
 
   const session = authClient.useSession()
   const currency = (session?.data?.user as UserWithProfile | undefined)?.currency ?? "IDR"
-  const t = useTranslations("dashboard.section")
 
   const formatAmount = (value: number) => formatCurrency(value, currency)
 
@@ -34,29 +32,29 @@ export function SectionCards() {
       {/* Card 1 — Total Income */}
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>{t("totalIncome")}</CardDescription>
+          <CardDescription>Total Income</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
             {formatAmount(totalIncome)}
           </CardTitle>
         </CardHeader>
-        <CardFooter>{t("currentMonth")}</CardFooter>
+        <CardFooter>Current month</CardFooter>
       </Card>
 
       {/* Card 2 — Total Expenses */}
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>{t("totalExpenses")}</CardDescription>
+          <CardDescription>Total Expenses</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
             {formatAmount(totalExpense)}
           </CardTitle>
         </CardHeader>
-        <CardFooter>{t("currentMonth")}</CardFooter>
+        <CardFooter>Current month</CardFooter>
       </Card>
 
       {/* Card 3 — Net Balance */}
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>{t("netBalance")}</CardDescription>
+          <CardDescription>Net Balance</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
             {formatAmount(netBalance)}
           </CardTitle>
@@ -64,25 +62,25 @@ export function SectionCards() {
             {netBalance > 0 && (
               <Badge variant="outline" className="text-primary">
                 <TrendingUpIcon />
-                {t("incomeExceeds")}
+                Income exceeds expenses
               </Badge>
             )}
             {netBalance < 0 && (
               <Badge variant="outline" className="text-destructive">
                 <TrendingDownIcon />
-                {t("expensesExceed")}
+                Expenses exceed income
               </Badge>
             )}
-            {netBalance === 0 && <Badge variant="outline">{t("noChange")}</Badge>}
+            {netBalance === 0 && <Badge variant="outline">No change</Badge>}
           </CardAction>
         </CardHeader>
-        <CardFooter>{t("currentMonth")}</CardFooter>
+        <CardFooter>Current month</CardFooter>
       </Card>
 
       {/* Card 4 — Savings Rate */}
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>{t("savingsRate")}</CardDescription>
+          <CardDescription>Savings Rate</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
             {savingsRate === null ? "\u2014" : `${savingsRate.toFixed(1)}%`}
           </CardTitle>
@@ -90,17 +88,17 @@ export function SectionCards() {
             <CardAction>
               {savingsRate >= 0 ? (
                 <Badge variant="outline" className="text-primary">
-                  {t("onTrack")}
+                  On track
                 </Badge>
               ) : (
                 <Badge variant="outline" className="text-destructive">
-                  {t("negativeSavings")}
+                  Negative savings
                 </Badge>
               )}
             </CardAction>
           )}
         </CardHeader>
-        <CardFooter>{t("currentMonth")}</CardFooter>
+        <CardFooter>Current month</CardFooter>
       </Card>
     </div>
   )

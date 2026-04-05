@@ -1,11 +1,8 @@
 import "./globals.css"
 import { cn } from "@/lib/utils"
 import Providers from "@/providers"
-import { I18nProvider } from "@/i18n/provider"
-import enMessages from "@/messages/en.json"
 import type { Metadata } from "next"
 import { Geist, Geist_Mono, Inter, Roboto } from "next/font/google"
-import { cookies } from "next/headers"
 import { Toaster } from "sonner"
 
 const interHeading = Inter({ subsets: ["latin"], variable: "--font-heading" })
@@ -32,16 +29,9 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const cookieStore = await cookies()
-  const locale = cookieStore.get("locale")?.value ?? "en"
-  const messages =
-    locale === "id"
-      ? (await import("@/messages/id.json")).default
-      : enMessages
-
   return (
     <html
-      lang={locale}
+      lang="en"
       className={cn(
         "h-full",
         "antialiased",
@@ -54,9 +44,7 @@ export default async function RootLayout({
     >
       <body>
         <main>
-          <I18nProvider locale={locale} messages={messages}>
-            <Providers>{children}</Providers>
-          </I18nProvider>
+          <Providers>{children}</Providers>
         </main>
         <Toaster richColors />
       </body>

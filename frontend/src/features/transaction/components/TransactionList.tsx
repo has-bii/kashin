@@ -1,7 +1,7 @@
 "use client"
 
+import { useQuery } from "@tanstack/react-query"
 import { ReceiptIcon } from "lucide-react"
-import { useTranslations } from "next-intl"
 import { formatInTimeZone } from "date-fns-tz"
 
 import { getTransactionsQueryOptions } from "@/features/transaction/api/get-transactions.query"
@@ -12,7 +12,6 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { authClient, type UserWithProfile } from "@/lib/auth-client"
 import { cn } from "@/lib/utils"
-import { useQuery } from "@tanstack/react-query"
 
 import { TransactionListSkeleton } from "./TransactionListSkeleton"
 import { TransactionPagination } from "./TransactionPagination"
@@ -45,7 +44,6 @@ export function TransactionList({
   const user = session?.user as UserWithProfile | undefined
   const currency = user?.currency ?? "IDR"
   const timezone = user?.timezone ?? "Asia/Jakarta"
-  const t = useTranslations("transaction.list")
 
   const queryParams = {
     page: filters.page,
@@ -84,8 +82,10 @@ export function TransactionList({
           <EmptyMedia variant="icon">
             <ReceiptIcon />
           </EmptyMedia>
-          <EmptyTitle>{t("noResults")}</EmptyTitle>
-          <EmptyDescription>{t("noResultsDesc")}</EmptyDescription>
+          <EmptyTitle>No transactions found</EmptyTitle>
+          <EmptyDescription>
+            Try adjusting your filters or add a new transaction.
+          </EmptyDescription>
         </EmptyHeader>
       </Empty>
     )
@@ -109,11 +109,11 @@ export function TransactionList({
             aria-label="Select all"
           />
         )}
-        <span>{t("date")}</span>
-        <span>{t("amount")}</span>
-        <span>{t("category")}</span>
-        <span>{t("type")}</span>
-        <span>{t("note")}</span>
+        <span>Date</span>
+        <span>Amount</span>
+        <span>Category</span>
+        <span>Type</span>
+        <span>Note</span>
       </div>
 
       {/* Rows */}
@@ -173,14 +173,14 @@ export function TransactionList({
                   <span className="truncate">{transaction.category.name}</span>
                 </>
               ) : (
-                <span className="text-muted-foreground">{t("uncategorized")}</span>
+                <span className="text-muted-foreground">Uncategorized</span>
               )}
             </button>
 
             {/* Type badge */}
             <button onClick={() => onRowClick?.(transaction)} tabIndex={-1}>
               <Badge variant={transaction.type === "income" ? "default" : "destructive"}>
-                {transaction.type === "income" ? t("income") : t("expense")}
+                {transaction.type === "income" ? "Income" : "Expense"}
               </Badge>
             </button>
 

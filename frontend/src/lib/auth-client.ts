@@ -10,6 +10,5 @@ export const authClient = createAuthClient({
 // exposed via Better Auth additionalFields config on the backend
 export type UserWithProfile = (typeof authClient.$Infer.Session.user) & {
   currency: string
-  locale: string
   timezone: string
 }

@@ -2,7 +2,7 @@
 
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { Cell, Label, Pie, PieChart } from "recharts"
-import { useTranslations } from "next-intl"
+
 import { authClient, type UserWithProfile } from "@/lib/auth-client"
 import { getDashboardCategoryBreakdownQueryOptions } from "../api/get-dashboard-category-breakdown.query"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -26,7 +26,6 @@ export function CategoryBreakdownChart() {
   const { data } = useSuspenseQuery(getDashboardCategoryBreakdownQueryOptions({}))
   const session = authClient.useSession()
   const currency = (session.data?.user as UserWithProfile | undefined)?.currency ?? "IDR"
-  const t = useTranslations("dashboard.category")
 
   const chartConfig: ChartConfig = data.reduce<ChartConfig>((acc, item, index) => {
     const key = item.categoryId ?? `unknown-${index}`
@@ -62,13 +61,13 @@ export function CategoryBreakdownChart() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t("title")}</CardTitle>
-        <CardDescription>{t("currentMonth", { defaultValue: "Current month" })}</CardDescription>
+        <CardTitle>Spending by Category</CardTitle>
+        <CardDescription>Current month</CardDescription>
       </CardHeader>
       <CardContent>
         {data.length === 0 ? (
           <div className="flex h-[300px] items-center justify-center text-sm text-muted-foreground">
-            {t("noSpending")}
+            No spending this month
           </div>
         ) : (
           <ChartContainer config={chartConfig} className="h-[300px] w-full">
@@ -108,7 +107,7 @@ export function CategoryBreakdownChart() {
                             y={(viewBox.cy || 0) + 20}
                             className="fill-muted-foreground text-xs"
                           >
-                            {t("total")}
+                            Total
                           </tspan>
                         </text>
                       )

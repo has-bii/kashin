@@ -1,22 +1,20 @@
 "use client"
 
 import { useSuspenseQuery } from "@tanstack/react-query"
-import { useTranslations } from "next-intl"
 import { formatInTimeZone } from "date-fns-tz"
 
-import { getDashboardRecentQueryOptions } from "../api/get-dashboard-recent.query"
+import { getDashboardRecentTransactionsQueryOptions } from "../api/get-dashboard-recent.query"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { authClient, type UserWithProfile } from "@/lib/auth-client"
 import { formatCurrency } from "@/lib/locale-utils"
 
 export function RecentTransactionsWidget() {
-  const { data } = useSuspenseQuery(getDashboardRecentQueryOptions({ limit: 10 }))
+  const { data } = useSuspenseQuery(getDashboardRecentTransactionsQueryOptions({ limit: 10 }))
 
   const session = authClient.useSession()
   const user = session?.data?.user as UserWithProfile | undefined
   const currency = user?.currency ?? "IDR"
   const timezone = user?.timezone ?? "Asia/Jakarta"
-  const t = useTranslations("dashboard.recentTransactions")
 
   const formatAmount = (value: string, type: string) => {
     const num = parseFloat(value)
@@ -32,13 +30,13 @@ export function RecentTransactionsWidget() {
     <div className="px-4 lg:px-6">
       <Card>
         <CardHeader>
-          <CardTitle>{t("title")}</CardTitle>
+          <CardTitle>Recent Transactions</CardTitle>
           <CardDescription>Your last 10 transactions</CardDescription>
         </CardHeader>
         <CardContent>
           {data.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-center">
-              <p className="text-base font-medium">{t("noTransactions")}</p>
+              <p className="text-base font-medium">No transactions yet</p>
               <p className="mt-1 text-sm text-muted-foreground">
                 Add your first transaction to get started.
               </p>
@@ -53,7 +51,7 @@ export function RecentTransactionsWidget() {
                     </span>
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">
-                        {tx.category?.name ?? t("uncategorized", { defaultValue: "Uncategorized" })}
+                        {tx.category?.name ?? "Uncategorized"}
                       </p>
                       <p className="truncate text-xs text-muted-foreground">
                         {tx.description ?? "—"}
