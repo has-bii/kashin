@@ -16,7 +16,7 @@ import { useTransactionFilters } from "@/features/transaction/hooks/use-transact
 import { TransactionType } from "@/types/enums"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { isSameMonth, isSameYear } from "date-fns"
-import { format } from "date-fns-tz"
+import { format } from "date-fns"
 import { CalendarIcon, SearchIcon } from "lucide-react"
 import React from "react"
 import type { DateRange } from "react-day-picker"
