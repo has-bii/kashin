@@ -9,18 +9,24 @@ import {
 import { SiteHeader } from "@/components/sidebar/site-header"
 import { Button } from "@/components/ui/button"
 import { TransactionListSkeleton } from "@/features/transaction/components/transaciton-list-skeleton"
-import TransactionFilterBar from "@/features/transaction/components/transaction-filter-bar"
 import { TransactionSheet } from "@/features/transaction/components/transaction-sheet"
 import type { Transaction } from "@/features/transaction/types"
 import { PlusIcon } from "lucide-react"
 import dynamic from "next/dynamic"
-import { Suspense, useState } from "react"
+import { useState } from "react"
 
 const TransactionList = dynamic(
   () => import("@/features/transaction/components/transaction-list"),
   {
     ssr: false,
     loading: () => <TransactionListSkeleton />,
+  },
+)
+
+const TransactionFilterBar = dynamic(
+  () => import("@/features/transaction/components/transaction-filter-bar"),
+  {
+    ssr: false,
   },
 )
 
@@ -74,9 +80,7 @@ export default function TransactionsPage() {
         </MainPageHeader>
 
         {/* Filter bar */}
-        <Suspense>
-          <TransactionFilterBar />
-        </Suspense>
+        <TransactionFilterBar />
 
         {/* Transaction list */}
         <TransactionList onRowClick={handleRowClick} />
