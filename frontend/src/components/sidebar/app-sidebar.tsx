@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/sidebar"
 import {
   ArrowLeftRightIcon,
-  CommandIcon,
   LayersIcon,
   LayoutDashboardIcon,
   Settings2Icon,
