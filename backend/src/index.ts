@@ -4,6 +4,7 @@ import { dashboardController } from "./modules/dashboard"
 import { transactionController } from "./modules/transaction"
 import cors from "@elysiajs/cors"
 import { Elysia } from "elysia"
+import { rateLimit } from "elysia-rate-limit"
 
 const app = new Elysia({ prefix: "/api" })
   .use(
@@ -12,6 +13,12 @@ const app = new Elysia({ prefix: "/api" })
       methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
       credentials: true,
       allowedHeaders: ["Content-Type", "Authorization"],
+    }),
+  )
+  .use(
+    rateLimit({
+      duration: 60000,
+      max: 100,
     }),
   )
   .all("/auth/*", betterAuthView)
