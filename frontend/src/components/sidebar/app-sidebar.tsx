@@ -12,7 +12,14 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { ArrowLeftRightIcon, CommandIcon, LayersIcon, LayoutDashboardIcon, Settings2Icon } from "lucide-react"
+import {
+  ArrowLeftRightIcon,
+  CommandIcon,
+  LayersIcon,
+  LayoutDashboardIcon,
+  Settings2Icon,
+  Wallet,
+} from "lucide-react"
 import * as React from "react"
 
 const data = {
@@ -51,8 +58,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:p-1.5!">
               <a href="#">
-                <CommandIcon className="size-5!" />
-                <span className="text-base font-semibold">Acme Inc.</span>
+                <Wallet className="size-5!" />
+                <span className="text-base font-semibold">Kashin.</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
