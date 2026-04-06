@@ -2,8 +2,7 @@
 
 import { useTransactionForm } from "../hooks/use-transaction-form"
 import { Transaction } from "../types"
-import { getCategoriesQueryOptions } from "@/features/category/api/get-categories.query"
-import { authClient } from "@/lib/auth-client"
+import { TransactionDeleteDialog } from "./transaction-delete-dialog"
 import { SelectTab, SelectTabItem } from "@/components/select-tab"
 import { Button } from "@/components/ui/button"
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
@@ -15,10 +14,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { getCategoriesQueryOptions } from "@/features/category/api/get-categories.query"
+import { authClient } from "@/lib/auth-client"
 import { TransactionType } from "@/types/enums"
 import { useQuery } from "@tanstack/react-query"
 import { Loader2, Plus, SaveIcon } from "lucide-react"
-import { TransactionDeleteDialog } from "./TransactionDeleteDialog"
 
 const types: Array<{ label: string; value: TransactionType }> = [
   { label: "Expense", value: "expense" },
@@ -58,7 +58,7 @@ export function TransactionForm(props: Props) {
                 <Field data-invalid={isInvalid}>
                   <SelectTab
                     value={field.state.value}
-                    onSelect={(value) => field.handleChange(value as TransactionType)}
+                    onChangeValue={(value) => field.handleChange(value as TransactionType)}
                   >
                     {types.map((type) => (
                       <SelectTabItem key={type.value} value={type.value}>
@@ -190,7 +190,7 @@ export function TransactionForm(props: Props) {
                     aria-invalid={isInvalid}
                     rows={3}
                     placeholder="Optional notes..."
-                    className="w-full rounded-2xl border border-transparent bg-input/50 px-3 py-2 text-sm outline-none transition-[color,box-shadow,background-color] focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                    className="bg-input/50 focus-visible:border-ring focus-visible:ring-ring/30 w-full resize-none rounded-2xl border border-transparent px-3 py-2 text-sm transition-[color,box-shadow,background-color] outline-none focus-visible:ring-3 disabled:cursor-not-allowed disabled:opacity-50"
                   />
                   {isInvalid && <FieldError errors={field.state.meta.errors} />}
                 </Field>
@@ -200,7 +200,7 @@ export function TransactionForm(props: Props) {
         </FieldGroup>
       </form>
 
-      <div className="flex flex-col gap-3 px-6 pb-6 pt-2">
+      <div className="flex flex-col gap-3 px-6 pt-2 pb-6">
         <form.Subscribe
           children={({ canSubmit, isSubmitting }) => (
             <Button
@@ -221,10 +221,7 @@ export function TransactionForm(props: Props) {
 
         {/* Delete dialog — edit mode only (D-03) */}
         {props.mode === "edit" && (
-          <TransactionDeleteDialog
-            transactionId={props.data.id}
-            onSuccess={props.onSuccess}
-          />
+          <TransactionDeleteDialog transactionId={props.data.id} onSuccess={props.onSuccess} />
         )}
       </div>
     </>
@@ -254,10 +251,7 @@ function CategorySelectField({
   return (
     <Field data-invalid={isInvalid}>
       <FieldLabel htmlFor={fieldName}>Category</FieldLabel>
-      <Select
-        value={value ?? "__none__"}
-        onValueChange={onChange}
-      >
+      <Select value={value ?? "__none__"} onValueChange={onChange}>
         <SelectTrigger id={fieldName} aria-invalid={isInvalid} onBlur={onBlur} className="w-full">
           <SelectValue placeholder="No category" />
         </SelectTrigger>

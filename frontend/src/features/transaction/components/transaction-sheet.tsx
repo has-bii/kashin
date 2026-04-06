@@ -1,6 +1,7 @@
 "use client"
 
 import { Transaction } from "../types"
+import { TransactionForm } from "./transaction-form"
 import {
   Sheet,
   SheetContent,
@@ -8,7 +9,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
-import { TransactionForm } from "./TransactionForm"
 
 type Props =
   | { mode: "create"; open: boolean; onOpenChange: (v: boolean) => void }

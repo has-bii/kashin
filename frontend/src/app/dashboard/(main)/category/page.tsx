@@ -1,6 +1,11 @@
 "use client"
 
-import { MainPage, MainPageHeader, MainPageTitle } from "@/components/sidebar/main-page"
+import {
+  MainPage,
+  MainPageDescripton,
+  MainPageHeader,
+  MainPageTitle,
+} from "@/components/sidebar/main-page"
 import { SiteHeader } from "@/components/sidebar/site-header"
 import { Skeleton } from "@/components/ui/skeleton"
 import { CategoryFilterTab } from "@/features/category/components/category-filter-tab"
@@ -25,7 +30,12 @@ export default function CategoryPage() {
       <MainPage>
         {/* Header */}
         <MainPageHeader>
-          <MainPageTitle>Your Category</MainPageTitle>
+          <div className="space-y-2">
+            <MainPageTitle>Categories</MainPageTitle>
+            <MainPageDescripton>
+              A curated library of your spending patterns and income streams.
+            </MainPageDescripton>
+          </div>
         </MainPageHeader>
 
         {/* Filter tab */}

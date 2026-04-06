@@ -48,7 +48,7 @@ export function CategoryForm(props: Props) {
                 <Field data-invalid={isInvalid}>
                   <SelectTab
                     value={field.state.value}
-                    onSelect={(value) => field.handleChange(value as TransactionType)}
+                    onChangeValue={(value) => field.handleChange(value as TransactionType)}
                   >
                     {types.map((type) => (
                       <SelectTabItem key={type.value} value={type.value}>
