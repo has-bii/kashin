@@ -7,20 +7,14 @@ import {
   MainPageTitle,
 } from "@/components/sidebar/main-page"
 import { SiteHeader } from "@/components/sidebar/site-header"
-import { Skeleton } from "@/components/ui/skeleton"
+import CategoryCardSkeleton from "@/features/category/components/category-card-skeleton"
 import { CategoryFilterTab } from "@/features/category/components/category-filter-tab"
 import dynamic from "next/dynamic"
 import { Suspense } from "react"
 
 const CategoryList = dynamic(() => import("@/features/category/components/categories-list"), {
   ssr: false,
-  loading: () => (
-    <>
-      {Array.from({ length: 4 }).map((_, i) => (
-        <Skeleton key={i} className="aspect-square w-full" />
-      ))}
-    </>
-  ),
+  loading: () => <CategoryCardSkeleton />,
 })
 
 export default function CategoryPage() {
