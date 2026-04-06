@@ -21,7 +21,7 @@ export default function CategoriesList({
   handleUpdateCategoryAction,
 }: Props) {
   const { type } = useGetCategoryFilter()
-  const { data } = useSuspenseQuery({ ...getCategoriesQueryOptions({ type }) })
+  const { data } = useSuspenseQuery(getCategoriesQueryOptions({ type }))
 
   // Delete state
   const [selectedCategory, setSelectedCategory] = React.useState<Category | null>(null)
