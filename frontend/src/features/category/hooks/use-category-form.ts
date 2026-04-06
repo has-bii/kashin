@@ -30,7 +30,7 @@ export const useCategoryForm = (args: Args) => {
     defaultValues: {
       name: prevData?.name ?? "",
       icon: prevData?.icon ?? "🍔",
-      color: prevData?.color ?? CATEGORY_COLORS[0],
+      color: prevData?.color ?? CATEGORY_COLORS[0].foreground,
       type: (prevData?.type ?? "expense") as TransactionType,
     },
     validators: {

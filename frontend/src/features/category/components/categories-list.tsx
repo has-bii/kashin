@@ -62,6 +62,7 @@ export default function CategoriesList() {
         <CategoryForm mode="create" />
       </ResponsiveDialog>
 
+      {/* Update category */}
       <ResponsiveDialog
         key={categoryUpdate.data?.id}
         title="Edit Category"
@@ -72,6 +73,7 @@ export default function CategoriesList() {
         <CategoryForm mode="update" data={categoryUpdate.data} />
       </ResponsiveDialog>
 
+      {/* Delete category */}
       <ResponsiveDialog
         title={`Delete "${categoryDelete.data?.name}"?`}
         description="This will permanently delete the category. This action cannot be undone."

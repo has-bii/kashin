@@ -58,6 +58,9 @@ export abstract class CategoryService {
             name: input.name,
             userId,
           },
+          NOT: {
+            id,
+          },
         },
       })
 

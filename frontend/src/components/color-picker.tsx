@@ -12,15 +12,15 @@ export function ColorPicker({ value, onChangeValue, className, ...props }: Props
     <div className={cn("flex items-center justify-between gap-3", className)} {...props}>
       {CATEGORY_COLORS.map((color) => (
         <button
-          key={color}
+          key={color.foreground}
           type="button"
           className={cn(
             "aspect-square flex-1 rounded-full border",
-            value === color && "outline-primary/50 outline-4",
+            value === color.foreground && "outline-primary/50 outline-4",
             className,
           )}
-          style={{ backgroundColor: color }}
-          onClick={() => onChangeValue(color)}
+          style={{ backgroundColor: color.foreground }}
+          onClick={() => onChangeValue(color.foreground)}
         />
       ))}
     </div>
