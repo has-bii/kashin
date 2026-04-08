@@ -18,7 +18,7 @@ type Props = {
 
 export function CategoryCard({ data, onDelete, onUpdate }: Props) {
   const styles = useMemo(() => {
-    const isExist = CATEGORY_COLORS.find((acc) => acc.foreground === data.color)
+    const isExist = CATEGORY_COLORS.find((acc) => acc.background === data.color)
 
     if (!isExist)
       return {
