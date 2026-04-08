@@ -1,6 +1,6 @@
 import { Transaction } from "../types"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { formatAmount } from "@/utils/format-amount"
 import { formatDate } from "@/utils/format-date"
@@ -14,7 +14,7 @@ type Props = {
 }
 
 export function TransactionCard({ data, currency, onRowClick }: Props) {
-  const { type, category, amount, description, transactionDate } = data
+  const { type, category, amount, description, notes, transactionDate } = data
 
   const date = formatDate(transactionDate, isToday(transactionDate) ? "p" : undefined)
 
@@ -54,6 +54,11 @@ export function TransactionCard({ data, currency, onRowClick }: Props) {
           </span>
         </div>
       </CardContent>
+      {notes && (
+        <CardFooter className="border-t pt-4!">
+          <p className="text-muted-foreground text-sm">{notes}</p>
+        </CardFooter>
+      )}
     </Card>
   )
 }
