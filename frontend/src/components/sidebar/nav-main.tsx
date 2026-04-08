@@ -25,12 +25,18 @@ export function NavMain({
   const isActive = useCallback((url: string): boolean => url === pathname, [pathname])
 
   return (
-    <SidebarGroup>
+    <SidebarGroup className="pl-0">
       <SidebarGroupContent className="flex flex-col gap-2">
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton tooltip={item.title} isActive={isActive(item.url)} asChild>
+              <SidebarMenuButton
+                size="md"
+                tooltip={item.title}
+                isActive={isActive(item.url)}
+                className="rounded-l-none px-6"
+                asChild
+              >
                 <Link href={item.url}>
                   {item.icon}
                   <span>{item.title}</span>
