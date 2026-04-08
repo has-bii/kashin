@@ -26,7 +26,7 @@ export default function CategoryBreakdownChart() {
   const {
     data: { user },
   } = useSuspenseQuery(getUserQueryOptions())
-  const currency = user.currency ? user.currency.code : "IDR"
+  const currency = user.currency.code
 
   const chartConfig: ChartConfig = data.reduce<ChartConfig>((acc, item, index) => {
     const key = item.categoryId ?? `unknown-${index}`

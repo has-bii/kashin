@@ -19,3 +19,15 @@ export function formatAmount(
   }).format(Math.abs(num))
   return type === "expense" ? `-${formatted}` : `+${formatted}`
 }
+
+export function formatCurrency(
+  amount: number,
+  { locale, currency, decimal }: Omit<FormatAmountOptions, "type">,
+): string {
+  const num = typeof amount === "string" ? parseFloat(amount) : amount
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency,
+    minimumFractionDigits: decimal,
+  }).format(num)
+}

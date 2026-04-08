@@ -26,7 +26,7 @@ export default function MonthlyTrendsChart() {
   const {
     data: { user },
   } = useSuspenseQuery(getUserQueryOptions())
-  const timezone = user.timezone!
+  const timezone = user.timezone
 
   const mappedData = data.map((item) => ({
     label: formatInTimeZone(item.month + "-01", timezone, "MMM"),
