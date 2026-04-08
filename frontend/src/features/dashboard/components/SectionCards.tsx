@@ -1,8 +1,5 @@
 "use client"
 
-import { useSuspenseQuery } from "@tanstack/react-query"
-import { TrendingDownIcon, TrendingUpIcon } from "lucide-react"
-
 import { getDashboardSummaryQueryOptions } from "../api/get-dashboard-summary.query"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -13,10 +10,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { authClient, type UserWithProfile } from "@/lib/auth-client"
+import { type UserWithProfile, authClient } from "@/lib/auth-client"
 import { formatCurrency } from "@/lib/locale-utils"
+import { useSuspenseQuery } from "@tanstack/react-query"
+import { TrendingDownIcon, TrendingUpIcon } from "lucide-react"
 
-export function SectionCards() {
+export default function SectionCards() {
   const { data } = useSuspenseQuery(getDashboardSummaryQueryOptions({}))
   const { totalIncome, totalExpense, netBalance } = data
 
@@ -28,7 +27,7 @@ export function SectionCards() {
   const savingsRate = totalIncome === 0 ? null : (netBalance / totalIncome) * 100
 
   return (
-    <div className="grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4 dark:*:data-[slot=card]:bg-card">
+    <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
       {/* Card 1 — Total Income */}
       <Card className="@container/card">
         <CardHeader>
@@ -54,11 +53,8 @@ export function SectionCards() {
       {/* Card 3 — Net Balance */}
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Net Balance</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {formatAmount(netBalance)}
-          </CardTitle>
-          <CardAction>
+          <div className="flex items-start justify-between gap-4">
+            <CardDescription>Net Balance</CardDescription>
             {netBalance > 0 && (
               <Badge variant="outline" className="text-primary">
                 <TrendingUpIcon />
@@ -72,7 +68,10 @@ export function SectionCards() {
               </Badge>
             )}
             {netBalance === 0 && <Badge variant="outline">No change</Badge>}
-          </CardAction>
+          </div>
+          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+            {formatAmount(netBalance)}
+          </CardTitle>
         </CardHeader>
         <CardFooter>Current month</CardFooter>
       </Card>

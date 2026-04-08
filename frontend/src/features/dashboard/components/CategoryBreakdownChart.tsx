@@ -1,18 +1,17 @@
 "use client"
 
-import { useSuspenseQuery } from "@tanstack/react-query"
-import { Cell, Label, Pie, PieChart } from "recharts"
-
-import { authClient, type UserWithProfile } from "@/lib/auth-client"
 import { getDashboardCategoryBreakdownQueryOptions } from "../api/get-dashboard-category-breakdown.query"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
+  type ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  type ChartConfig,
 } from "@/components/ui/chart"
+import { type UserWithProfile, authClient } from "@/lib/auth-client"
 import { formatCurrency } from "@/lib/locale-utils"
+import { useSuspenseQuery } from "@tanstack/react-query"
+import { Cell, Label, Pie, PieChart } from "recharts"
 
 const FALLBACK_COLORS = [
   "var(--chart-1)",
@@ -22,7 +21,7 @@ const FALLBACK_COLORS = [
   "var(--chart-5)",
 ]
 
-export function CategoryBreakdownChart() {
+export default function CategoryBreakdownChart() {
   const { data } = useSuspenseQuery(getDashboardCategoryBreakdownQueryOptions({}))
   const session = authClient.useSession()
   const currency = (session.data?.user as UserWithProfile | undefined)?.currency ?? "IDR"
@@ -66,7 +65,7 @@ export function CategoryBreakdownChart() {
       </CardHeader>
       <CardContent>
         {data.length === 0 ? (
-          <div className="flex h-[300px] items-center justify-center text-sm text-muted-foreground">
+          <div className="text-muted-foreground flex h-[300px] items-center justify-center text-sm">
             No spending this month
           </div>
         ) : (

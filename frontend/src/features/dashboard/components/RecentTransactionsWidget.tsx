@@ -7,7 +7,7 @@ import { formatCurrency } from "@/lib/locale-utils"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { formatInTimeZone } from "date-fns-tz"
 
-export function RecentTransactionsWidget() {
+export default function RecentTransactionsWidget() {
   const { data } = useSuspenseQuery(getDashboardRecentQueryOptions({ limit: 10 }))
 
   const session = authClient.useSession()

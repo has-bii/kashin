@@ -1,27 +1,26 @@
 "use client"
 
-import { useState } from "react"
-import { useSuspenseQuery } from "@tanstack/react-query"
-import { formatInTimeZone } from "date-fns-tz"
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
-
 import { getDashboardTrendsQueryOptions } from "../api/get-dashboard-trends.query"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
+  type ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  type ChartConfig,
 } from "@/components/ui/chart"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import { authClient, type UserWithProfile } from "@/lib/auth-client"
+import { type UserWithProfile, authClient } from "@/lib/auth-client"
+import { useSuspenseQuery } from "@tanstack/react-query"
+import { formatInTimeZone } from "date-fns-tz"
+import { useState } from "react"
+import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
 
 const chartConfig = {
   income: { label: "Income", color: "var(--primary)" },
   expense: { label: "Expenses", color: "var(--destructive)" },
 } satisfies ChartConfig
 
-export function MonthlyTrendsChart() {
+export default function MonthlyTrendsChart() {
   const [months, setMonths] = useState(6)
   const { data } = useSuspenseQuery(getDashboardTrendsQueryOptions({ months }))
   const session = authClient.useSession()
@@ -38,9 +37,7 @@ export function MonthlyTrendsChart() {
       <CardHeader className="flex flex-row items-start justify-between">
         <div>
           <CardTitle>Monthly Trends</CardTitle>
-          <CardDescription>
-            {`Income vs. expenses over the last ${months} months`}
-          </CardDescription>
+          <CardDescription>{`Income vs. expenses over the last ${months} months`}</CardDescription>
         </div>
         <ToggleGroup
           type="single"
@@ -56,7 +53,7 @@ export function MonthlyTrendsChart() {
       </CardHeader>
       <CardContent>
         {data.length === 0 ? (
-          <div className="flex h-[300px] items-center justify-center text-sm text-muted-foreground">
+          <div className="text-muted-foreground flex h-[300px] items-center justify-center text-sm">
             No transactions this period
           </div>
         ) : (

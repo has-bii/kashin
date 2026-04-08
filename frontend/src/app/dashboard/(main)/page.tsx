@@ -8,32 +8,23 @@ import {
 } from "@/features/dashboard/components/DashboardSkeleton"
 import dynamic from "next/dynamic"
 
-const SectionCards = dynamic(
-  () => import("@/features/dashboard/components/SectionCards").then((mod) => mod.SectionCards),
-  { ssr: false, loading: () => <SectionCardsSkeleton /> },
-)
+const SectionCards = dynamic(() => import("@/features/dashboard/components/SectionCards"), {
+  ssr: false,
+  loading: () => <SectionCardsSkeleton />,
+})
 
 const MonthlyTrendsChart = dynamic(
-  () =>
-    import("@/features/dashboard/components/MonthlyTrendsChart").then(
-      (mod) => mod.MonthlyTrendsChart,
-    ),
+  () => import("@/features/dashboard/components/MonthlyTrendsChart"),
   { ssr: false, loading: () => <ChartSkeleton /> },
 )
 
 const CategoryBreakdownChart = dynamic(
-  () =>
-    import("@/features/dashboard/components/CategoryBreakdownChart").then(
-      (mod) => mod.CategoryBreakdownChart,
-    ),
+  () => import("@/features/dashboard/components/CategoryBreakdownChart"),
   { ssr: false, loading: () => <ChartSkeleton /> },
 )
 
 const RecentTransactionsWidget = dynamic(
-  () =>
-    import("@/features/dashboard/components/RecentTransactionsWidget").then(
-      (mod) => mod.RecentTransactionsWidget,
-    ),
+  () => import("@/features/dashboard/components/RecentTransactionsWidget"),
   { ssr: false, loading: () => <TransactionsSkeleton /> },
 )
 
