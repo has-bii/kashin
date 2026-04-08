@@ -34,7 +34,7 @@ export function NavMain({
                 size="md"
                 tooltip={item.title}
                 isActive={isActive(item.url)}
-                className="rounded-l-none px-6"
+                className="rounded-l-none"
                 asChild
               >
                 <Link href={item.url}>

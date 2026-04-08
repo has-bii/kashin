@@ -19,6 +19,7 @@ import {
   Settings2Icon,
   Wallet,
 } from "lucide-react"
+import Link from "next/link"
 import * as React from "react"
 
 const data = {
@@ -52,14 +53,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       {/* Header */}
-      <SidebarHeader>
+      <SidebarHeader className="pl-0">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:p-1.5!">
-              <a href="#">
+            <SidebarMenuButton
+              size="md"
+              className="rounded-l-none data-[slot=sidebar-menu-button]:p-4!"
+              asChild
+            >
+              <Link href="/dashboard">
                 <Wallet className="size-5!" />
                 <span className="text-base font-semibold">Kashin.</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -70,7 +75,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <React.Suspense>
           <NavMain items={data.navMain} />
         </React.Suspense>
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <NavSecondary items={data.navSecondary} className="mt-auto pl-0" />
       </SidebarContent>
 
       {/* Footer */}
