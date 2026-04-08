@@ -20,8 +20,8 @@ CREATE TABLE "users" (
     "email" VARCHAR(255) NOT NULL,
     "emailVerified" BOOLEAN NOT NULL DEFAULT false,
     "image" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMPTZ NOT NULL,
     "currency" CHAR(3) NOT NULL DEFAULT 'IDR',
     "timezone" VARCHAR(64) NOT NULL DEFAULT 'Asia/Jakarta',
 
@@ -81,8 +81,8 @@ CREATE TABLE "categories" (
     "type" "TransactionType" NOT NULL,
     "icon" VARCHAR(50) NOT NULL,
     "color" CHAR(7) NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMPTZ NOT NULL,
 
     CONSTRAINT "categories_pkey" PRIMARY KEY ("id")
 );
@@ -97,12 +97,12 @@ CREATE TABLE "transactions" (
     "type" "TransactionType" NOT NULL,
     "amount" DECIMAL(15,2) NOT NULL,
     "currency" CHAR(3) NOT NULL DEFAULT 'IDR',
-    "transactionDate" DATE NOT NULL,
+    "transactionDate" TIMESTAMPTZ NOT NULL,
     "description" VARCHAR(255),
     "notes" TEXT,
     "source" "TransactionSource" NOT NULL DEFAULT 'manual',
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMPTZ NOT NULL,
 
     CONSTRAINT "transactions_pkey" PRIMARY KEY ("id")
 );
@@ -113,8 +113,8 @@ CREATE TABLE "email_inboxes" (
     "userId" UUID NOT NULL,
     "emailAddress" VARCHAR(255) NOT NULL,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMPTZ NOT NULL,
 
     CONSTRAINT "email_inboxes_pkey" PRIMARY KEY ("id")
 );
@@ -133,9 +133,9 @@ CREATE TABLE "ai_extractions" (
     "extractedNotes" TEXT,
     "confidenceScore" REAL,
     "status" "AiExtractionStatus" NOT NULL DEFAULT 'pending',
-    "confirmedAt" TIMESTAMP(3),
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "confirmedAt" TIMESTAMPTZ,
+    "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMPTZ NOT NULL,
 
     CONSTRAINT "ai_extractions_pkey" PRIMARY KEY ("id")
 );
@@ -150,11 +150,11 @@ CREATE TABLE "recurring_transactions" (
     "currency" CHAR(3) NOT NULL DEFAULT 'IDR',
     "description" VARCHAR(255) NOT NULL,
     "frequency" "RecurringFrequency" NOT NULL,
-    "nextDueDate" DATE NOT NULL,
-    "lastGeneratedDate" DATE,
+    "nextDueDate" TIMESTAMPTZ NOT NULL,
+    "lastGeneratedDate" TIMESTAMPTZ,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMPTZ NOT NULL,
 
     CONSTRAINT "recurring_transactions_pkey" PRIMARY KEY ("id")
 );
@@ -169,9 +169,9 @@ CREATE TABLE "email_logs" (
     "rawBody" TEXT,
     "status" "EmailLogStatus" NOT NULL DEFAULT 'received',
     "errorMessage" TEXT,
-    "receivedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "processedAt" TIMESTAMP(3),
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "receivedAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "processedAt" TIMESTAMPTZ,
+    "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "email_logs_pkey" PRIMARY KEY ("id")
 );
@@ -185,8 +185,8 @@ CREATE TABLE "attachments" (
     "fileName" VARCHAR(255) NOT NULL,
     "fileType" VARCHAR(100),
     "fileSize" BIGINT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMPTZ NOT NULL,
 
     CONSTRAINT "attachments_pkey" PRIMARY KEY ("id")
 );
