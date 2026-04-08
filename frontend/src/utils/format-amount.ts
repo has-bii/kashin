@@ -1,11 +1,21 @@
 import { Transaction } from "@/features/transaction/types"
 
-export function formatAmount(amount: string, type: Transaction["type"], currency: string): string {
+type FormatAmountOptions = {
+  type: Transaction["type"]
+  currency: string
+  locale: string
+  decimal: number
+}
+
+export function formatAmount(
+  amount: string,
+  { locale, currency, type, decimal }: FormatAmountOptions,
+): string {
   const num = parseFloat(amount)
-  const formatted = new Intl.NumberFormat("id-ID", {
+  const formatted = new Intl.NumberFormat(locale, {
     style: "currency",
     currency,
-    minimumFractionDigits: currency === "IDR" ? 0 : 2,
+    minimumFractionDigits: decimal,
   }).format(Math.abs(num))
   return type === "expense" ? `-${formatted}` : `+${formatted}`
 }

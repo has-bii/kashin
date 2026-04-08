@@ -8,7 +8,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-import { type UserWithProfile, authClient } from "@/lib/auth-client"
+import { getUserQueryOptions } from "@/features/auth/hooks/use-get-user"
 import { formatCurrency } from "@/lib/locale-utils"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { Cell, Label, Pie, PieChart } from "recharts"
@@ -23,8 +23,10 @@ const FALLBACK_COLORS = [
 
 export default function CategoryBreakdownChart() {
   const { data } = useSuspenseQuery(getDashboardCategoryBreakdownQueryOptions({}))
-  const session = authClient.useSession()
-  const currency = (session.data?.user as UserWithProfile | undefined)?.currency ?? "IDR"
+  const {
+    data: { user },
+  } = useSuspenseQuery(getUserQueryOptions())
+  const currency = user.currency ? user.currency.code : "IDR"
 
   const chartConfig: ChartConfig = data.reduce<ChartConfig>((acc, item, index) => {
     const key = item.categoryId ?? `unknown-${index}`

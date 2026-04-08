@@ -11,9 +11,11 @@ type Props = {
   onRowClick?: (transaction: Transaction) => void
   currency: string
   timezone: string
+  locale: string
+  decimal: number
 }
 
-export function TransactionCard({ data, currency, onRowClick }: Props) {
+export function TransactionCard({ data, currency, onRowClick, locale, decimal }: Props) {
   const { type, category, amount, description, notes, transactionDate } = data
 
   const date = formatDate(transactionDate, isToday(transactionDate) ? "p" : undefined)
@@ -51,7 +53,7 @@ export function TransactionCard({ data, currency, onRowClick }: Props) {
               type === "expense" ? "text-destructive" : "text-primary",
             )}
           >
-            {formatAmount(amount, type, currency)}
+            {formatAmount(amount, { currency, locale, type, decimal })}
           </span>
 
           {/* Type */}

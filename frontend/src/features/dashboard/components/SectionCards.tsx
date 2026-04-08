@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { type UserWithProfile, authClient } from "@/lib/auth-client"
+import { getUserQueryOptions } from "@/features/auth/hooks/use-get-user"
 import { formatCurrency } from "@/lib/locale-utils"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { TrendingDownIcon, TrendingUpIcon } from "lucide-react"
@@ -19,8 +19,11 @@ export default function SectionCards() {
   const { data } = useSuspenseQuery(getDashboardSummaryQueryOptions({}))
   const { totalIncome, totalExpense, netBalance } = data
 
-  const session = authClient.useSession()
-  const currency = (session?.data?.user as UserWithProfile | undefined)?.currency ?? "IDR"
+  const {
+    data: { user },
+  } = useSuspenseQuery(getUserQueryOptions())
+
+  const currency = user.currency ? user.currency.code : "IDR"
 
   const formatAmount = (value: number) => formatCurrency(value, currency)
 

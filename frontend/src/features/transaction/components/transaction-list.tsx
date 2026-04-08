@@ -19,7 +19,9 @@ export default function TransactionList({ onRowClick }: TransactionListProps) {
 
   // User data
   const { data: session } = useSuspenseQuery(getUserQueryOptions())
-  const currency = session.user.currency
+  const currency = session.user.currency.code
+  const decimal = session.user.currency.decimal
+  const locale = session.user.locale
   const timezone = session.user.timezone
 
   const queryParams = {
@@ -90,6 +92,8 @@ export default function TransactionList({ onRowClick }: TransactionListProps) {
                 data={transaction}
                 onRowClick={onRowClick}
                 currency={currency}
+                decimal={decimal}
+                locale={locale}
                 timezone={timezone}
               />
             ))}

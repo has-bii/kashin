@@ -9,7 +9,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import { type UserWithProfile, authClient } from "@/lib/auth-client"
+import { getUserQueryOptions } from "@/features/auth/hooks/use-get-user"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { formatInTimeZone } from "date-fns-tz"
 import { useState } from "react"
@@ -23,8 +23,10 @@ const chartConfig = {
 export default function MonthlyTrendsChart() {
   const [months, setMonths] = useState(6)
   const { data } = useSuspenseQuery(getDashboardTrendsQueryOptions({ months }))
-  const session = authClient.useSession()
-  const timezone = (session?.data?.user as UserWithProfile | undefined)?.timezone ?? "Asia/Jakarta"
+  const {
+    data: { user },
+  } = useSuspenseQuery(getUserQueryOptions())
+  const timezone = user.timezone!
 
   const mappedData = data.map((item) => ({
     label: formatInTimeZone(item.month + "-01", timezone, "MMM"),

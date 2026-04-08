@@ -11,15 +11,24 @@ export const auth = betterAuth({
   user: {
     additionalFields: {
       currency: {
-        type: "string",
+        type: "json",
         required: false,
-        defaultValue: "IDR",
         input: true,
+        defaultValue: {
+          code: "IDR",
+          decimal: 0,
+        },
       },
       timezone: {
         type: "string",
         required: false,
         defaultValue: "Asia/Jakarta",
+        input: true,
+      },
+      locale: {
+        type: "string",
+        required: false,
+        defaultValue: "id-ID",
         input: true,
       },
     },

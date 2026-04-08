@@ -12,16 +12,16 @@ import {
 } from "@/components/ui/card"
 import { Field, FieldError, FieldGroup } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { authClient } from "@/lib/auth-client"
+import { getUserQueryOptions } from "@/features/auth/hooks/use-get-user"
+import { useSuspenseQuery } from "@tanstack/react-query"
 import { Loader2 } from "lucide-react"
-import { useMemo } from "react"
 
 export default function ChangeNameForm() {
-  const { data, isPending } = authClient.useSession()
+  const {
+    data: { user },
+  } = useSuspenseQuery(getUserQueryOptions())
 
-  const defaultValues = useMemo(() => ({ name: data?.user.name ?? "" }), [data])
-
-  const { form } = useChangeNameForm({ defaultValues })
+  const { form } = useChangeNameForm({ defaultValues: { name: user.name } })
 
   return (
     <Card>
@@ -72,7 +72,7 @@ export default function ChangeNameForm() {
             <Button
               type="submit"
               form="change-name-form"
-              disabled={isSubmitting || !isDirty || !canSubmit || isPending}
+              disabled={isSubmitting || !isDirty || !canSubmit}
             >
               Save
               {isSubmitting && <Loader2 className="animate-spin" />}

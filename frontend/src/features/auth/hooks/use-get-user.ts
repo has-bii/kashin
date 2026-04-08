@@ -1,4 +1,4 @@
-import { authClient } from "@/lib/auth-client"
+import { UserProfile, authClient } from "@/lib/auth-client"
 import { queryOptions } from "@tanstack/react-query"
 
 export const getUserQueryOptions = () => {
@@ -9,7 +9,7 @@ export const getUserQueryOptions = () => {
 
       if (!data) throw new Error("Failed to get user data")
 
-      return data
+      return { session: data.session, user: data.user as UserProfile }
     },
   })
 }

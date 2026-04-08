@@ -2,18 +2,19 @@
 
 import { getDashboardRecentQueryOptions } from "../api/get-dashboard-recent.query"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { type UserWithProfile, authClient } from "@/lib/auth-client"
+import { getUserQueryOptions } from "@/features/auth/hooks/use-get-user"
 import { formatCurrency } from "@/lib/locale-utils"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { formatInTimeZone } from "date-fns-tz"
 
 export default function RecentTransactionsWidget() {
   const { data } = useSuspenseQuery(getDashboardRecentQueryOptions({ limit: 10 }))
+  const {
+    data: { user },
+  } = useSuspenseQuery(getUserQueryOptions())
 
-  const session = authClient.useSession()
-  const user = session?.data?.user as UserWithProfile | undefined
-  const currency = user?.currency ?? "IDR"
-  const timezone = user?.timezone ?? "Asia/Jakarta"
+  const currency = user.currency ? user.currency.code : "IDR"
+  const timezone = user.timezone || "Asia/Jakarta"
 
   const formatAmount = (value: string, type: string) => {
     const num = parseFloat(value)

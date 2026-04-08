@@ -8,12 +8,22 @@ export const authClient = createAuthClient({
     inferAdditionalFields({
       user: {
         currency: {
-          type: "string",
-          input: false,
+          type: "json",
+          required: false,
+          defaultValue: {
+            code: "IDR",
+            decimal: 0,
+          },
         },
         timezone: {
           type: "string",
-          input: false,
+          required: false,
+          defaultValue: "Asia/Jakarta",
+        },
+        locale: {
+          type: "string",
+          required: false,
+          defaultValue: "id-ID",
         },
       },
     }),
@@ -22,7 +32,11 @@ export const authClient = createAuthClient({
 
 // Extended user type that includes app-specific profile fields
 // exposed via Better Auth additionalFields config on the backend
-export type UserWithProfile = typeof authClient.$Infer.Session.user & {
-  currency: string
+export type UserProfile = typeof authClient.$Infer.Session.user & {
+  currency: {
+    code: string
+    decimal: number
+  }
   timezone: string
+  locale: string
 }

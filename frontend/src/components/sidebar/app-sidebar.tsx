@@ -58,7 +58,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton
               size="md"
-              className="rounded-l-none data-[slot=sidebar-menu-button]:p-4!"
+              className="text-foreground rounded-l-none data-[slot=sidebar-menu-button]:p-4!"
               asChild
             >
               <Link href="/dashboard">

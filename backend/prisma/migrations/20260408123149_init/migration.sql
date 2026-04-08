@@ -22,8 +22,9 @@ CREATE TABLE "users" (
     "image" TEXT,
     "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMPTZ NOT NULL,
-    "currency" CHAR(3) NOT NULL DEFAULT 'IDR',
     "timezone" VARCHAR(64) NOT NULL DEFAULT 'Asia/Jakarta',
+    "locale" VARCHAR(6) NOT NULL DEFAULT 'id-ID',
+    "currency" JSONB NOT NULL DEFAULT '{ "code": "IDR", "decimal": 0}',
 
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );
