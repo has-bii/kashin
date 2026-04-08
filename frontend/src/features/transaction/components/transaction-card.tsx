@@ -22,7 +22,13 @@ export function TransactionCard({ data, currency, onRowClick }: Props) {
     <Card role="button" className="rounded-3xl py-4 shadow-none" onClick={() => onRowClick?.(data)}>
       <CardContent className="flex items-center gap-3 px-4">
         {/* Icon */}
-        <div className="bg-secondary inline-flex size-14 shrink-0 items-center justify-center rounded-xl">
+        <div
+          className={cn(
+            "inline-flex size-14 shrink-0 items-center justify-center rounded-xl",
+            !category && "bg-secondary",
+          )}
+          style={{ backgroundColor: category ? category.color : undefined }}
+        >
           <span className="text-3xl">{category?.icon || "❓"}</span>
         </div>
 
