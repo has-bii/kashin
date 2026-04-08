@@ -31,8 +31,8 @@ export function TransactionDeleteDialog({ transactionId, onSuccess }: Props) {
     <AlertDialog>
       <AlertDialogTrigger asChild>
         <Button variant="destructive" size="lg" className="w-full" type="button">
+          Delete
           <Trash2 />
-          Delete Transaction
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>

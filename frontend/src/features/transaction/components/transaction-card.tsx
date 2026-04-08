@@ -13,10 +13,10 @@ type Props = {
   timezone: string
 }
 
-export function TransactionCard({ data, currency, timezone, onRowClick }: Props) {
+export function TransactionCard({ data, currency, onRowClick }: Props) {
   const { type, category, amount, description, transactionDate } = data
 
-  const date = isToday(transactionDate) ? "Today" : formatDate(transactionDate)
+  const date = formatDate(transactionDate, isToday(transactionDate) ? "p" : undefined)
 
   return (
     <Card role="button" className="rounded-3xl py-4 shadow-none" onClick={() => onRowClick?.(data)}>
@@ -33,7 +33,7 @@ export function TransactionCard({ data, currency, timezone, onRowClick }: Props)
           </h4>
           <div className="mt-2 flex items-center gap-2">
             <Badge variant="secondary">{category?.name || "Uncategorized"}</Badge>
-            <span className="text-outline-variant text-[10px]">• {date}</span>
+            <span className="text-outline-variant text-xs">• {date}</span>
           </div>
         </div>
 

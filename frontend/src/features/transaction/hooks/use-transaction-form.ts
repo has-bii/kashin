@@ -27,15 +27,13 @@ export const useTransactionForm = (args: Args) => {
   const queryClient = useQueryClient()
 
   const prevData = args.mode === "edit" ? args.data : null
-  const today = new Date().toISOString().split("T")[0]
+  const today = new Date().toISOString()
 
   const form = useForm({
     defaultValues: {
       type: (prevData?.type ?? "expense") as "expense" | "income",
       amount: prevData?.amount ? Number(prevData.amount) : 0,
-      transactionDate: prevData?.transactionDate
-        ? prevData.transactionDate.split("T")[0]
-        : today,
+      transactionDate: prevData?.transactionDate ? prevData.transactionDate : today,
       categoryId: (prevData?.categoryId ?? null) as string | null,
       description: prevData?.description ?? "",
       notes: prevData?.notes ?? "",

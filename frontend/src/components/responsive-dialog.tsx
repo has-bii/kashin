@@ -19,6 +19,7 @@ import {
   DrawerTrigger,
 } from "./ui/drawer"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { cn } from "@/lib/utils"
 import React from "react"
 
 export type ResponsiveDialogContextType = {
@@ -44,7 +45,14 @@ type ResponsiveDialogProps = {
   onOpenChange?: (open: boolean) => void
 }
 
-function ResponsiveDialog({ title, description, trigger, children, open: openProp, onOpenChange }: ResponsiveDialogProps) {
+function ResponsiveDialog({
+  title,
+  description,
+  trigger,
+  children,
+  open: openProp,
+  onOpenChange,
+}: ResponsiveDialogProps) {
   const [internalOpen, setInternalOpen] = React.useState(false)
   const isControlled = openProp !== undefined
   const open = isControlled ? openProp : internalOpen
@@ -89,14 +97,16 @@ ResponsiveDialog.displayName = "ResponsiveDialog"
 
 type ResponsiveDialogFooterProps = {
   children?: React.ReactNode
+  className?: string
 }
 
-function ResponsiveDialogFooter({ children }: ResponsiveDialogFooterProps) {
+function ResponsiveDialogFooter({ children, className }: ResponsiveDialogFooterProps) {
   const { isMobile } = useResponsiveDialog()
 
-  if (isMobile) return <DrawerFooter className="flex-col-reverse">{children}</DrawerFooter>
+  if (isMobile)
+    return <DrawerFooter className={cn("flex-col-reverse", className)}>{children}</DrawerFooter>
 
-  return <DialogFooter>{children}</DialogFooter>
+  return <DialogFooter className={className}>{children}</DialogFooter>
 }
 
 export { ResponsiveDialog, ResponsiveDialogFooter }

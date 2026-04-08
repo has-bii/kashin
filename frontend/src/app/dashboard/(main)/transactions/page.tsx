@@ -1,5 +1,6 @@
 "use client"
 
+import { ResponsiveDialog } from "@/components/responsive-dialog"
 import {
   MainPage,
   MainPageDescripton,
@@ -9,11 +10,11 @@ import {
 import { SiteHeader } from "@/components/sidebar/site-header"
 import { Button } from "@/components/ui/button"
 import { TransactionListSkeleton } from "@/features/transaction/components/transaciton-list-skeleton"
-import { TransactionSheet } from "@/features/transaction/components/transaction-sheet"
+import { TransactionForm } from "@/features/transaction/components/transaction-form"
 import type { Transaction } from "@/features/transaction/types"
 import { PlusIcon } from "lucide-react"
 import dynamic from "next/dynamic"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 
 const TransactionList = dynamic(
   () => import("@/features/transaction/components/transaction-list"),
@@ -32,28 +33,37 @@ const TransactionFilterBar = dynamic(
 
 export default function TransactionsPage() {
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null)
-  const [sheetOpen, setSheetOpen] = useState(false)
+  const [dialogOpen, setDialogOpen] = useState(false)
 
-  // sheetMode derived: if selectedTransaction is set → "edit"; otherwise → "create"
-  const sheetMode = selectedTransaction ? "edit" : "create"
+  // dialogMode derived: if selectedTransaction is set → "edit"; otherwise → "create"
+  const dialogMode = useMemo(() => (selectedTransaction ? "edit" : "create"), [selectedTransaction])
 
   const handleRowClick = (transaction: Transaction) => {
     setSelectedTransaction(transaction)
-    setSheetOpen(true)
+    setDialogOpen(true)
   }
 
   const handleAddTransaction = () => {
     setSelectedTransaction(null)
-    setSheetOpen(true)
+    setDialogOpen(true)
   }
 
-  const handleSheetClose = (open: boolean) => {
-    setSheetOpen(open)
+  const handleDialogClose = () => {
+    setDialogOpen(false)
     // Reset selectedTransaction after close to avoid stale state (Pitfall 3)
-    if (!open) {
-      setTimeout(() => setSelectedTransaction(null), 200)
-    }
+    setTimeout(() => setSelectedTransaction(null), 200)
   }
+
+  // Dialog Info
+  const dialogInfo = useMemo(() => {
+    return {
+      title: dialogMode === "create" ? "Add Transaction" : "Edit Transaction",
+      description:
+        dialogMode === "create"
+          ? "Record a new expense or income."
+          : "Update the details of this transaction.",
+    }
+  }, [dialogMode])
 
   return (
     <>
@@ -85,17 +95,23 @@ export default function TransactionsPage() {
         {/* Transaction list */}
         <TransactionList onRowClick={handleRowClick} />
 
-        {/* Transaction sheet — create or edit mode */}
-        {sheetMode === "edit" && selectedTransaction ? (
-          <TransactionSheet
-            mode="edit"
-            open={sheetOpen}
-            onOpenChange={handleSheetClose}
-            data={selectedTransaction}
-          />
-        ) : (
-          <TransactionSheet mode="create" open={sheetOpen} onOpenChange={handleSheetClose} />
-        )}
+        {/* Transaction Responsive Dialog - Create or update mode */}
+        <ResponsiveDialog
+          title={dialogInfo.title}
+          description={dialogInfo.description}
+          open={dialogOpen}
+          onOpenChange={handleDialogClose}
+        >
+          {dialogMode === "create" ? (
+            <TransactionForm mode="create" onSuccess={handleDialogClose} />
+          ) : (
+            <TransactionForm
+              mode="edit"
+              data={selectedTransaction!}
+              onSuccess={handleDialogClose}
+            />
+          )}
+        </ResponsiveDialog>
       </MainPage>
     </>
   )

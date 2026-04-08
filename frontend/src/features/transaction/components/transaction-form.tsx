@@ -3,6 +3,12 @@
 import { useTransactionForm } from "../hooks/use-transaction-form"
 import { Transaction } from "../types"
 import { TransactionDeleteDialog } from "./transaction-delete-dialog"
+import {
+  DatetimePicker,
+  DatetimePickerDate,
+  DatetimePickerTime,
+} from "@/components/datetime-picker"
+import { ResponsiveDialogFooter } from "@/components/responsive-dialog"
 import { SelectTab, SelectTabItem } from "@/components/select-tab"
 import { Button } from "@/components/ui/button"
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
@@ -42,7 +48,6 @@ export function TransactionForm(props: Props) {
     <>
       <form
         id="transaction-form"
-        className="flex-1 overflow-y-auto px-6 pb-4"
         onSubmit={(e) => {
           e.preventDefault()
           form.handleSubmit()
@@ -106,20 +111,25 @@ export function TransactionForm(props: Props) {
             name="transactionDate"
             children={(field) => {
               const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+              const value = field.state.value
+
               return (
-                <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Date</FieldLabel>
-                  <Input
-                    id={field.name}
-                    name={field.name}
-                    type="date"
-                    value={field.state.value}
-                    onBlur={field.handleBlur}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    aria-invalid={isInvalid}
-                  />
-                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                </Field>
+                <div className="grid grid-cols-2 gap-2">
+                  <DatetimePicker
+                    value={value}
+                    onChangeValue={(input) => field.handleChange(input!)}
+                  >
+                    <Field data-invalid={isInvalid}>
+                      <FieldLabel htmlFor={`date-${field.name}`}>Date</FieldLabel>
+                      <DatetimePickerDate />
+                      {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                    </Field>
+                    <Field data-invalid={isInvalid}>
+                      <FieldLabel htmlFor={`time-${field.name}`}>Time</FieldLabel>
+                      <DatetimePickerTime />
+                    </Field>
+                  </DatetimePicker>
+                </div>
               )
             }}
           />
@@ -200,7 +210,7 @@ export function TransactionForm(props: Props) {
         </FieldGroup>
       </form>
 
-      <div className="flex flex-col gap-3 px-6 pt-2 pb-6">
+      <ResponsiveDialogFooter className="flex-col sm:flex-col">
         <form.Subscribe
           children={({ canSubmit, isSubmitting }) => (
             <Button
@@ -223,7 +233,7 @@ export function TransactionForm(props: Props) {
         {props.mode === "edit" && (
           <TransactionDeleteDialog transactionId={props.data.id} onSuccess={props.onSuccess} />
         )}
-      </div>
+      </ResponsiveDialogFooter>
     </>
   )
 }
