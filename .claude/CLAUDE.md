@@ -24,6 +24,21 @@ Before writing any code, read the relevant docs in `.claude/docs/`:
 | `dependencies.md` | When importing libraries or creating utils |
 | `env-and-config.md` | When working with config, secrets, or env vars |
 
+## Skills — Backend
+
+Before implementing backend features, read the relevant skill in `.claude/skills/backend/`:
+
+| Skill | When to Read |
+|-------|-------------|
+| `endpoint.md` | Creating new API routes or modules |
+| `middleware.md` | Adding auth, plugins, or per-route hooks |
+| `database.md` | Writing queries, creating models, transactions |
+| `validation.md` | Validating request input (body, query, params) |
+| `error-handling.md` | Throwing or handling errors |
+| `response.md` | Returning API responses |
+| `auth.md` | Protecting routes, accessing current user |
+| `testing.md` | Writing backend tests |
+
 ## Hard Rules
 
 - NEVER install new dependencies without asking the user first
