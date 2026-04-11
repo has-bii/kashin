@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/chart"
 import { formatCurrency } from "@/utils/format-amount"
 import { useSuspenseQuery } from "@tanstack/react-query"
-import { Cell, Label, Pie, PieChart } from "recharts"
+import { Label, Pie, PieChart } from "recharts"
 
 const FALLBACK_COLORS = [
   "var(--chart-1)",
@@ -53,6 +53,12 @@ export default function CategoryBreakdownChart() {
         ]
       : data
 
+  const mappedData = data.map((acc, i) => ({
+    categoryId: acc.categoryId,
+    total: acc.total,
+    fill: FALLBACK_COLORS[i % 5],
+  }))
+
   return (
     <Card>
       <CardHeader>
@@ -65,21 +71,22 @@ export default function CategoryBreakdownChart() {
             No spending this month
           </div>
         ) : (
-          <ChartContainer config={chartConfig} className="h-[300px] w-full">
+          <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
             <PieChart>
+              <ChartTooltip content={<ChartTooltipContent />} />
               <Pie
-                data={data}
+                data={mappedData}
                 dataKey="total"
                 nameKey="categoryId"
                 innerRadius={60}
                 strokeWidth={5}
               >
-                {data.map((entry, index) => (
+                {/* {data.map((entry, index) => (
                   <Cell
                     key={entry.categoryId ?? index}
                     fill={entry.category?.color || FALLBACK_COLORS[index % 5]}
                   />
-                ))}
+                ))} */}
                 <Label
                   content={({ viewBox }) => {
                     if (viewBox && "cx" in viewBox && "cy" in viewBox) {
@@ -110,7 +117,6 @@ export default function CategoryBreakdownChart() {
                   }}
                 />
               </Pie>
-              <ChartTooltip content={<ChartTooltipContent />} />
             </PieChart>
           </ChartContainer>
         )}

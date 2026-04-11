@@ -9,9 +9,8 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import { TIMEZONE } from "@/constants/indonesia"
 import { useSuspenseQuery } from "@tanstack/react-query"
-import { formatInTimeZone } from "date-fns-tz"
+import { format } from "date-fns"
 import { useState } from "react"
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
 
@@ -23,8 +22,9 @@ const chartConfig = {
 export default function MonthlyTrendsChart() {
   const [months, setMonths] = useState(6)
   const { data } = useSuspenseQuery(getDashboardTrendsQueryOptions({ months }))
+
   const mappedData = data.map((item) => ({
-    label: formatInTimeZone(item.month + "-01", TIMEZONE, "MMM"),
+    label: format(item.month + "-01", "MMM"),
     income: item.income,
     expense: item.expense,
   }))
@@ -54,7 +54,7 @@ export default function MonthlyTrendsChart() {
             No transactions this period
           </div>
         ) : (
-          <ChartContainer config={chartConfig} className="h-[300px] w-full">
+          <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
             <BarChart data={mappedData}>
               <CartesianGrid vertical={false} />
               <XAxis dataKey="label" />
