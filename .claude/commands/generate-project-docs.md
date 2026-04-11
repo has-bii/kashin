@@ -1,19 +1,27 @@
+---
+description: Generate project intelligence docs (conventions, stack, structure, dependencies, env config). Supports --mode=scan|interview|hybrid and --scope=all|conventions|tech-stack|project-structure|dependencies|env-and-config.
+argument-hint: "[--mode=hybrid] [--scope=all]"
+allowed-tools: Read, Glob, Grep, Bash(cat:*), Bash(ls:*), Bash(find:*)
+---
+
 # Generate Project Documentation
 
 You are generating project intelligence docs for `.claude/docs/`. These docs help AI coding agents (like you) understand the project conventions, stack, and structure — so they never need to "explore" the codebase.
 
 ## Parameters
 
-The user may provide these arguments after the command:
+Parse the arguments from `$ARGUMENTS`. Supported flags:
 
 - `--mode=scan` — Auto-analyze the codebase to generate docs. Read config files and sample source files to infer conventions.
 - `--mode=interview` — Ask the user structured questions, then generate docs from their answers.
 - `--mode=hybrid` (DEFAULT if not specified) — Auto-detect what you can from config files, present findings to user for confirmation, ask questions only for what you can't infer.
 - `--scope=all` (DEFAULT) — Generate all docs. Or specify one or more comma-separated: `conventions`, `tech-stack`, `project-structure`, `dependencies`, `env-and-config`.
 
+If no arguments provided, default to `--mode=hybrid --scope=all`.
+
 ## Output Location
 
-All generated docs go in `.claude/docs/`. After generating docs, also regenerate `.claude/CLAUDE.md` (the router file).
+All generated docs go in `.claude/docs/`. After generating docs, also regenerate `CLAUDE.md` (the router file).
 
 ---
 
@@ -458,7 +466,7 @@ Adapt based on `PROJECT_TYPE` and `STACK_INFO`:
 
 ## After Generating All Docs
 
-Generate or update `.claude/CLAUDE.md`:
+Generate or update `CLAUDE.md`:
 
 ```markdown
 # Project Intelligence
@@ -504,5 +512,11 @@ Finally, tell the user:
 
 ```
 Done! Project docs generated in .claude/docs/
-Router updated at .claude/CLAUDE.md
+Router updated at CLAUDE.md
+
+Next steps:
+1. Review the generated docs and correct anything that's off
+2. Run /generate-project-skills to add implementation patterns (coming soon)
+3. Install code-review-graph for codebase navigation:
+   pip install code-review-graph && code-review-graph install && code-review-graph build
 ```

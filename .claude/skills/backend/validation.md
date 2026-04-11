@@ -2,49 +2,22 @@
 
 ## When to Use
 
-When defining input schemas for request body, query params, or path params.
+When defining request body schemas, query param schemas, or extending Prismabox-generated schemas.
 
-## How Validation Works
+## Libraries
 
-This project uses **two schema systems**:
+- **TypeBox `t`** (from `elysia`) — for route-level schemas (body, query, params)
+- **Prismabox** (from `../../generated/prismabox/{Model}`) — auto-generated TypeBox schemas from Prisma models
+- **Zod** — only for internal data transformations, not route validation
 
-| Where | Schema Type | Source |
-|-------|------------|--------|
-| Body input (CRUD) | TypeBox (via prismabox) | Auto-generated in `src/generated/prismabox/` |
-| Query params | TypeBox `t` | Hand-written in `query.ts` |
-| Extra body fields | TypeBox `t.Composite` | Extend generated schema |
-| Service-internal | Zod | For complex validation logic only |
+## File Locations
 
-## Prismabox-Generated Schemas
+- Query schemas: `modules/{domain}/query.ts`
+- Body schemas: `modules/{domain}/service.ts` (exported constants)
 
-After defining/updating a Prisma model, run `bun run generate` (or `bunx prisma generate`).
-This produces in `src/generated/prismabox/{Model}.ts`:
-- `{Model}PlainInputCreate` — all required fields for creation
-- `{Model}PlainInputUpdate` — all fields optional for updates
+## Patterns
 
-Import and use directly — **do not write these by hand**.
-
-## Extending Generated Schemas
-
-When you need extra fields not in the Prisma model (e.g. a relation ID):
-
-```typescript
-import { t } from "elysia"
-import { __nullable__ } from "../../generated/prismabox/__nullable__"
-import { TransactionPlainInputCreate } from "../../generated/prismabox/Transaction"
-
-export const transactionCreateBody = t.Composite([
-  TransactionPlainInputCreate,
-  t.Object({ categoryId: t.Optional(__nullable__(t.String())) }),
-])
-
-// Infer the static type
-type CreateInput = (typeof transactionCreateBody)["static"]
-```
-
-## Query Param Schema
-
-Define in `query.ts` alongside the module:
+### Query Params (in `query.ts`)
 
 ```typescript
 import { t } from "elysia"
@@ -52,15 +25,49 @@ import { t } from "elysia"
 export const getAllQuery = t.Object({
   page: t.Optional(t.Number({ minimum: 1, default: 1 })),
   limit: t.Optional(t.Number({ minimum: 1, maximum: 100, default: 20 })),
-  search: t.Optional(t.String()),
   type: t.Optional(t.Union([t.Literal("expense"), t.Literal("income")])),
-  dateFrom: t.Optional(t.String()),
+  search: t.Optional(t.String()),
+  dateFrom: t.Optional(t.String()),  // ISO date string
+  dateTo: t.Optional(t.String()),
 })
+```
+
+### Body Schemas (in `service.ts`)
+
+```typescript
+// Option A: Use Prismabox directly (simplest)
+import { {Model}PlainInputCreate, {Model}PlainInputUpdate } from "../../generated/prismabox/{Model}"
+export const {model}CreateBody = {Model}PlainInputCreate
+export const {model}UpdateBody = {Model}PlainInputUpdate
+
+// Option B: Extend with t.Composite (add/override fields)
+import { __nullable__ } from "../../generated/prismabox/__nullable__"
+export const {model}CreateBody = t.Composite([
+  {Model}PlainInputCreate,
+  t.Object({ relatedId: t.Optional(__nullable__(t.String())) }),
+])
+
+// Option C: Custom TypeBox schema (when no Prismabox model exists)
+import { t } from "elysia"
+export const customBody = t.Object({
+  name: t.String({ minLength: 1, maxLength: 100 }),
+  amount: t.Number({ minimum: 0 }),
+  type: t.Union([t.Literal("a"), t.Literal("b")]),
+  note: t.Optional(t.String()),
+})
+```
+
+### Infer Types from Schemas
+
+```typescript
+type CreateInput = (typeof {model}CreateBody)["static"]
+type GetAllQuery = (typeof getAllQuery)["static"]
 ```
 
 ## Rules
 
-- Never hand-write TypeBox schemas for Prisma model fields — use prismabox
-- Use `__nullable__` helper (from generated folder) for nullable optional fields
-- Infer TypeScript types from TypeBox with `(typeof schema)["static"]`
-- Zod is available for complex service-layer validation, but TypeBox at the route boundary
+- Use Prismabox `PlainInputCreate`/`PlainInputUpdate` first — only write custom schemas when you need to add/override fields
+- Use `__nullable__` wrapper for optional nullable fields from Prisma schema
+- Query params are validated on the route's `query:` option — Elysia coerces types automatically
+- Body schemas go on the route's `body:` option
+- Infer types with `["static"]` — never write duplicate type definitions

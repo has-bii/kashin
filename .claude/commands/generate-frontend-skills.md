@@ -1,3 +1,8 @@
+---
+description: Generate frontend implementation pattern docs (component, query API, mutation, form, routing, state management, lazy loading, testing). Scans existing code or generates opinionated defaults for React Vite, Tanstack Router, or Next.js.
+allowed-tools: Read, Glob, Grep, Bash(cat:*), Bash(ls:*), Bash(find:*)
+---
+
 # Generate Frontend Skills
 
 You are generating implementation pattern docs (skills) for the frontend of this project. These skills tell AI coding agents exactly HOW to implement things — following the project's existing patterns or establishing new ones.
@@ -897,7 +902,7 @@ it('fetches data', async () => {
 
 ## STEP 3: Update CLAUDE.md
 
-After generating all skills, update the skills section in `.claude/CLAUDE.md`:
+After generating all skills, update the skills section in `CLAUDE.md`:
 
 ```markdown
 ## Skills — Frontend

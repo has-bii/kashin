@@ -2,66 +2,54 @@
 
 ## When to Use
 
-When returning data from any service method.
+When returning data from any service method or route handler.
 
 ## Response Shapes
 
-### Single item — return directly
+### List with pagination
+
 ```typescript
-return prisma.transaction.findUnique({ where: { id } })
-// → { id, amount, ... }
+// Return from service.getAll()
+return { data, total, page, limit, totalPages: Math.ceil(total / limit) }
 ```
 
-### Create — use status() for 201
+```json
+{ "data": [...], "total": 100, "page": 1, "limit": 20, "totalPages": 5 }
+```
+
+### Single item
+
+```typescript
+// Return the object directly — Elysia serializes it
+return item
+```
+
+### Created (201)
+
 ```typescript
 import { status } from "elysia"
-
-const result = await prisma.transaction.create({ data: input })
 return status(201, result)
-// → HTTP 201 + { id, amount, ... }
 ```
 
-### Paginated list
+### Deleted / Updated
+
 ```typescript
-const [data, total] = await prisma.$transaction([
-  prisma.transaction.findMany({ where, skip, take: limit }),
-  prisma.transaction.count({ where }),
-])
-return { data, total, page, limit, totalPages: Math.ceil(total / limit) }
-// → { data: [...], total: 42, page: 1, limit: 20, totalPages: 3 }
+// Return the deleted or updated object directly
+return prisma.{model}.delete({ where: { id, userId } })
+return prisma.{model}.update({ where: { id, userId }, data: input })
 ```
 
-### Delete — return deleted record
+### Auth rejection (in macros only)
+
 ```typescript
-return prisma.transaction.delete({ where: { id } })
-// → HTTP 200 + deleted record
+return status(401, { error: "Unauthorized" })
 ```
-
-### Special responses (file download, etc.)
-```typescript
-return new Response(csvContent, {
-  headers: {
-    "Content-Type": "text/csv",
-    "Content-Disposition": 'attachment; filename="export.csv"',
-  },
-})
-```
-
-## HTTP Status Codes
-
-| Action | Code | How |
-|--------|------|-----|
-| Read (GET) | 200 | Default |
-| Create (POST) | 201 | `return status(201, result)` |
-| Update (PUT) | 200 | Default |
-| Delete (DELETE) | 200 | Default (returns deleted record) |
-| Not found | 404 | `throw new NotFoundError(...)` |
-| Conflict | 409 | `throw new Conflict(...)` |
-| Unauthorized | 401 | authMacro handles automatically |
 
 ## Rules
 
-- Return data directly from Prisma — no `{ data: result }` wrapper on single items
-- Paginated lists use `{ data, total, page, limit, totalPages }` shape
-- Creates must use `status(201, result)` — not just `return result`
-- Import `status` from `"elysia"`, not from anywhere else
+- **Never wrap single items in `{ data: item }`** — return the object directly; Elysia serializes it
+- **List responses use the paginated shape** — `{ data, total, page, limit, totalPages }`
+- **Use `status(201, result)` for creates** — not `status(200, ...)` or bare returns
+- **No wrapper for deletes/updates** — return the Prisma result directly
+- **No `message` field** — Elysia's default error messages cover the common cases
+- HTTP status codes: 200 (ok/default), 201 (created), 400 (bad input), 401 (unauth), 403 (forbidden), 404 (not found), 409 (conflict)

@@ -6,17 +6,21 @@
         "hooks": [
           {
             "type": "command",
-            "command": "code-review-graph update --skip-flows"
+            "command": "code-review-graph update --skip-flows",
+            "timeout": 5
           }
-        ],
-        "timeout": 5000
+        ]
       }
     ],
     "SessionStart": [
       {
-        "matcher": "",
-        "hooks": [{ "type": "command", "command": "code-review-graph status" }],
-        "timeout": 3000
+        "hooks": [
+          {
+            "type": "command",
+            "command": "code-review-graph status",
+            "timeout": 3
+          }
+        ]
       }
     ]
   }

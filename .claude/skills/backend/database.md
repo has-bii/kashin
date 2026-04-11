@@ -2,83 +2,63 @@
 
 ## When to Use
 
-When writing Prisma queries, creating models, or managing data operations.
+When writing Prisma queries, handling transactions, or working with related models.
 
 ## File Locations
 
+- Prisma client: `backend/src/lib/prisma.ts` — always import from here
 - Schema: `backend/prisma/schema.prisma`
-- Client: `src/lib/prisma.ts` — always import from here
-- Generated client: `src/generated/prisma/` (auto-generated)
-- Generated TypeBox schemas: `src/generated/prismabox/` (auto-generated)
+- Generated client: `backend/src/generated/prisma/` — auto-generated, don't edit
+- Generated Prismabox schemas: `backend/src/generated/prismabox/` — auto-generated, don't edit
 
 ## Pattern
 
-1. Define/update model in `prisma/schema.prisma`
-2. Run `bunx prisma migrate dev --name <description>`
-3. Run `bunx prisma generate` (generates both Prisma client and prismabox schemas)
-4. Use the shared `prisma` instance from `src/lib/prisma.ts`
+1. Import `prisma` from `../../lib/prisma` — never `new PrismaClient()`
+2. All queries go in `service.ts` methods — never in `index.ts`
+3. Use `prisma.$transaction([...])` for parallel reads (count + data)
+4. Use `prisma.$transaction(async tx => ...)` for atomic write operations
 
-## Prisma Client Setup
-
-```typescript
-// src/lib/prisma.ts — uses @prisma/adapter-pg driver (Prisma 7 style)
-import { PrismaClient } from "../generated/prisma/client"
-import { PrismaPg } from "@prisma/adapter-pg"
-
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })
-export const prisma = new PrismaClient({ adapter })
-```
-
-## Query Patterns
+## Common Patterns
 
 ```typescript
 import { prisma } from "../../lib/prisma"
 
-// Paginated list with count — use prisma.$transaction for parallel execution
+// Paginated list with count (parallel transaction)
 const [data, total] = await prisma.$transaction([
-  prisma.transaction.findMany({
+  prisma.{model}.findMany({
     where,
-    include: { category: { select: { id: true, name: true } } },
+    include: { relation: { select: { id: true, name: true } } },
     orderBy: { createdAt: "desc" },
     skip: (page - 1) * limit,
     take: limit,
   }),
-  prisma.transaction.count({ where }),
+  prisma.{model}.count({ where }),
 ])
 return { data, total, page, limit, totalPages: Math.ceil(total / limit) }
 
-// Dynamic where with optional filters
-const where: Record<string, unknown> = { userId }
-if (type) where.type = type
-if (search) where.OR = [
-  { name: { contains: search, mode: "insensitive" as const } },
-]
+// Existence check before update/delete
+const isExist = await prisma.{model}.findUnique({ where: { id, userId } })
+if (!isExist) throw new NotFoundError("{Model} doesn't exist")
 
-// Atomic write transaction
+// Atomic writes (sequential, rollback on failure)
 const result = await prisma.$transaction(async (tx) => {
-  const order = await tx.order.create({ data: orderData })
-  await tx.inventory.update({ where: { id }, data: { stock: { decrement: 1 } } })
-  return order
+  const item = await tx.{model}.create({ data: input })
+  await tx.{other}.update({ where: { id }, data: { count: { increment: 1 } } })
+  return item
 })
-```
 
-## Schema Conventions
-
-```prisma
-model Resource {
-  id        String   @id @default(uuid(7)) @db.Uuid
-  userId    String   @db.Uuid
-  createdAt DateTime @default(now()) @db.Timestamptz
-  updatedAt DateTime @updatedAt @db.Timestamptz
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+// Select specific fields (avoid over-fetching)
+const categoryInclude = {
+  category: { select: { id: true, name: true, type: true, icon: true } },
 }
+prisma.{model}.findMany({ include: categoryInclude })
 ```
 
 ## Rules
 
-- Always import `prisma` from `src/lib/prisma.ts` — never `new PrismaClient()` elsewhere
-- Use `prisma.$transaction([])` for parallel read + count (performance)
-- Use `prisma.$transaction(async tx => {})` for atomic multi-step writes
-- UUIDs use `uuid(7)` with `@db.Uuid` — always
-- Timestamps use `@db.Timestamptz` — always
-- After schema changes: `bunx prisma migrate dev` then `bunx prisma generate`
+- Always scope queries to `userId` — never query across users
+- Use `{ where: { id, userId } }` pattern, not just `{ where: { id } }`
+- `prisma.$transaction([...])` = parallel array; `prisma.$transaction(async tx => ...)` = atomic callback
+- Run `bunx prisma migrate dev --name {description}` after schema changes
+- Run `bunx prisma generate` after generate to regenerate Prismabox
+- Never touch files in `src/generated/` — they are auto-generated

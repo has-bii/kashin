@@ -1,49 +1,76 @@
 # Skill: Lazy Loading
 
 ## When to Use
+When a component fetches data (uses `useSuspenseQuery`) or is a heavy third-party widget.
 
-When a component uses `useSuspenseQuery` (required), or is heavy and conditionally rendered.
-
-## Pattern
-
-Use Next.js `dynamic()` for all components that use `useSuspenseQuery`. This is required because Suspense + SSR breaks without it.
-
-## Template
+## Pattern — Feature Lists (Most Common)
+Data-fetching components should be lazy-loaded with `dynamic()` + a skeleton fallback.
 
 ```tsx
 // In page.tsx
 import dynamic from 'next/dynamic'
-import {Feature}Skeleton from '@/features/{feature}/components/{feature}-skeleton'
+import { {Domain}Skeleton } from '@/features/{domain}/components/{domain}-skeleton'
 
-const {Feature}List = dynamic(
-  () => import('@/features/{feature}/components/{feature}-list'),
+const {Domain}List = dynamic(
+  () => import('@/features/{domain}/components/{domain}-list'),
   {
     ssr: false,
-    loading: () => <{Feature}Skeleton />,
+    loading: () => <{Domain}Skeleton />,
   }
 )
 
-// Usage
+// Use directly — no Suspense wrapper needed (dynamic handles it)
+<{Domain}List />
+```
+
+## Pattern — Heavy Third-Party (Charts, Editors)
+```tsx
+import dynamic from 'next/dynamic'
+
+const Chart = dynamic(() => import('@/components/my-chart'), {
+  ssr: false,
+  loading: () => <div className="h-64 animate-pulse rounded-lg bg-muted" />,
+})
+```
+
+## Pattern — Suspense + nuqs Filters (Required)
+Components that use `nuqs` must be wrapped in `<Suspense>`:
+```tsx
+import { Suspense } from 'react'
+
 <Suspense>
-  <{Feature}List />
+  <{Domain}FilterBar />  {/* uses useQueryState */}
 </Suspense>
 ```
 
-## When to Use `ssr: false`
+## Skeleton Template
+```tsx
+// features/{domain}/components/{domain}-skeleton.tsx
+import { Skeleton } from '@/components/ui/skeleton'
 
-- Component uses `useSuspenseQuery` — always
-- Component uses browser-only APIs (window, localStorage)
-- Component uses chart libraries (recharts) or DnD
+export default function {Domain}Skeleton() {
+  return (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <Skeleton key={i} className="aspect-square rounded-4xl" />
+      ))}
+    </div>
+  )
+}
+```
+
+## When to Lazy Load
+- Any component that calls `useSuspenseQuery` — always lazy load with `dynamic()`
+- Chart components (recharts)
+- Any component that only renders client-side
 
 ## When NOT to Lazy Load
-
-- Small UI components (buttons, badges, cards without queries)
-- Components used on every page
-- Above-the-fold content that affects LCP
+- Static UI components (buttons, cards, headers)
+- Small utility components
+- Components already inside a lazy-loaded parent
 
 ## Rules
-
-- Always provide a `loading` skeleton — never leave it undefined
-- Wrap lazy components in `<Suspense>` at page level (not in the component itself)
-- Skeleton component lives in the same feature folder: `{feature}-skeleton.tsx`
-- Never wrap a component in dynamic() inside another component — only in page files
+- Use `ssr: false` for all components that use React Query hooks
+- Always provide a `loading` skeleton — never show nothing
+- `dynamic()` is the Next.js equivalent of `React.lazy()` — prefer `dynamic()`
+- Skeleton components use default export (dynamic import requires it)

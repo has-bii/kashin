@@ -2,24 +2,29 @@
 
 ## File Naming
 
-- All files: `kebab-case` (e.g., `transaction-card.tsx`, `get-transactions.query.ts`)
-- Backend modules: `index.ts`, `query.ts`, `service.ts` per module
-- Frontend feature API files: `<action>-<resource>.ts` or `<action>-<resource>.query.ts`
+- All files: `kebab-case` (e.g., `format-amount.ts`, `category-colors.ts`, `auth-client.ts`)
+- React components: `kebab-case.tsx` (e.g., `data-table.tsx`, `responsive-dialog.tsx`)
+- Next.js special files: `page.tsx`, `layout.tsx`, `globals.css` (framework convention)
+- Backend modules: directory name = domain (e.g., `modules/transaction/index.ts`)
 
 ## Code Naming
 
 - Variables/functions: `camelCase`
-- React components: `PascalCase`
 - Types/interfaces: `PascalCase`
-- Constants: `UPPER_SNAKE_CASE` (inferred)
+- React components: `PascalCase`
+- Constants: `SCREAMING_SNAKE_CASE` for true constants, `camelCase` for exported objects
+- Hooks: prefixed with `use` (e.g., `useMobile`)
+- Backend controllers: `{domain}Controller` (e.g., `transactionController`)
+- Backend services: `{Domain}Service` (e.g., `TransactionService`)
 
 ## Exports
 
-- Backend modules export named exports from `index.ts`
-- Frontend features have no barrel `index.ts` — import directly from sub-paths
+- Backend: named exports only — no default exports
+- Frontend: mix — Next.js pages use default export (framework requirement); components use named exports
+- No barrel files (`index.ts` re-exports) — import directly from source files
 
 ## Other Rules
 
-- Path alias `@/` maps to `frontend/src/`
 - React Compiler is active — never add `React.memo`, `useMemo`, or `useCallback`
-- TanStack Query global config (staleTime/gcTime) is set on root QueryClient — don't add per-query
+- Imports sorted by `@trivago/prettier-plugin-sort-imports` (auto on format)
+- Tailwind classes sorted by `prettier-plugin-tailwindcss` (auto on format)

@@ -1,41 +1,37 @@
 # Skill: Forms
 
 ## When to Use
-
-When building any form with validation and API submission.
+When building create or edit forms that call the API.
 
 ## File Locations
-
-- Form hook: `src/features/{feature}/hooks/use-{resource}-form.ts`
-- Schema: `src/features/{feature}/validations/schema.ts`
-- Form component: `src/features/{feature}/components/{resource}-form.tsx`
+- Form hook: `frontend/src/features/{domain}/hooks/use-{domain}-form.ts`
+- Zod schema: `frontend/src/features/{domain}/validations/schema.ts`
+- Form component: `frontend/src/features/{domain}/components/{domain}-form.tsx`
 
 ## Pattern
+1. Define Zod schema + infer `{Resource}Dto` type in `validations/schema.ts`
+2. In hook: combine `useForm` (TanStack Form) + `useMutation` (React Query)
+3. Pass zod schema to `validators: { onSubmit: schema }`
+4. Call `mutation.mutateAsync()` inside `onSubmit`
+5. In component: use `form.Field` render-prop for each field, `form.Subscribe` for submit button
 
-1. Define Zod schema in `validations/schema.ts` (import from `zod/v4`)
-2. Create a hook in `hooks/` that combines `useForm` + `useMutation`
-3. Form component only renders fields — all logic lives in the hook
-
-## Schema Template
-
+## Validation Schema
 ```typescript
-// src/features/{feature}/validations/schema.ts
+// features/{domain}/validations/schema.ts
 import { z } from 'zod/v4'
 
 export const {resource}Schema = z.object({
-  name: z.string().min(1, 'Required').max(100, 'Max 100 characters'),
+  name: z.string().min(1, 'Required').max(100),
   // ...
 })
 
 export type {Resource}Dto = z.infer<typeof {resource}Schema>
 ```
 
-## Hook Template (create + update in one hook)
-
+## Form Hook Template
 ```typescript
-// src/features/{feature}/hooks/use-{resource}-form.ts
-import { {Resource} } from '../types'
-import { {Resource}Dto, {resource}Schema } from '../validations/schema'
+// features/{domain}/hooks/use-{domain}-form.ts
+import { {resource}Schema, {Resource}Dto } from '../validations/schema'
 import { api } from '@/lib/api'
 import { useForm } from '@tanstack/react-form'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -62,11 +58,9 @@ export const use{Resource}Form = (args: Args) => {
   const form = useForm({
     defaultValues: {
       name: prevData?.name ?? '',
-      // ...
+      // map other fields...
     },
-    validators: {
-      onSubmit: {resource}Schema,
-    },
+    validators: { onSubmit: {resource}Schema },
     onSubmit: async ({ value }) => {
       if (args.mode === 'update' && !prevData) return
       await mutation.mutateAsync({ input: value, id: prevData?.id }, { onSuccess: args.onSuccess })
@@ -76,22 +70,18 @@ export const use{Resource}Form = (args: Args) => {
   const mutation = useMutation({
     mutationFn: ({ input, id }: { input: {Resource}Dto; id?: string }) =>
       {resource}Api(args.mode, input, id),
-    onSuccess: (data) => {
-      const verb = args.mode === 'create' ? 'added' : 'updated'
-      toast.success(`${data.name} has been ${verb}`)
+    onSuccess: () => {
+      const verb = args.mode === 'create' ? 'created' : 'updated'
+      toast.success(`{Resource} ${verb} successfully`)
       form.reset()
-      queryClient.invalidateQueries({ queryKey: ['{resource}s'] })
+      queryClient.invalidateQueries({ queryKey: ['{resource}'] })
     },
     onError: (error) => {
-      let message = 'Unexpected error has occurred'
-      if (isAxiosError(error)) {
-        switch (error.status) {
-          case 409:
-            message = '{Resource} already exists'
-            break
-        }
+      if (isAxiosError(error) && error.status === 409) {
+        toast.error('{Resource} already exists')
+      } else {
+        toast.error('Unexpected error occurred')
       }
-      toast.error(message)
     },
   })
 
@@ -99,47 +89,44 @@ export const use{Resource}Form = (args: Args) => {
 }
 ```
 
-## Component Template
-
+## Form Component Template
 ```tsx
+// features/{domain}/components/{domain}-form.tsx
 'use client'
 
-import { use{Resource}Form } from '../hooks/use-{resource}-form'
-import { Button } from '@/components/ui/button'
+import { use{Resource}Form } from '../hooks/use-{domain}-form'
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Loader2, Plus } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Loader2, Plus, SaveIcon } from 'lucide-react'
 
-export function {Resource}Form({ mode }: { mode: 'create' | 'update' }) {
-  const { form } = use{Resource}Form({ mode })
+type Props = { mode: 'create' } | { mode: 'update'; data: {Resource} | null }
+
+export function {Resource}Form(props: Props) {
+  const { form } = use{Resource}Form({ ...props, onSuccess: closeDialog })
 
   return (
-    <>
-      <form
-        id="{resource}-form"
-        onSubmit={(e) => { e.preventDefault(); form.handleSubmit() }}
-      >
-        <FieldGroup>
-          <form.Field
-            name="name"
-            children={(field) => {
-              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
-              return (
-                <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Name</FieldLabel>
-                  <Input
-                    id={field.name}
-                    value={field.state.value}
-                    onBlur={field.handleBlur}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                  />
-                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                </Field>
-              )
-            }}
-          />
-        </FieldGroup>
-      </form>
+    <form id="{resource}-form" onSubmit={(e) => { e.preventDefault(); form.handleSubmit() }}>
+      <FieldGroup>
+        <form.Field
+          name="name"
+          children={(field) => {
+            const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+            return (
+              <Field data-invalid={isInvalid}>
+                <FieldLabel htmlFor={field.name}>Name</FieldLabel>
+                <Input
+                  id={field.name}
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                />
+                {isInvalid && <FieldError errors={field.state.meta.errors} />}
+              </Field>
+            )
+          }}
+        />
+      </FieldGroup>
 
       <form.Subscribe
         children={({ canSubmit, isDirty, isSubmitting }) => (
@@ -148,22 +135,25 @@ export function {Resource}Form({ mode }: { mode: 'create' | 'update' }) {
             type="submit"
             disabled={isSubmitting || !canSubmit || !isDirty}
           >
-            {isSubmitting ? <Loader2 className="animate-spin" /> : <Plus />}
-            {mode === 'create' ? 'Add' : 'Save'}
+            {props.mode === 'create' ? (
+              <>Add {isSubmitting ? <Loader2 className="animate-spin" /> : <Plus />}</>
+            ) : (
+              <>Save {isSubmitting ? <Loader2 className="animate-spin" /> : <SaveIcon />}</>
+            )}
           </Button>
         )}
       />
-    </>
+    </form>
   )
 }
 ```
 
 ## Rules
-
-- Import from `zod/v4` not `zod`
-- Form library: `@tanstack/react-form` — NEVER use react-hook-form
-- `validators: { onSubmit: schema }` — passes the Zod schema directly (no zodResolver)
-- Error display: check `field.state.meta.isTouched && !field.state.meta.isValid`
-- Use `<form.Subscribe>` for submit button to access `canSubmit`, `isDirty`, `isSubmitting`
-- The hook returns `{ form, mutation }` — component only needs `form`
-- Use `mutation.mutateAsync` inside `onSubmit` (not `mutate`) to properly propagate errors
+- Use `zod/v4` — import from `'zod/v4'`, not `'zod'`
+- Form hook combines `useForm` + `useMutation` — do not split them
+- Use `form.Field` render-prop with `children` — never `register()`
+- Error check: `field.state.meta.isTouched && !field.state.meta.isValid`
+- Submit button reads state via `form.Subscribe` — access `canSubmit`, `isDirty`, `isSubmitting`
+- Disable submit when `!canSubmit || !isDirty || isSubmitting`
+- Call `mutateAsync` (not `mutate`) so `onSubmit` can await it
+- Always `toast.success` on success, `toast.error` on error via `sonner`
