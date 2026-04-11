@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/sidebar"
 import {
   ArrowLeftRightIcon,
+  CreditCardIcon,
   LayersIcon,
   LayoutDashboardIcon,
   PieChartIcon,
@@ -38,7 +39,7 @@ const data = {
     {
       title: "Bank Accounts",
       url: "/dashboard/bank-accounts",
-      icon: <PiggyBankIcon />,
+      icon: <CreditCardIcon />,
     },
     {
       title: "Category",

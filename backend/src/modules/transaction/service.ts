@@ -1,14 +1,12 @@
-import { NotFoundError, status, t } from "elysia"
-
-import { Decimal } from "@prisma/client/runtime/library"
-
-import { __nullable__ } from "../../generated/prismabox/__nullable__"
+import { Prisma } from "../../generated/prisma/client"
 import {
   TransactionPlainInputCreate,
   TransactionPlainInputUpdate,
 } from "../../generated/prismabox/Transaction"
+import { __nullable__ } from "../../generated/prismabox/__nullable__"
 import { prisma } from "../../lib/prisma"
 import { getAllQuery } from "./query"
+import { NotFoundError, status, t } from "elysia"
 
 export const transactionCreateBody = t.Composite([
   TransactionPlainInputCreate,
@@ -172,11 +170,11 @@ export abstract class TransactionService {
     return prisma.$transaction(async (tx) => {
       await tx.transaction.deleteMany({ where: { id: { in: ids }, userId } })
 
-      const balanceChanges = new Map<string, Decimal>()
+      const balanceChanges = new Map<string, Prisma.Decimal>()
       for (const txn of transactions) {
         if (txn.bankAccountId) {
           const delta = txn.type === "income" ? txn.amount : txn.amount.negated()
-          const current = balanceChanges.get(txn.bankAccountId) ?? new Decimal(0)
+          const current = balanceChanges.get(txn.bankAccountId) ?? new Prisma.Decimal(0)
           balanceChanges.set(txn.bankAccountId, current.add(delta))
         }
       }
