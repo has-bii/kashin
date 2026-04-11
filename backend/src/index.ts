@@ -1,4 +1,5 @@
 import { betterAuthView } from "./modules/auth"
+import { bankAccountController } from "./modules/bank-account"
 import { budgetController } from "./modules/budget"
 import { categoryController } from "./modules/category"
 import { dashboardController } from "./modules/dashboard"
@@ -27,6 +28,7 @@ const app = new Elysia({ prefix: "/api" })
   .use(transactionController)
   .use(dashboardController)
   .use(budgetController)
+  .use(bankAccountController)
   .listen(Number(process.env.PORT || 3030))
 
 console.log(`🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`)

@@ -1,0 +1,12 @@
+import { authMacro } from "../../macros/auth.macro"
+import { getAllQuery, deleteQuery } from "./query"
+import { BankAccountService, bankAccountCreateBody, bankAccountUpdateBody } from "./service"
+import Elysia from "elysia"
+
+export const bankAccountController = new Elysia({ prefix: "/bank-account" })
+  .use(authMacro)
+  .get("/", async ({ user, query }) => BankAccountService.getAll(user.id, query), { auth: true, query: getAllQuery })
+  .post("/", async ({ user, body }) => BankAccountService.create(user.id, body), { auth: true, body: bankAccountCreateBody })
+  .get("/:id", async ({ user, params }) => BankAccountService.getById(user.id, params.id), { auth: true })
+  .put("/:id", async ({ user, body, params }) => BankAccountService.update(user.id, params.id, body), { auth: true, body: bankAccountUpdateBody })
+  .delete("/:id", async ({ user, params, query }) => BankAccountService.delete(user.id, params.id, query.deleteTransactions ?? false), { auth: true, query: deleteQuery })
