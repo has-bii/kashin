@@ -10,6 +10,7 @@ import {
 import { SiteHeader } from "@/components/sidebar/site-header"
 import { Button } from "@/components/ui/button"
 import { BankAccountForm } from "@/features/bank-account/components/bank-account-form"
+import BankAccountSkeleton from "@/features/bank-account/components/bank-account-skeleton"
 import { DeleteBankAccountDialog } from "@/features/bank-account/components/delete-bank-account-dialog"
 import type { BankAccount } from "@/features/bank-account/types"
 import { PlusIcon } from "lucide-react"
@@ -17,11 +18,11 @@ import dynamic from "next/dynamic"
 import { useState } from "react"
 
 const BankAccountList = dynamic(
-  () =>
-    import("@/features/bank-account/components/bank-account-list").then((m) => ({
-      default: m.BankAccountList,
-    })),
-  { ssr: false },
+  () => import("@/features/bank-account/components/bank-account-list"),
+  {
+    ssr: false,
+    loading: () => <BankAccountSkeleton />,
+  },
 )
 
 export default function BankAccountsPage() {
@@ -62,7 +63,7 @@ export default function BankAccountsPage() {
   return (
     <>
       <SiteHeader label="Bank Accounts" />
-      <MainPage>
+      <MainPage className="@container/main">
         <MainPageHeader>
           <div className="space-y-2">
             <MainPageTitle>Bank Accounts</MainPageTitle>
@@ -90,7 +91,11 @@ export default function BankAccountsPage() {
           onOpenChange={handleDialogClose}
         >
           {selectedAccount ? (
-            <BankAccountForm mode="edit" data={selectedAccount} onSuccess={handleDialogClose} />
+            <BankAccountForm
+              mode="update"
+              prevData={selectedAccount}
+              onSuccess={handleDialogClose}
+            />
           ) : (
             <BankAccountForm mode="create" onSuccess={handleDialogClose} />
           )}

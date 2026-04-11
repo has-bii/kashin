@@ -1,15 +1,16 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
-import { Pencil, Trash2 } from "lucide-react"
 import type { BankAccount } from "../types"
-
-const formatBalance = (balance: string) =>
-  new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0,
-  }).format(Number(balance))
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { formatCurrency } from "@/utils/format-amount"
+import { EllipsisIcon, PencilIcon, Trash2Icon } from "lucide-react"
 
 type Props = {
   account: BankAccount
@@ -18,31 +19,47 @@ type Props = {
 }
 
 export const BankAccountCard = ({ account, onEdit, onDelete }: Props) => {
+  const editHandler = () => onEdit(account)
+  const deleteHandler = () => onDelete(account)
+
   return (
-    <div className="flex items-center justify-between rounded-lg border p-4">
-      <div className="flex flex-col gap-1">
-        <span className="font-medium">{account.displayName}</span>
-        <span className="text-muted-foreground text-sm">{account.bankName}</span>
-        <span className="text-sm font-semibold">{formatBalance(account.balance)}</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => onEdit(account)}
-          aria-label={`Edit ${account.displayName}`}
-        >
-          <Pencil className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => onDelete(account)}
-          aria-label={`Delete ${account.displayName}`}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      </div>
-    </div>
+    <Card className="h-40 rounded-3xl py-4 shadow-none">
+      <CardHeader>
+        <div className="flex items-center gap-4">
+          {/* Image */}
+          <div className="bg-primary/25 size-14 rounded-xl" />
+
+          {/* Info */}
+          <div>
+            <CardTitle className="font-heading text-xl font-bold">{account.bankName}</CardTitle>
+            <CardDescription>{account.displayName}</CardDescription>
+          </div>
+
+          {/* Action */}
+          <DropdownMenu>
+            <DropdownMenuTrigger className="ml-auto self-start" asChild>
+              <EllipsisIcon className="size-6" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuGroup>
+                <DropdownMenuItem onClick={editHandler}>
+                  <PencilIcon />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem variant="destructive" onClick={deleteHandler}>
+                  <Trash2Icon />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </CardHeader>
+      <CardContent className="flex h-full">
+        <p className="mt-auto text-3xl font-extrabold tracking-tight">
+          {formatCurrency(account.balance)}
+        </p>
+      </CardContent>
+    </Card>
   )
 }

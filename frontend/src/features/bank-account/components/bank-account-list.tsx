@@ -1,16 +1,16 @@
 "use client"
 
-import { useSuspenseQuery } from "@tanstack/react-query"
 import { getBankAccountsQueryOptions } from "../api/get-bank-accounts.query"
 import type { BankAccount } from "../types"
 import { BankAccountCard } from "./bank-account-card"
+import { useSuspenseQuery } from "@tanstack/react-query"
 
 type Props = {
   onEdit: (account: BankAccount) => void
   onDelete: (account: BankAccount) => void
 }
 
-export const BankAccountList = ({ onEdit, onDelete }: Props) => {
+export default function BankAccountList({ onEdit, onDelete }: Props) {
   const { data } = useSuspenseQuery(getBankAccountsQueryOptions())
 
   if (data.data.length === 0) {
@@ -22,14 +22,9 @@ export const BankAccountList = ({ onEdit, onDelete }: Props) => {
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="grid grid-cols-1 gap-4 @md/main:grid-cols-2 @2xl/main:grid-cols-3">
       {data.data.map((account) => (
-        <BankAccountCard
-          key={account.id}
-          account={account}
-          onEdit={onEdit}
-          onDelete={onDelete}
-        />
+        <BankAccountCard key={account.id} account={account} onEdit={onEdit} onDelete={onDelete} />
       ))}
     </div>
   )
