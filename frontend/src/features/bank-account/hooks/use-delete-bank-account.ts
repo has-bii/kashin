@@ -20,8 +20,8 @@ export const useDeleteBankAccount = ({ onSuccess }: Args = {}) => {
   return useMutation({
     mutationFn: ({ id, deleteTransactions }: { id: string; deleteTransactions: boolean }) =>
       bankAccountDeleteApi(id, deleteTransactions),
-    onSuccess: () => {
-      toast.success('Bank account deleted successfully')
+    onSuccess: (data) => {
+      toast.success(`${data.displayName} bank account has been deleted`)
       queryClient.invalidateQueries({ queryKey: ['bank-accounts'] })
       queryClient.invalidateQueries({ queryKey: ['transactions'] })
       onSuccess?.()

@@ -11,7 +11,7 @@ import { SiteHeader } from "@/components/sidebar/site-header"
 import { Button } from "@/components/ui/button"
 import { BankAccountForm } from "@/features/bank-account/components/bank-account-form"
 import BankAccountSkeleton from "@/features/bank-account/components/bank-account-skeleton"
-import { DeleteBankAccountDialog } from "@/features/bank-account/components/delete-bank-account-dialog"
+import BankAccountDelete from "@/features/bank-account/components/bank-account-delete"
 import type { BankAccount } from "@/features/bank-account/types"
 import { PlusIcon } from "lucide-react"
 import dynamic from "next/dynamic"
@@ -101,12 +101,14 @@ export default function BankAccountsPage() {
           )}
         </ResponsiveDialog>
 
-        <DeleteBankAccountDialog
-          account={selectedAccount}
+        <ResponsiveDialog
+          title={`Delete "${selectedAccount?.displayName}"?`}
+          description="This will permanently delete the account. What should happen to linked transactions?"
           open={deleteDialogOpen}
           onOpenChange={handleDeleteDialogClose}
-          onSuccess={handleDeleteDialogClose}
-        />
+        >
+          <BankAccountDelete data={selectedAccount} close={handleDeleteDialogClose} />
+        </ResponsiveDialog>
       </MainPage>
     </>
   )
