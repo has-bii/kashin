@@ -1,20 +1,18 @@
 # Skill: Routing
 
 ## When to Use
-
 When adding new pages, layouts, or route segments.
 
 ## File Locations
-
-- Page: `src/app/{route}/page.tsx`
-- Layout: `src/app/{route}/layout.tsx`
-- Loading: `src/app/{route}/loading.tsx`
-- Route group (shared layout, no URL segment): `src/app/({group})/{route}/page.tsx`
+- Page: `frontend/src/app/{path}/page.tsx`
+- Dashboard page: `frontend/src/app/dashboard/(main)/{path}/page.tsx`
+- Layout: `frontend/src/app/{path}/layout.tsx`
+- Feature components: `frontend/src/features/{domain}/components/`
 
 ## Page Template
-
 ```tsx
-'use client'  // add if using state/hooks; omit for pure server pages
+// app/dashboard/(main)/{path}/page.tsx
+'use client' // add only if page manages interactive state
 
 import { SiteHeader } from '@/components/sidebar/site-header'
 import {
@@ -23,49 +21,47 @@ import {
   MainPageTitle,
   MainPageDescripton,
 } from '@/components/sidebar/main-page'
-import dynamic from 'next/dynamic'
 import { Suspense } from 'react'
-import {Feature}Skeleton from '@/features/{feature}/components/{feature}-skeleton'
+import dynamic from 'next/dynamic'
+import { {Domain}Skeleton } from '@/features/{domain}/components/{domain}-skeleton'
 
-// Lazy-load feature components that use useSuspenseQuery
-const {Feature}List = dynamic(
-  () => import('@/features/{feature}/components/{feature}-list'),
-  { ssr: false, loading: () => <{Feature}Skeleton /> }
+const {Domain}List = dynamic(
+  () => import('@/features/{domain}/components/{domain}-list'),
+  { ssr: false, loading: () => <{Domain}Skeleton /> }
 )
 
-export default function {Page}Page() {
+export default function {Domain}Page() {
   return (
     <>
-      <SiteHeader label="{Page}" />
+      <SiteHeader label="{Domain}" />
       <MainPage>
         <MainPageHeader>
           <div className="space-y-2">
-            <MainPageTitle>{Page Title}</MainPageTitle>
-            <MainPageDescripton>Short description.</MainPageDescripton>
+            <MainPageTitle>{Domain}</MainPageTitle>
+            <MainPageDescripton>Short description here.</MainPageDescripton>
           </div>
         </MainPageHeader>
 
         <Suspense>
-          <{Feature}List />
+          {/* filter components that use nuqs */}
         </Suspense>
+
+        <{Domain}List />
       </MainPage>
     </>
   )
 }
 ```
 
-## Dynamic Routes
-
-```
-src/app/dashboard/(main)/[id]/page.tsx  →  /dashboard/123
-src/app/dashboard/(main)/[...slug]/page.tsx  →  /dashboard/a/b/c
-```
+## Route Groups
+- `(main)` — dashboard pages with shared sidebar layout
+- `auth` — unauthenticated pages (login, register)
+- Use route groups for shared layouts without affecting URL
 
 ## Rules
-
-- Default export only for `page.tsx`, `layout.tsx`, `loading.tsx`
-- Add `'use client'` when the page itself needs hooks/state (e.g. dialog open state)
-- Lazy-load feature components that use `useSuspenseQuery` — they need `ssr: false`
-- Wrap lazy-loaded components in `<Suspense>` at page level
-- Use route groups `({group})` to share layouts without adding URL segments
-- Page handles layout composition only — delegate all business logic to feature components
+- `page.tsx` uses default export (Next.js requirement)
+- All feature components use named exports
+- Add `'use client'` to pages that manage dialog/modal state with `useState`
+- Lazy-load data-heavy feature lists with `dynamic()` + `ssr: false`
+- Wrap nuqs filter components in `<Suspense>` (required by nuqs)
+- Use `SiteHeader`, `MainPage`, `MainPageHeader` for consistent dashboard layout

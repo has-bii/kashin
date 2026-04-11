@@ -2,72 +2,53 @@
 
 ## When to Use
 
-When adding cross-cutting concerns to routes: auth checks, rate limiting, request transformation, or shared context.
+When adding cross-cutting concerns: auth checks, shared context injection, rate limiting, lifecycle hooks.
 
-## How Middleware Works in Elysia
+## File Locations
 
-Elysia uses **plugins** with lifecycle hooks — not express-style middleware functions.
+- Macros/plugins: `backend/src/macros/{name}.macro.ts`
+- Shared plugins: `backend/src/plugins/{name}.plugin.ts` (if needed)
 
-| Mechanism | Use For |
-|-----------|---------|
-| `.macro()` | Per-route opt-in behavior (like `{ auth: true }`) |
-| `.derive()` | Inject data into context for downstream handlers |
-| `.onBeforeHandle()` | Guards — reject requests early |
-| `.use(plugin)` | Compose plugins onto a controller |
+## Pattern
 
-## Existing Middleware
+Elysia middleware is done via **plugins** and **macros** — not raw middleware functions.
 
-- **Auth**: `src/macros/auth.macro.ts` — use `.use(authMacro)` + `{ auth: true }` (see `auth.md`)
-- **Rate limit**: registered globally in `src/index.ts` via `elysia-rate-limit`
-- **CORS**: registered globally in `src/index.ts` via `@elysiajs/cors`
+- Use `.macro()` for declarative per-route options (like `auth: true`)
+- Use `.derive()` to inject values into the request context
+- Use `.onBeforeHandle()` for guards/early returns
+- Give plugins a `name` to prevent duplicate registration
+
+## Auth Macro (existing — use this, don't create another)
+
+```typescript
+// src/macros/auth.macro.ts — already exists, import and use
+import { authMacro } from "../../macros/auth.macro"
+
+export const myController = new Elysia({ prefix: "/..." })
+  .use(authMacro)          // register macro
+  .get("/", handler, { auth: true })  // opt-in per route
+```
 
 ## Creating a New Plugin
 
 ```typescript
-// src/plugins/log.plugin.ts
-import { Elysia } from "elysia"
-
-export const logPlugin = new Elysia({ name: "log" })
-  .derive(({ request }) => ({
-    requestId: crypto.randomUUID(),
-  }))
-  .onBeforeHandle(({ request, requestId }) => {
-    console.log(`[${requestId}] ${request.method} ${request.url}`)
-  })
-
-// Usage — scope to a controller:
-export const myController = new Elysia({ prefix: "/my" })
-  .use(logPlugin)
-  .get("/", () => "ok")
-```
-
-## Creating a Macro (opt-in per route)
-
-Macros are the right pattern when behavior is opt-in per route (not applied to all routes):
-
-```typescript
-// src/macros/my.macro.ts
+// src/macros/{name}.macro.ts
+import { auth } from "../lib/auth"
 import Elysia from "elysia"
 
-export const myMacro = new Elysia({ name: "my-macro" }).macro({
-  requireRole: {
-    async resolve({ status, request: { headers } }, role: string) {
-      // check role from session
-      const hasRole = /* ... */ true
-      if (!hasRole) return status(403, { error: "Forbidden" })
-      return { role }
-    },
-  },
-})
-
-// Usage:
-controller.use(myMacro).get("/admin", handler, { requireRole: "admin" })
+export const {name}Plugin = new Elysia({ name: "{name}-plugin" })
+  .derive(({ headers }) => {
+    // add values to context — available in all handlers below
+    return { myValue: computedValue }
+  })
+  .onBeforeHandle(({ myValue, status }) => {
+    if (!myValue) return status(403, { error: "Forbidden" })
+  })
 ```
 
 ## Rules
 
-- Global middleware (CORS, rate limit) goes in `src/index.ts` only
-- Per-controller middleware: `.use(plugin)` in the controller file
-- Prefer macros over `onBeforeHandle` for opt-in per-route behavior
-- Give plugins a `name` to prevent duplicate registration
-- Never write express-style `(req, res, next)` middleware
+- Always set `name` on plugin instances to prevent Elysia from re-registering them
+- `.derive()` adds to context, `.onBeforeHandle()` guards/rejects
+- The existing `authMacro` covers all auth — never write a custom token check in a route handler
+- Lifecycle order: `onRequest` → `onBeforeHandle` → handler → `onAfterHandle` → `onResponse`

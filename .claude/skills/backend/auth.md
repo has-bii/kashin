@@ -6,11 +6,12 @@ When protecting routes, accessing the current user, or working with sessions.
 
 ## How Auth Works
 
-Better Auth handles all session management. The `authMacro` reads the session from request headers and injects `user` and `session` into the Elysia context.
+Better Auth 1.5 provides session-based auth. The `authMacro` plugin reads the session from request headers and injects `user` and `session` into the handler context. Routes opt in with `auth: true`.
 
-```
-Request headers → authMacro → auth.api.getSession() → { user, session } in context
-```
+## File Locations
+
+- Auth macro: `backend/src/macros/auth.macro.ts` — already exists, don't modify
+- Auth server config: `backend/src/lib/auth.ts`
 
 ## Protecting a Route
 
@@ -19,50 +20,41 @@ import { authMacro } from "../../macros/auth.macro"
 import Elysia from "elysia"
 
 export const myController = new Elysia({ prefix: "/my-resource" })
-  .use(authMacro)                     // 1. mount the macro
-  .get("/", async ({ user }) => {     // 2. user is now typed + guaranteed
-    return MyService.getAll(user.id)
+  .use(authMacro)          // 1. register the macro on the controller
+  .get("/", async ({ user }) => {
+    // user is typed as the Better Auth user object
+    return doSomething(user.id)
   }, {
-    auth: true,                       // 3. require auth on this route
+    auth: true,            // 2. opt-in per route
+  })
+  .get("/public", async () => {
+    // no auth: true — this route is public
+    return "public data"
   })
 ```
 
-If `auth: true` is set and no valid session exists, Elysia returns `401 { error: "Unauthorized" }` automatically.
-
-## Accessing User in Service
-
-Pass `user.id` (and `user` if needed) from the controller to the service:
+## Accessing User in Handler
 
 ```typescript
-// controller
-.get("/", async ({ user }) => MyService.getAll(user.id), { auth: true })
-
-// service
-static async getAll(userId: string) {
-  return prisma.resource.findMany({ where: { userId } })
-}
+// user fields available:
+user.id        // string — use this to scope all DB queries
+user.email     // string
+user.name      // string
+user.image     // string | null
 ```
 
-## Auth Routes
+## Accessing Session in Handler
 
-The Better Auth handler is mounted in `src/modules/auth/index.ts` and registered as:
 ```typescript
-app.all("/auth/*", betterAuthView)
+.get("/session-info", async ({ session }) => {
+  return { expiresAt: session.expiresAt }
+}, { auth: true })
 ```
-
-All Better Auth routes (`/api/auth/sign-in`, `/api/auth/sign-up`, etc.) are handled there. Do not create custom auth endpoints — use Better Auth's API or plugins.
-
-## Auth Configuration
-
-Auth is configured in `src/lib/auth.ts`. Current setup:
-- Email/password with email verification (OTP)
-- Google OAuth
-- `emailOTP` plugin (used for change-email flow)
 
 ## Rules
 
-- Always `.use(authMacro)` before any route that needs auth
-- Always add `{ auth: true }` to each protected route — it's per-route, not per-controller
-- Never read session/cookies manually — authMacro handles it
-- Never write custom JWT logic — Better Auth manages tokens
-- User ID is always `user.id` (UUID) — always scope queries with `userId`
+- Always `.use(authMacro)` before adding `auth: true` routes on a controller
+- Always scope Prisma queries to `userId` (from `user.id`) — never query global data
+- `auth: true` routes get a 401 automatically if the session is missing/invalid
+- Do not call `auth.api.getSession()` directly in route handlers — the macro handles it
+- Auth routes (`/api/auth/*`) are handled by Better Auth via `betterAuthView` in `src/index.ts`

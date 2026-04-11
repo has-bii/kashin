@@ -3,66 +3,55 @@
 ## Repo Layout
 
 - `backend/` — Elysia + Bun API
-- `frontend/` — Next.js App Router
-- `docker/` — Docker configuration
+- `frontend/` — Next.js 16 App Router
+- `docker/` — Docker config
 - `docs/` — Project documentation
 
-## Backend Structure (`backend/src/`)
+## Backend: Where to Put New Things
 
 | What | Where | Example |
-|------|-------|---------|
-| New API module | `src/modules/<name>/` | `src/modules/budget/` |
-| Module entry | `src/modules/<name>/index.ts` | exports controller |
-| DB queries | `src/modules/<name>/query.ts` | Prisma calls |
-| Business logic | `src/modules/<name>/service.ts` | validation, transforms |
-| Shared DB client | `src/lib/prisma.ts` | import from here |
-| Auth instance | `src/lib/auth.ts` | Better Auth setup |
-| Global error types | `src/global/error.ts` | |
-| Generated Prisma client | `src/generated/prisma/` | auto-generated |
-| Generated TypeBox schemas | `src/generated/prismabox/` | auto-generated |
+|---|---|---|
+| New domain module | `backend/src/modules/{domain}/` | `modules/invoice/` |
+| Route handlers | `modules/{domain}/index.ts` | exports `invoiceController` |
+| DB queries | `modules/{domain}/query.ts` | Prisma query functions |
+| Business logic | `modules/{domain}/service.ts` | `InvoiceService` class |
+| Auth middleware | `backend/src/macros/` | `auth.macro.ts` |
+| Shared utilities | `backend/src/lib/` | `lib/prisma.ts`, `lib/auth.ts` |
+| Global error types | `backend/src/global/` | `global/error.ts` |
+| Generated Prisma | `backend/src/generated/prisma/` | auto-generated, don't edit |
+| Generated Prismabox | `backend/src/generated/prismabox/` | auto-generated, don't edit |
 
-### Module Pattern
+### Backend Module Pattern
 
+Each domain module has exactly 3 files:
 ```
-src/modules/<name>/
-  index.ts     ← Elysia controller, mounts at /api/<name>
-  query.ts     ← Prisma queries
-  service.ts   ← Business logic, validation
+modules/{domain}/
+  index.ts    # Elysia controller — routes, auth, body/query validation
+  query.ts    # Zod/Elysia query param schemas
+  service.ts  # Business logic + Prisma calls, exported as {Domain}Service class
 ```
 
-Register in `src/index.ts` by importing and using `.use(controller)`.
+Register the controller in `backend/src/index.ts`.
 
-## Frontend Structure (`frontend/src/`)
+## Frontend: Where to Put New Things
 
 | What | Where | Example |
-|------|-------|---------|
-| New page | `src/app/<route>/page.tsx` | `src/app/dashboard/page.tsx` |
-| New layout | `src/app/<route>/layout.tsx` | |
-| Feature code | `src/features/<name>/` | `src/features/budget/` |
-| Feature components | `src/features/<name>/components/` | kebab-case `.tsx` |
-| Feature API calls | `src/features/<name>/api/` | `get-<name>.ts` |
-| Feature hooks | `src/features/<name>/hooks/` | `use-<name>.ts` |
-| Feature types | `src/features/<name>/types/` | |
-| Feature validation | `src/features/<name>/validations/` | Zod schemas |
-| Shared components | `src/components/` | not feature-specific |
-| shadcn/ui primitives | `src/components/ui/` | |
-| Global utilities | `src/lib/` | `utils.ts`, `api.ts` |
-| Global hooks | `src/hooks/` | |
-| Providers | `src/providers/` | |
-| Constants | `src/constants/` | |
-| Shared types | `src/types/` | |
+|---|---|---|
+| New page | `frontend/src/app/{route}/page.tsx` | `app/dashboard/invoices/page.tsx` |
+| Layout | `frontend/src/app/{route}/layout.tsx` | standard Next.js |
+| Shared components | `frontend/src/components/` | `components/data-table.tsx` |
+| shadcn/ui primitives | `frontend/src/components/ui/` | auto-added by shadcn CLI |
+| Custom hooks | `frontend/src/hooks/` | `hooks/use-mobile.ts` |
+| Shared utilities | `frontend/src/utils/` | `utils/format-amount.ts` |
+| Types/enums | `frontend/src/types/` | `types/enums.ts` |
+| Constants | `frontend/src/constants/` | `constants/indonesia.ts` |
+| Library config | `frontend/src/lib/` | `lib/api.ts`, `lib/auth-client.ts` |
+| nuqs parsers | `frontend/src/lib/nuqs-parser.ts` | URL state schemas |
+| Global providers | `frontend/src/providers/index.tsx` | QueryClient, theme, auth |
 
-### Feature Pattern
+## Frontend Organization
 
-```
-src/features/<name>/
-  api/           ← axios calls, TanStack Query keys
-  components/    ← kebab-case React components
-  hooks/         ← use-<name>.ts custom hooks
-  types/         ← TypeScript types for this feature
-  validations/   ← Zod schemas
-```
-
-## Organization Pattern
-
-Feature-based: both backend (modules) and frontend (features) are organized around domain entities (transaction, category, dashboard, settings, auth).
+- **App Router** file-based routing under `src/app/`
+- Route groups used for layout isolation: `(main)` group inside dashboard
+- No feature-specific folders — components shared globally in `src/components/`
+- `@/` alias maps to `frontend/src/`

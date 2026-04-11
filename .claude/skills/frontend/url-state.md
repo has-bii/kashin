@@ -1,76 +1,82 @@
 # Skill: URL State
 
 ## When to Use
-
-When filter state, pagination, or search needs to live in the URL (shareable, browser-back aware).
+When implementing filters, tabs, pagination, or any UI state that should be shareable via URL.
 
 ## File Locations
-
-- Filters hook: `src/features/{feature}/hooks/use-{feature}-filters.ts`
-- Custom parsers: `src/lib/nuqs-parser.ts`
+- URL state hooks: `frontend/src/features/{domain}/hooks/use-{domain}-filters.ts`
+- Custom parsers: `frontend/src/lib/nuqs-parser.ts`
 
 ## Pattern
+1. Define a hook that uses `useQueryState` or `useQueryStates` from `nuqs`
+2. Use built-in parsers or custom ones from `@/lib/nuqs-parser`
+3. Wrap calling components in `<Suspense>` in the page (nuqs requirement)
 
-Use `nuqs` with `useQueryStates` for multi-param URL state. Import parsers from `@/lib/nuqs-parser` for custom types (e.g. dates).
-
-## Template
-
+## Template — Single Filter
 ```typescript
-// src/features/{feature}/hooks/use-{feature}-filters.ts
+// features/{domain}/hooks/use-get-{domain}-filter.ts
+import { TransactionType } from '@/types/enums'
+import { parseAsStringEnum, useQueryState } from 'nuqs'
+
+export const useGet{Domain}Filter = () => {
+  const [type, setType] = useQueryState(
+    'type',
+    parseAsStringEnum<TransactionType>(['expense', 'income'])
+  )
+
+  return { type, setType }
+}
+```
+
+## Template — Multiple Filters
+```typescript
+// features/{domain}/hooks/use-{domain}-filters.ts
 import { parseAsDate } from '@/lib/nuqs-parser'
+import { TransactionType } from '@/types/enums'
 import { endOfMonth, startOfMonth } from 'date-fns'
 import { parseAsInteger, parseAsString, parseAsStringEnum, useQueryStates } from 'nuqs'
 
-type FilterEnum = 'value1' | 'value2'
-
-export const use{Feature}Filters = () => {
+export const use{Domain}Filters = () => {
   const [filters, setFilters] = useQueryStates(
     {
-      type: parseAsStringEnum<FilterEnum>(['value1', 'value2']),
+      type: parseAsStringEnum<TransactionType>(['expense', 'income']),
       search: parseAsString,
+      page: parseAsInteger.withDefault(1),
       dateFrom: parseAsDate.withDefault(startOfMonth(new Date())),
       dateTo: parseAsDate.withDefault(endOfMonth(new Date())),
-      page: parseAsInteger.withDefault(1),
     },
     {
-      shallow: false,     // triggers server re-render on change
-      clearOnDefault: true, // keeps URL clean — omits params at default value
-    },
+      shallow: false,   // triggers server re-render
+      clearOnDefault: true,  // removes param from URL when at default
+    }
   )
 
   return { filters, setFilters }
 }
 ```
 
-## Usage
+## Available Parsers
+- `parseAsString` — string param
+- `parseAsInteger` — integer param
+- `parseAsStringEnum<T>(['a', 'b'])` — typed enum
+- `parseAsDate` — custom date parser from `@/lib/nuqs-parser`
+- `.withDefault(value)` — set default (clears param from URL when at default)
+- `.withOptions({ shallow: false })` — trigger server re-render on change
 
+## Usage in Component
 ```tsx
-const { filters, setFilters } = use{Feature}Filters()
+import { Suspense } from 'react'
 
-// Read
-const { type, search, page } = filters
-
-// Write (partial update — merges with existing)
-setFilters({ type: 'value1', page: 1 })
-
-// Reset one filter
-setFilters({ search: null })
+// In page.tsx — always wrap nuqs consumers in Suspense
+<Suspense>
+  <{Domain}FilterBar />
+</Suspense>
 ```
 
-## Parser Reference
-
-| Parser | Type | From |
-|--------|------|------|
-| `parseAsString` | `string \| null` | nuqs |
-| `parseAsInteger` | `number \| null` | nuqs |
-| `parseAsBoolean` | `boolean \| null` | nuqs |
-| `parseAsStringEnum<T>([...])` | `T \| null` | nuqs |
-| `parseAsDate` | `Date \| null` | `@/lib/nuqs-parser` |
-
 ## Rules
-
-- Always set `shallow: false` when filters affect server-rendered data
-- Always set `clearOnDefault: true` to keep URLs clean
-- Use `parseAsDate` from `@/lib/nuqs-parser` for date values — not nuqs built-in
-- Wrap the relevant page/layout in `<NuqsAdapter>` (already done in root layout — check before adding)
-- Filters hook belongs in `features/{feature}/hooks/` not in global `hooks/`
+- Import `nuqs` parsers from `nuqs` — never roll your own URL parsing
+- Custom date/complex parsers go in `@/lib/nuqs-parser.ts`
+- Always wrap nuqs-consuming components in `<Suspense>` at page level
+- Use `clearOnDefault: true` so URLs stay clean
+- Use `shallow: false` when filter changes should re-fetch server data
+- Do NOT use `zustand`, `jotai`, or `useState` for shareable filter state — use nuqs

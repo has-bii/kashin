@@ -2,39 +2,52 @@
 
 ## When to Use
 
-When throwing errors from service methods or defining custom error types.
+When throwing errors in service methods or creating new error types.
 
-## Built-in Elysia Errors (use these first)
+## File Locations
+
+- Built-in Elysia errors: import from `elysia`
+- Custom errors: `backend/src/global/error.ts`
+
+## Available Error Types
 
 ```typescript
-import { NotFoundError } from "elysia"
+// From elysia — use these first
+import { NotFoundError, status } from "elysia"
+throw new NotFoundError("Transaction doesn't exist")  // → 404
 
-// 404 — resource not found
-throw new NotFoundError("Transaction not found")
+// From global/error.ts — for conflict/duplicate scenarios
+import { Conflict } from "../../global/error"
+throw new Conflict("Email already registered")  // → 409
+
+// Inline status for auth rejections (in macros/guards only)
+return status(401, { error: "Unauthorized" })
+return status(403, { error: "Forbidden" })
 ```
 
-Elysia maps these automatically to the correct HTTP status code.
-
-## Custom Domain Errors
-
-For non-404 errors, add to `src/global/error.ts`:
+## Pattern
 
 ```typescript
-// src/global/error.ts
-export class Conflict extends Error {
-  status = 409
-  constructor(public message: string) {
-    super(message)
-  }
+// In service.ts — throw, don't catch
+static async getById(userId: string, id: string) {
+  const item = await prisma.{model}.findUnique({ where: { id, userId } })
+  if (!item) throw new NotFoundError("{Model} doesn't exist")
+  return item
 }
 
-export class Forbidden extends Error {
-  status = 403
-  constructor(public message: string) {
-    super(message)
-  }
+static async create(userId: string, input: CreateInput) {
+  const existing = await prisma.{model}.findUnique({ where: { uniqueField: input.uniqueField } })
+  if (existing) throw new Conflict("{Model} already exists")
+  // ...
 }
+```
 
+## Adding New Error Types
+
+Only add to `global/error.ts` when the existing types don't cover the HTTP status you need:
+
+```typescript
+// backend/src/global/error.ts
 export class BadRequest extends Error {
   status = 400
   constructor(public message: string) {
@@ -43,35 +56,10 @@ export class BadRequest extends Error {
 }
 ```
 
-Elysia reads the `status` property on Error instances and uses it as the HTTP status code automatically.
-
-## Usage in Services
-
-```typescript
-import { NotFoundError } from "elysia"
-import { Conflict, Forbidden } from "../../global/error"
-
-static async create(userId: string, input: CreateInput) {
-  const exists = await prisma.category.findFirst({ where: { name: input.name, userId } })
-  if (exists) throw new Conflict("Category name already exists")
-
-  const result = await prisma.category.create({ data: { ...input, userId } })
-  return status(201, result)
-}
-
-static async update(userId: string, id: string, input: UpdateInput) {
-  const item = await prisma.category.findUnique({ where: { id, userId } })
-  if (!item) throw new NotFoundError("Category not found")
-
-  return prisma.category.update({ where: { id, userId }, data: input })
-}
-```
-
 ## Rules
 
-- Throw errors from service methods — never return error objects
-- Use `NotFoundError` (from elysia) for 404s
-- Use custom error classes from `src/global/error.ts` for 409, 403, 400
-- Custom errors need a `status` number property — Elysia reads this automatically
-- Never add try/catch in controllers — let errors propagate
-- Validate existence before update/delete — always throw `NotFoundError` if not found
+- Throw errors in service methods — never try/catch in `index.ts` route handlers
+- Elysia catches errors with a matching `status` property automatically
+- `NotFoundError` (404) and `Conflict` (409) cover ~90% of cases — use them first
+- Never return error objects — always `throw`
+- Validation errors (wrong body/query shape) are handled automatically by Elysia — don't handle manually

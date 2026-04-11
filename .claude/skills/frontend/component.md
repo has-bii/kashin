@@ -1,65 +1,58 @@
 # Skill: Component
 
 ## When to Use
-
-When creating any new React component.
+When creating any new React component or feature UI element.
 
 ## File Locations
-
-- Feature components: `src/features/{feature}/components/{component-name}.tsx`
-- Shared/reusable: `src/components/{component-name}.tsx`
-- shadcn primitives: `src/components/ui/` (do not touch)
-- Pages: `src/app/{route}/page.tsx`
+- Feature component: `frontend/src/features/{domain}/components/{component-name}.tsx`
+- Shared/reusable: `frontend/src/components/{component-name}.tsx`
+- shadcn primitives: `frontend/src/components/ui/` — added via shadcn CLI only
 
 ## Pattern
-
-1. Add `'use client'` if using hooks or event handlers (omit for pure Server Components)
-2. Define props type inline (not a separate file unless shared across features)
-3. Use named export (default only for `page.tsx`, `layout.tsx`, `loading.tsx`)
-4. Compose from `@/components/ui/` primitives and lucide-react icons
+1. Decide: Server Component (default) or Client Component
+2. If interactive (state, event handlers, hooks) → add `'use client'` at top
+3. Define `type Props = { ... }` inline (same file)
+4. Use named export (except `page.tsx`, `layout.tsx` — framework default exports)
+5. Style with Tailwind + `cn()` from `@/lib/utils`; use shadcn/ui primitives from `@/components/ui/`
 
 ## Template — Client Component
-
 ```tsx
 'use client'
 
-import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
-type {ComponentName}Props = {
+type Props = {
   title: string
   onAction?: () => void
-  children?: React.ReactNode
+  className?: string
 }
 
-export function {ComponentName}({ title, onAction, children }: {ComponentName}Props) {
+export function {ComponentName}({ title, onAction, className }: Props) {
   return (
-    <div>
+    <div className={cn('...', className)}>
       <h2>{title}</h2>
-      {children}
-      {onAction && <Button onClick={onAction}>Action</Button>}
+      {onAction && <button onClick={onAction}>Action</button>}
     </div>
   )
 }
 ```
 
 ## Template — Server Component (no interactivity)
-
 ```tsx
-type {ComponentName}Props = {
-  data: SomeType
+type Props = {
+  id: string
 }
 
-export function {ComponentName}({ data }: {ComponentName}Props) {
-  return <div>{data.name}</div>
+export function {ComponentName}({ id }: Props) {
+  return <div>...</div>
 }
 ```
 
 ## Rules
-
-- Named exports everywhere except Next.js reserved files (`page.tsx`, `layout.tsx`)
-- `'use client'` only when needed — keep boundary as low as possible
-- Never add `React.memo`, `useMemo`, or `useCallback` — React Compiler handles it
-- Destructure props in function signature
-- Files: `kebab-case.tsx`; components: `PascalCase`
-- No business logic in components — extract to hooks in `hooks/`
-- Import icons from `lucide-react`, merge classes via `cn()` from `@/lib/utils`
+- Named exports only — default export only for `page.tsx` / `layout.tsx`
+- `type Props` inline in the same file; never a separate `props.ts`
+- `'use client'` only when needed — push the boundary as low as possible
+- Never `React.memo`, `useMemo`, `useCallback` — React Compiler handles this
+- Use `cn()` from `@/lib/utils` — never `clsx()` or `twMerge()` directly
+- Icons from `lucide-react` only
+- File name: `kebab-case.tsx`

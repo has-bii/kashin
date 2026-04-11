@@ -46,7 +46,7 @@ export default function BudgetList({ onAdd, onUpdate }: Props) {
         <div
           role="button"
           onClick={onAdd}
-          className="flex aspect-video flex-col items-center justify-center gap-3 rounded-3xl border-4 border-dashed"
+          className="flex h-64 flex-col items-center justify-center gap-3 rounded-3xl border-4 border-dashed"
         >
           <Button size="icon-xl">
             <Plus />

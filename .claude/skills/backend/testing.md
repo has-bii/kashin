@@ -2,78 +2,71 @@
 
 ## When to Use
 
-When writing tests for backend services or endpoints.
+When writing tests for backend service logic or API endpoints.
 
-## Test Framework
+## Setup
 
-**Bun test** (`bun:test`) — built into the runtime, no extra install needed.
+No test files exist yet in this project. When adding tests:
 
-```typescript
-import { describe, it, expect, beforeAll, afterAll } from "bun:test"
-```
+- Test runner: **Bun test** (`bun test`)
+- Test files: colocated as `modules/{domain}/{domain}.test.ts`
+- No separate test directory — tests live next to the source
 
-Run tests with: `bun test`
-
-## File Locations
-
-- Tests colocated with source: `src/modules/<name>/<name>.test.ts`
-- Or in a top-level folder: `tests/<name>.test.ts`
-
-No test files currently exist in the project — establish the pattern with the first one.
-
-## Unit Test — Service
-
-Test service methods in isolation by mocking Prisma:
+## Pattern
 
 ```typescript
-import { describe, it, expect, mock, beforeEach } from "bun:test"
-import { TransactionService } from "./service"
+// modules/{domain}/{domain}.test.ts
+import { describe, expect, it, beforeEach, afterEach } from "bun:test"
+import { prisma } from "../../lib/prisma"
 
-// Mock the prisma module
-mock.module("../../lib/prisma", () => ({
-  prisma: {
-    transaction: {
-      findMany: mock(() => Promise.resolve([])),
-      count: mock(() => Promise.resolve(0)),
-      findUnique: mock(() => Promise.resolve(null)),
-      create: mock(() => Promise.resolve({ id: "1", amount: 100 })),
-    },
-    $transaction: mock((queries: unknown[]) => Promise.all(queries as Promise<unknown>[])),
-  },
-}))
+describe("{Domain}Service", () => {
+  const testUserId = "test-user-id"
 
-describe("TransactionService", () => {
+  afterEach(async () => {
+    await prisma.{domain}.deleteMany({ where: { userId: testUserId } })
+  })
+
+  describe("getAll", () => {
+    it("returns paginated results scoped to userId", async () => {
+      // arrange — seed test data
+      await prisma.{domain}.create({ data: { userId: testUserId, ... } })
+
+      // act
+      const result = await {Domain}Service.getAll(testUserId, { page: 1, limit: 20 })
+
+      // assert
+      expect(result.data).toHaveLength(1)
+      expect(result.total).toBe(1)
+      expect(result.data[0].userId).toBe(testUserId)
+    })
+  })
+
+  describe("create", () => {
+    it("returns 201 status with created record", async () => {
+      const result = await {Domain}Service.create(testUserId, { ... })
+      expect(result.status).toBe(201)
+    })
+  })
+
   describe("getById", () => {
-    it("throws NotFoundError when transaction does not exist", async () => {
-      await expect(TransactionService.getById("user-1", "nonexistent")).rejects.toThrow("not found")
+    it("throws NotFoundError when record does not exist", async () => {
+      expect({Domain}Service.getById(testUserId, "non-existent-id")).rejects.toThrow("doesn't exist")
     })
   })
 })
 ```
 
-## Integration Test — Endpoint
+## Running Tests
 
-Test the full HTTP request/response cycle using Elysia's test utilities:
-
-```typescript
-import { describe, it, expect } from "bun:test"
-import { treaty } from "@elysiajs/eden"
-import { transactionController } from "./index"
-
-const app = treaty(transactionController)
-
-describe("GET /transaction", () => {
-  it("returns 401 without auth", async () => {
-    const { status } = await app.transaction.get()
-    expect(status).toBe(401)
-  })
-})
+```bash
+cd backend && bun test
+cd backend && bun test modules/{domain}/{domain}.test.ts  # single file
 ```
 
 ## Rules
 
-- Use `bun test` — not jest, not vitest
-- Use `mock.module()` to mock Prisma — never hit the real DB in unit tests
-- Test behavior, not implementation details
-- Name tests descriptively: `"throws NotFoundError when transaction does not exist"`
-- For integration tests, use `@elysiajs/eden` treaty client
+- Test against a real database — never mock Prisma
+- Always clean up test data in `afterEach` — use the same `userId` pattern for easy cleanup
+- Test service methods directly — not HTTP routes (Elysia handles the HTTP layer)
+- Use `bun:test` imports, not `jest` or `vitest`
+- Each test file cleans up its own data — never assume database state from other tests
