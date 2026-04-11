@@ -11,7 +11,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { ArrowLeft, KeyRound, SettingsIcon, UserCog } from "lucide-react"
+import { ArrowLeft, KeyRound, UserCog } from "lucide-react"
 import Link from "next/link"
 import * as React from "react"
 
@@ -21,11 +21,6 @@ const data = {
       title: "Profile",
       url: "/dashboard/settings",
       icon: <UserCog />,
-    },
-    {
-      title: "App",
-      url: "/dashboard/settings/app",
-      icon: <SettingsIcon />,
     },
     {
       title: "Authentication",

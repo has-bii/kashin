@@ -2,12 +2,12 @@ import { TransactionCard } from "./transaction-card"
 import { TransactionPagination } from "./transaction-pagination"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Separator } from "@/components/ui/separator"
-import { getUserQueryOptions } from "@/features/auth/hooks/use-get-user"
 import { getTransactionsQueryOptions } from "@/features/transaction/api/get-transactions.query"
 import { useTransactionFilters } from "@/features/transaction/hooks/use-transaction-filters"
 import type { Transaction } from "@/features/transaction/types"
+import { formatDate } from "@/utils/format-date"
 import { useSuspenseQuery } from "@tanstack/react-query"
-import { format, formatISO, isToday } from "date-fns"
+import { formatISO, isToday } from "date-fns"
 import { ReceiptIcon } from "lucide-react"
 
 type TransactionListProps = {
@@ -16,13 +16,6 @@ type TransactionListProps = {
 
 export default function TransactionList({ onRowClick }: TransactionListProps) {
   const { filters, setFilters } = useTransactionFilters()
-
-  // User data
-  const { data: session } = useSuspenseQuery(getUserQueryOptions())
-  const currency = session.user.currency.code
-  const decimal = session.user.currency.decimal
-  const locale = session.user.locale
-  const timezone = session.user.timezone
 
   const queryParams = {
     page: filters.page,
@@ -81,21 +74,13 @@ export default function TransactionList({ onRowClick }: TransactionListProps) {
             {/* Date */}
             <div className="flex items-center gap-4">
               <div className="text-muted-foreground shrink-0 text-sm font-medium uppercase">
-                {isToday(date) ? "Today" : format(date, "EEEE, MMM d")}
+                {isToday(date) ? "Today" : formatDate(date, "EEEE, MMM d")}
               </div>
               <Separator orientation="horizontal" className="w-auto flex-1" />
             </div>
 
             {transactions.map((transaction) => (
-              <TransactionCard
-                key={transaction.id}
-                data={transaction}
-                onRowClick={onRowClick}
-                currency={currency}
-                decimal={decimal}
-                locale={locale}
-                timezone={timezone}
-              />
+              <TransactionCard key={transaction.id} data={transaction} onRowClick={onRowClick} />
             ))}
           </div>
         ))}

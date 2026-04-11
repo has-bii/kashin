@@ -13,6 +13,9 @@ CREATE TYPE "AiExtractionStatus" AS ENUM ('pending', 'confirmed', 'rejected', 'e
 -- CreateEnum
 CREATE TYPE "RecurringFrequency" AS ENUM ('weekly', 'biweekly', 'monthly', 'yearly');
 
+-- CreateEnum
+CREATE TYPE "BudgetPeriod" AS ENUM ('daily', 'weekly', 'monthly');
+
 -- CreateTable
 CREATE TABLE "users" (
     "id" UUID NOT NULL,
@@ -22,9 +25,6 @@ CREATE TABLE "users" (
     "image" TEXT,
     "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMPTZ NOT NULL,
-    "timezone" VARCHAR(64) NOT NULL DEFAULT 'Asia/Jakarta',
-    "locale" VARCHAR(6) NOT NULL DEFAULT 'id-ID',
-    "currency" JSONB NOT NULL DEFAULT '{ "code": "IDR", "decimal": 0}',
 
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );
@@ -161,6 +161,20 @@ CREATE TABLE "recurring_transactions" (
 );
 
 -- CreateTable
+CREATE TABLE "budgets" (
+    "id" UUID NOT NULL,
+    "userId" UUID NOT NULL,
+    "categoryId" UUID NOT NULL,
+    "amount" DECIMAL(15,2) NOT NULL,
+    "period" "BudgetPeriod" NOT NULL,
+    "alertThreshold" REAL NOT NULL DEFAULT 0.8,
+    "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT "budgets_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "email_logs" (
     "id" BIGSERIAL NOT NULL,
     "inboxId" UUID NOT NULL,
@@ -268,6 +282,12 @@ CREATE INDEX "recurring_transactions_categoryId_idx" ON "recurring_transactions"
 CREATE INDEX "recurring_transactions_isActive_nextDueDate_idx" ON "recurring_transactions"("isActive", "nextDueDate");
 
 -- CreateIndex
+CREATE INDEX "budgets_userId_idx" ON "budgets"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "budgets_userId_categoryId_period_key" ON "budgets"("userId", "categoryId", "period");
+
+-- CreateIndex
 CREATE INDEX "email_logs_inboxId_idx" ON "email_logs"("inboxId");
 
 -- CreateIndex
@@ -323,6 +343,12 @@ ALTER TABLE "recurring_transactions" ADD CONSTRAINT "recurring_transactions_user
 
 -- AddForeignKey
 ALTER TABLE "recurring_transactions" ADD CONSTRAINT "recurring_transactions_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "categories"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "budgets" ADD CONSTRAINT "budgets_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "budgets" ADD CONSTRAINT "budgets_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "email_logs" ADD CONSTRAINT "email_logs_inboxId_fkey" FOREIGN KEY ("inboxId") REFERENCES "email_inboxes"("id") ON DELETE CASCADE ON UPDATE CASCADE;

@@ -80,11 +80,6 @@ model User {
   sessions      Session[]
   accounts      Account[]
 
-  // App-specific profile fields
-  timezone String @default("Asia/Jakarta") @db.VarChar(64)
-  locale   String @default("id-ID") @db.VarChar(6)
-  currency Json   @default("{ \"code\": \"IDR\", \"decimal\": 0}") @db.JsonB
-
   // App relations
   categories            Category[]
   transactions          Transaction[]

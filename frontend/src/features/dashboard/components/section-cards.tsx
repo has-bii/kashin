@@ -10,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { getUserQueryOptions } from "@/features/auth/hooks/use-get-user"
 import { formatCurrency } from "@/utils/format-amount"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { TrendingDownIcon, TrendingUpIcon } from "lucide-react"
@@ -18,18 +17,6 @@ import { TrendingDownIcon, TrendingUpIcon } from "lucide-react"
 export default function SectionCards() {
   const { data } = useSuspenseQuery(getDashboardSummaryQueryOptions({}))
   const { totalIncome, totalExpense, netBalance } = data
-
-  const {
-    data: { user },
-  } = useSuspenseQuery(getUserQueryOptions())
-
-  const options = {
-    locale: user.locale,
-    currency: user.currency.code,
-    decimal: user.currency.decimal,
-  }
-
-  const formatCurrencyWithOptions = (value: number) => formatCurrency(value, options)
 
   const savingsRate = totalIncome === 0 ? null : (netBalance / totalIncome) * 100
 
@@ -40,7 +27,7 @@ export default function SectionCards() {
         <CardHeader>
           <CardDescription>Total Income</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {formatCurrencyWithOptions(totalIncome)}
+            {formatCurrency(totalIncome)}
           </CardTitle>
         </CardHeader>
         <CardFooter>Current month</CardFooter>
@@ -51,7 +38,7 @@ export default function SectionCards() {
         <CardHeader>
           <CardDescription>Total Expenses</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {formatCurrencyWithOptions(totalExpense)}
+            {formatCurrency(totalExpense)}
           </CardTitle>
         </CardHeader>
         <CardFooter>Current month</CardFooter>
@@ -77,7 +64,7 @@ export default function SectionCards() {
             {netBalance === 0 && <Badge variant="outline">No change</Badge>}
           </div>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {formatCurrencyWithOptions(netBalance)}
+            {formatCurrency(netBalance)}
           </CardTitle>
         </CardHeader>
         <CardFooter>Current month</CardFooter>

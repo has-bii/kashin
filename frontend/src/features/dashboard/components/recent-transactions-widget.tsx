@@ -2,25 +2,12 @@
 
 import { getDashboardRecentQueryOptions } from "../api/get-dashboard-recent.query"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { getUserQueryOptions } from "@/features/auth/hooks/use-get-user"
 import { formatAmount } from "@/utils/format-amount"
+import { formatDate } from "@/utils/format-date"
 import { useSuspenseQuery } from "@tanstack/react-query"
-import { formatInTimeZone } from "date-fns-tz"
 
 export default function RecentTransactionsWidget() {
   const { data } = useSuspenseQuery(getDashboardRecentQueryOptions({ limit: 10 }))
-  const {
-    data: { user },
-  } = useSuspenseQuery(getUserQueryOptions())
-
-  const currency = user.currency.code
-  const decimal = user.currency.decimal
-  const locale = user.locale
-  const timezone = user.timezone
-
-  const formatDate = (dateStr: string) => {
-    return formatInTimeZone(dateStr, timezone, "MMM dd, yyyy")
-  }
 
   return (
     <Card>
@@ -59,9 +46,11 @@ export default function RecentTransactionsWidget() {
                       tx.type === "income" ? "text-primary" : "text-destructive"
                     }`}
                   >
-                    {formatAmount(tx.amount, { type: tx.type, currency, locale, decimal })}
+                    {formatAmount(tx.amount, tx.type)}
                   </p>
-                  <p className="text-muted-foreground text-xs">{formatDate(tx.transactionDate)}</p>
+                  <p className="text-muted-foreground text-xs">
+                    {formatDate(tx.transactionDate, "MMM dd, yyyy")}
+                  </p>
                 </div>
               </li>
             ))}

@@ -14,9 +14,9 @@ import {
 import { getCategoriesQueryOptions } from "@/features/category/api/get-categories.query"
 import { useTransactionFilters } from "@/features/transaction/hooks/use-transaction-filters"
 import { TransactionType } from "@/types/enums"
+import { formatDate } from "@/utils/format-date"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { isSameMonth, isSameYear } from "date-fns"
-import { format } from "date-fns"
 import { CalendarIcon, SearchIcon } from "lucide-react"
 import React from "react"
 import type { DateRange } from "react-day-picker"
@@ -63,11 +63,11 @@ export default function TransactionFilterBar() {
     const from = filters.dateFrom
     const to = filters.dateTo
 
-    if (isSameMonth(from, to)) return `${format(from, "d")} - ${format(to, "d MMM y")}`
+    if (isSameMonth(from, to)) return `${formatDate(from, "d")} - ${formatDate(to, "d MMM y")}`
 
-    if (isSameYear(from, to)) return `${format(from, "d MMM y")} - ${format(to, "d MMM y")}`
+    if (isSameYear(from, to)) return `${formatDate(from, "d MMM y")} - ${formatDate(to, "d MMM y")}`
 
-    return `${format(from, "PP")} – ${format(to, "PP")}`
+    return `${formatDate(from, "PP")} – ${formatDate(to, "PP")}`
   }, [filters.dateFrom, filters.dateTo])
 
   const filteredCategory = React.useMemo(() => {

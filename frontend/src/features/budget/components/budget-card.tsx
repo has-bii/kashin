@@ -8,8 +8,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { formatCurrency } from "@/lib/locale-utils"
 import { cn } from "@/lib/utils"
+import { formatCurrency } from "@/utils/format-amount"
 import { getCategoryStyle } from "@/utils/get-category-style"
 import { EllipsisIcon, PencilIcon, Trash2Icon } from "lucide-react"
 
@@ -27,12 +27,11 @@ const STATUS_COLORS = {
 
 type Props = {
   data: Budget
-  currency: string
   onUpdate?: () => void
   onDelete?: () => void
 }
 
-export function BudgetCard({ data, currency, onUpdate, onDelete }: Props) {
+export function BudgetCard({ data, onUpdate, onDelete }: Props) {
   const progress = Math.min((data.spent / data.amount) * 100, 100)
   const thresholdPercent = data.alertThreshold * 100
 
@@ -77,7 +76,7 @@ export function BudgetCard({ data, currency, onUpdate, onDelete }: Props) {
       {/* Amount */}
       <div className="mt-auto">
         <p className="text-muted-foreground mb-1 text-xs">Budget</p>
-        <p className="text-xl font-bold">{formatCurrency(data.amount, currency)}</p>
+        <p className="text-xl font-bold">{formatCurrency(data.amount)}</p>
       </div>
 
       {/* Progress bar */}
@@ -95,9 +94,7 @@ export function BudgetCard({ data, currency, onUpdate, onDelete }: Props) {
           />
         </div>
         <div className="flex justify-between text-xs">
-          <span className="text-muted-foreground">
-            {formatCurrency(data.spent, currency)} spent
-          </span>
+          <span className="text-muted-foreground">{formatCurrency(data.spent)} spent</span>
           <span
             className={cn(
               "font-medium",
@@ -109,8 +106,8 @@ export function BudgetCard({ data, currency, onUpdate, onDelete }: Props) {
             )}
           >
             {data.remaining >= 0
-              ? `${formatCurrency(data.remaining, currency)} left`
-              : `${formatCurrency(Math.abs(data.remaining), currency)} over`}
+              ? `${formatCurrency(data.remaining)} left`
+              : `${formatCurrency(Math.abs(data.remaining))} over`}
           </span>
         </div>
       </div>

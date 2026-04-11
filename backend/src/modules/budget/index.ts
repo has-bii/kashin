@@ -4,7 +4,7 @@ import Elysia from "elysia"
 
 export const budgetController = new Elysia({ prefix: "/budget" })
   .use(authMacro)
-  .get("/", async ({ user }) => BudgetService.getAll(user.id, user.timezone ?? "UTC"), {
+  .get("/", async ({ user }) => BudgetService.getAll(user.id, "Asia/Jakarta"), {
     auth: true,
   })
   .post("/", async ({ user, body }) => BudgetService.create(user.id, body), {

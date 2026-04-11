@@ -8,8 +8,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-import { getUserQueryOptions } from "@/features/auth/hooks/use-get-user"
-import { formatCurrency } from "@/lib/locale-utils"
+import { formatCurrency } from "@/utils/format-amount"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { Cell, Label, Pie, PieChart } from "recharts"
 
@@ -23,11 +22,6 @@ const FALLBACK_COLORS = [
 
 export default function CategoryBreakdownChart() {
   const { data } = useSuspenseQuery(getDashboardCategoryBreakdownQueryOptions({}))
-  const {
-    data: { user },
-  } = useSuspenseQuery(getUserQueryOptions())
-  const currency = user.currency.code
-
   const chartConfig: ChartConfig = data.reduce<ChartConfig>((acc, item, index) => {
     const key = item.categoryId ?? `unknown-${index}`
     acc[key] = {
@@ -39,7 +33,7 @@ export default function CategoryBreakdownChart() {
 
   const totalExpenses = data.reduce((sum, item) => sum + item.total, 0)
 
-  const formattedTotal = formatCurrency(totalExpenses, currency)
+  const formattedTotal = formatCurrency(totalExpenses)
 
   const MAX_LEGEND_ITEMS = 6
   const legendItems =
@@ -124,7 +118,7 @@ export default function CategoryBreakdownChart() {
           <ul className="mt-4 space-y-1">
             {legendItems.map((item, index) => {
               const color = item.category?.color || FALLBACK_COLORS[index % 5]
-              const amount = formatCurrency(item.total, currency)
+              const amount = formatCurrency(item.total)
               return (
                 <li
                   key={item.categoryId ?? index}

@@ -6,7 +6,6 @@ import { BudgetCard } from "./budget-card"
 import BudgetDelete from "./budget-delete"
 import { ResponsiveDialog } from "@/components/responsive-dialog"
 import { Button } from "@/components/ui/button"
-import { getUserQueryOptions } from "@/features/auth/hooks/use-get-user"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { Plus } from "lucide-react"
 import React from "react"
@@ -18,8 +17,6 @@ type Props = {
 
 export default function BudgetList({ onAdd, onUpdate }: Props) {
   const { data: budgets } = useSuspenseQuery(getBudgetsQueryOptions())
-  const { data: session } = useSuspenseQuery(getUserQueryOptions())
-  const currency = session.user.currency.code
 
   const [selectedBudget, setSelectedBudget] = React.useState<Budget | null>(null)
   const [deleteOpen, setDeleteOpen] = React.useState(false)
@@ -40,7 +37,6 @@ export default function BudgetList({ onAdd, onUpdate }: Props) {
         <BudgetCard
           key={budget.id}
           data={budget}
-          currency={currency}
           onUpdate={() => onUpdate(budget)}
           onDelete={() => handleDeleteClick(budget)}
         />

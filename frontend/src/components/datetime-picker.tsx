@@ -2,7 +2,8 @@ import { Button } from "./ui/button"
 import { Calendar } from "./ui/calendar"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "./ui/input-group"
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
-import { format, parseISO } from "date-fns"
+import { formatDate } from "@/utils/format-date"
+import { parseISO } from "date-fns"
 import { CalendarIcon, ClockIcon } from "lucide-react"
 import React from "react"
 
@@ -48,7 +49,7 @@ export function DatetimePickerDate() {
           data-empty={!value}
           className="data-[empty=true]:text-muted-foreground bg-input/50 justify-between border-0 text-left font-normal"
         >
-          {value ? format(value, "PPP") : <span>Pick a date</span>}
+          {value ? formatDate(value, "PPP") : <span>Pick a date</span>}
           <CalendarIcon />
         </Button>
       </PopoverTrigger>

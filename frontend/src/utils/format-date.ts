@@ -1,14 +1,6 @@
 import { format } from "date-fns"
-import { formatInTimeZone } from "date-fns-tz"
+import { id } from "date-fns/locale"
 
-export function formatDateInTz(
-  dateStr: string,
-  timezone: string = "Asia/Jakarta",
-  format: string = "dd MMM",
-) {
-  return formatInTimeZone(dateStr, timezone, format)
-}
-
-export function formatDate(dateStr: string, formatString: string = "dd MMM") {
-  return format(dateStr, formatString)
+export function formatDate(dateStr: string | Date | number, formatString: string = "dd MMM") {
+  return format(dateStr, formatString, { locale: id })
 }

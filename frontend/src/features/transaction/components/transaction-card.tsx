@@ -9,13 +9,9 @@ import { isToday } from "date-fns"
 type Props = {
   data: Transaction
   onRowClick?: (transaction: Transaction) => void
-  currency: string
-  timezone: string
-  locale: string
-  decimal: number
 }
 
-export function TransactionCard({ data, currency, onRowClick, locale, decimal }: Props) {
+export function TransactionCard({ data, onRowClick }: Props) {
   const { type, category, amount, description, notes, transactionDate } = data
 
   const date = formatDate(transactionDate, isToday(transactionDate) ? "p" : undefined)
@@ -53,7 +49,7 @@ export function TransactionCard({ data, currency, onRowClick, locale, decimal }:
               type === "expense" ? "text-destructive" : "text-primary",
             )}
           >
-            {formatAmount(amount, { currency, locale, type, decimal })}
+            {formatAmount(amount, type)}
           </span>
 
           {/* Type */}
