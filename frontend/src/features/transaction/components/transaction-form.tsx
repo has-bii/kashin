@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { getBankAccountsQueryOptions } from "@/features/bank-account/api/get-bank-accounts.query"
 import { getCategoriesQueryOptions } from "@/features/category/api/get-categories.query"
 import { TransactionType } from "@/types/enums"
 import { useQuery } from "@tanstack/react-query"
@@ -99,6 +100,24 @@ export function TransactionForm(props: Props) {
                   />
                   {isInvalid && <FieldError errors={field.state.meta.errors} />}
                 </Field>
+              )
+            }}
+          />
+
+          {/* Bank Account */}
+          <form.Field
+            name="bankAccountId"
+            children={(field) => {
+              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+              return (
+                <BankAccountSelectField
+                  fieldName={field.name}
+                  value={field.state.value}
+                  isInvalid={isInvalid}
+                  errors={field.state.meta.errors}
+                  onBlur={field.handleBlur}
+                  onChange={(value) => field.handleChange(value === "__none__" ? null : value)}
+                />
               )
             }}
           />
@@ -232,6 +251,46 @@ export function TransactionForm(props: Props) {
         )}
       </ResponsiveDialogFooter>
     </>
+  )
+}
+
+// Extracted so it can call useQuery at top level of its render
+function BankAccountSelectField({
+  fieldName,
+  value,
+  isInvalid,
+  errors,
+  onBlur,
+  onChange,
+}: {
+  fieldName: string
+  value: string | null
+  isInvalid: boolean
+  errors: Array<{ message?: string } | undefined>
+  onBlur: () => void
+  onChange: (value: string) => void
+}) {
+  const { data } = useQuery(getBankAccountsQueryOptions())
+  const accounts = data?.data ?? []
+
+  return (
+    <Field data-invalid={isInvalid}>
+      <FieldLabel htmlFor={fieldName}>Account</FieldLabel>
+      <Select value={value ?? "__none__"} onValueChange={onChange}>
+        <SelectTrigger id={fieldName} aria-invalid={isInvalid} onBlur={onBlur} className="w-full">
+          <SelectValue placeholder="No account" />
+        </SelectTrigger>
+        <SelectContent position="popper">
+          <SelectItem value="__none__">No account</SelectItem>
+          {accounts.map((account) => (
+            <SelectItem key={account.id} value={account.id}>
+              {account.displayName} — {account.bankName}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      {isInvalid && <FieldError errors={errors} />}
+    </Field>
   )
 }
 

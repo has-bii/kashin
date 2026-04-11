@@ -4,6 +4,7 @@ export interface Transaction {
   id: string
   userId: string
   categoryId: string | null
+  bankAccountId: string | null
   type: TransactionType
   amount: string
   currency: string

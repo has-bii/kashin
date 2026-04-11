@@ -37,6 +37,11 @@ const data = {
       icon: <ArrowLeftRightIcon />,
     },
     {
+      title: "Bank Accounts",
+      url: "/dashboard/bank-accounts",
+      icon: <PiggyBankIcon />,
+    },
+    {
       title: "Category",
       url: "/dashboard/category",
       icon: <LayersIcon />,

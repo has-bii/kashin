@@ -5,6 +5,7 @@ export const transactionCreateSchema = z.object({
   amount: z.number().positive(),
   transactionDate: z.iso.datetime(),
   categoryId: z.string().nullable(),
+  bankAccountId: z.string().nullable(),
   description: z.string().max(255),
   notes: z.string(),
 })

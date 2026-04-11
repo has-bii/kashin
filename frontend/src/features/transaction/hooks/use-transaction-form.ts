@@ -35,6 +35,7 @@ export const useTransactionForm = (args: Args) => {
       amount: prevData?.amount ? Number(prevData.amount) : 0,
       transactionDate: prevData?.transactionDate ? prevData.transactionDate : today,
       categoryId: (prevData?.categoryId ?? null) as string | null,
+      bankAccountId: (prevData?.bankAccountId ?? null) as string | null,
       description: prevData?.description ?? "",
       notes: prevData?.notes ?? "",
     },
@@ -55,6 +56,7 @@ export const useTransactionForm = (args: Args) => {
       toast.success(`Transaction has been ${verb} successfully`)
       form.reset()
       queryClient.invalidateQueries({ queryKey: ["transactions"] })
+      queryClient.invalidateQueries({ queryKey: ["bank-accounts"] })
     },
     onError: (error) => {
       let message = "Unexpected error has occurred"
