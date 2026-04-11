@@ -39,6 +39,20 @@ Before implementing backend features, read the relevant skill in `.claude/skills
 | `auth.md` | Protecting routes, accessing current user |
 | `testing.md` | Writing backend tests |
 
+## Skills — Frontend
+
+Before implementing frontend features, read the relevant skill in `.claude/skills/frontend/`:
+
+| Skill | When to Read |
+|-------|-------------|
+| `component.md` | Creating new React components |
+| `query-api.md` | Fetching data from API |
+| `mutation.md` | Creating, updating, or deleting data (no form) |
+| `form.md` | Building forms with validation and submission |
+| `routing.md` | Adding new pages or route segments |
+| `url-state.md` | Filter/pagination state in the URL with nuqs |
+| `lazy-loading.md` | Code splitting — required for useSuspenseQuery components |
+
 ## Hard Rules
 
 - NEVER install new dependencies without asking the user first

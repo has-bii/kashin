@@ -16,6 +16,8 @@ import {
   ArrowLeftRightIcon,
   LayersIcon,
   LayoutDashboardIcon,
+  PieChartIcon,
+  PiggyBankIcon,
   Settings2Icon,
   Wallet,
 } from "lucide-react"
@@ -38,6 +40,13 @@ const data = {
       title: "Category",
       url: "/dashboard/category",
       icon: <LayersIcon />,
+    },
+  ],
+  tools: [
+    {
+      title: "Budget",
+      url: "/dashboard/budget",
+      icon: <PieChartIcon />,
     },
   ],
   navSecondary: [
@@ -73,7 +82,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       {/* Content */}
       <SidebarContent>
         <React.Suspense>
+          {/* Main */}
           <NavMain items={data.navMain} />
+
+          {/* Tools */}
+          <NavMain label="Tools" items={data.tools} />
         </React.Suspense>
         <NavSecondary items={data.navSecondary} className="mt-auto pl-0" />
       </SidebarContent>

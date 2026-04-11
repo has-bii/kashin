@@ -59,6 +59,12 @@ enum RecurringFrequency {
   yearly
 }
 
+enum BudgetPeriod {
+  daily
+  weekly
+  monthly
+}
+
 // -----------------------------------------------------------
 // Better Auth tables (do not modify)
 // -----------------------------------------------------------
@@ -86,6 +92,7 @@ model User {
   emailLogs             EmailLog[]
   aiExtractions         AiExtraction[]
   recurringTransactions RecurringTransaction[]
+  budgets               Budget[]
 
   @@unique([email])
   @@map("users")
@@ -157,6 +164,7 @@ model Category {
   transactions          Transaction[]
   aiExtractions         AiExtraction[]         @relation("SuggestedCategory")
   recurringTransactions RecurringTransaction[]
+  budgets               Budget[]
 
   @@unique([name, userId])
   @@index([userId])
@@ -262,6 +270,24 @@ model RecurringTransaction {
   @@index([categoryId])
   @@index([isActive, nextDueDate])
   @@map("recurring_transactions")
+}
+
+model Budget {
+  id             String       @id @default(uuid(7)) @db.Uuid
+  userId         String       @db.Uuid
+  categoryId     String       @db.Uuid
+  amount         Decimal      @db.Decimal(15, 2)
+  period         BudgetPeriod
+  alertThreshold Float        @default(0.8) @db.Real
+  createdAt      DateTime     @default(now()) @db.Timestamptz
+  updatedAt      DateTime     @updatedAt @db.Timestamptz
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, categoryId, period])
+  @@index([userId])
+  @@map("budgets")
 }
 
 // -----------------------------------------------------------

@@ -3,6 +3,7 @@
 import {
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -11,21 +12,23 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useCallback } from "react"
 
-export function NavMain({
-  items,
-}: {
+type Props = {
   items: {
     title: string
     url: string
     icon?: React.ReactNode
   }[]
-}) {
+  label?: string
+}
+
+export function NavMain({ items, label }: Props) {
   const pathname = usePathname()
 
   const isActive = useCallback((url: string): boolean => url === pathname, [pathname])
 
   return (
     <SidebarGroup className="pl-0">
+      {label && <SidebarGroupLabel>{label}</SidebarGroupLabel>}
       <SidebarGroupContent className="flex flex-col gap-2">
         <SidebarMenu>
           {items.map((item) => (
