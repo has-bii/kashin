@@ -1,5 +1,7 @@
 import { NotFoundError, status, t } from "elysia"
 
+import { Decimal } from "@prisma/client/runtime/library"
+
 import { __nullable__ } from "../../generated/prismabox/__nullable__"
 import {
   TransactionPlainInputCreate,
@@ -10,12 +12,18 @@ import { getAllQuery } from "./query"
 
 export const transactionCreateBody = t.Composite([
   TransactionPlainInputCreate,
-  t.Object({ categoryId: t.Optional(__nullable__(t.String())) }),
+  t.Object({
+    categoryId: t.Optional(__nullable__(t.String())),
+    bankAccountId: t.Optional(__nullable__(t.String())),
+  }),
 ])
 
 export const transactionUpdateBody = t.Composite([
   TransactionPlainInputUpdate,
-  t.Object({ categoryId: t.Optional(__nullable__(t.String())) }),
+  t.Object({
+    categoryId: t.Optional(__nullable__(t.String())),
+    bankAccountId: t.Optional(__nullable__(t.String())),
+  }),
 ])
 
 type TransactionCreateInput = (typeof transactionCreateBody)["static"]
@@ -73,45 +81,113 @@ export abstract class TransactionService {
   }
 
   static async create(userId: string, input: TransactionCreateInput) {
-    const { categoryId, ...rest } = input
+    const { categoryId, bankAccountId, ...rest } = input
 
-    const result = await prisma.transaction.create({
-      data: {
-        ...rest,
-        userId,
-        ...(categoryId !== undefined ? { categoryId } : {}),
-      },
-      include: categoryInclude,
+    return prisma.$transaction(async (tx) => {
+      const result = await tx.transaction.create({
+        data: {
+          ...rest,
+          userId,
+          ...(categoryId !== undefined ? { categoryId } : {}),
+          ...(bankAccountId !== undefined ? { bankAccountId } : {}),
+        },
+        include: categoryInclude,
+      })
+
+      if (bankAccountId) {
+        const delta = result.type === "income" ? result.amount : result.amount.negated()
+        await tx.bankAccount.update({
+          where: { id: bankAccountId, userId },
+          data: { balance: { increment: delta } },
+        })
+      }
+
+      return status(201, result)
     })
-
-    return status(201, result)
   }
 
   static async update(userId: string, id: string, input: TransactionUpdateInput) {
-    const isExist = await prisma.transaction.findUnique({ where: { id, userId } })
-    if (!isExist) throw new NotFoundError("Transaction doesn't exist")
+    const old = await prisma.transaction.findUnique({ where: { id, userId } })
+    if (!old) throw new NotFoundError("Transaction doesn't exist")
 
-    const { categoryId, ...rest } = input
+    const { categoryId, bankAccountId, ...rest } = input
 
-    return prisma.transaction.update({
-      where: { id, userId },
-      data: {
-        ...rest,
-        ...(categoryId !== undefined ? { categoryId } : {}),
-      },
-      include: categoryInclude,
+    return prisma.$transaction(async (tx) => {
+      const updated = await tx.transaction.update({
+        where: { id, userId },
+        data: {
+          ...rest,
+          ...(categoryId !== undefined ? { categoryId } : {}),
+          ...(bankAccountId !== undefined ? { bankAccountId } : {}),
+        },
+        include: categoryInclude,
+      })
+
+      // Reverse old balance effect
+      if (old.bankAccountId) {
+        const oldDelta = old.type === "income" ? old.amount : old.amount.negated()
+        await tx.bankAccount.update({
+          where: { id: old.bankAccountId, userId },
+          data: { balance: { decrement: oldDelta } },
+        })
+      }
+
+      // Apply new balance effect
+      const newBankAccountId = bankAccountId !== undefined ? bankAccountId : old.bankAccountId
+      if (newBankAccountId) {
+        const newDelta = updated.type === "income" ? updated.amount : updated.amount.negated()
+        await tx.bankAccount.update({
+          where: { id: newBankAccountId, userId },
+          data: { balance: { increment: newDelta } },
+        })
+      }
+
+      return updated
     })
   }
 
   static async delete(userId: string, id: string) {
-    const isExist = await prisma.transaction.findUnique({ where: { id, userId } })
-    if (!isExist) throw new NotFoundError("Transaction doesn't exist")
+    const old = await prisma.transaction.findUnique({ where: { id, userId } })
+    if (!old) throw new NotFoundError("Transaction doesn't exist")
 
-    return prisma.transaction.delete({ where: { id, userId } })
+    return prisma.$transaction(async (tx) => {
+      await tx.transaction.delete({ where: { id, userId } })
+
+      if (old.bankAccountId) {
+        const delta = old.type === "income" ? old.amount : old.amount.negated()
+        await tx.bankAccount.update({
+          where: { id: old.bankAccountId, userId },
+          data: { balance: { decrement: delta } },
+        })
+      }
+    })
   }
 
   static async bulkDelete(userId: string, ids: string[]) {
-    return prisma.transaction.deleteMany({ where: { id: { in: ids }, userId } })
+    const transactions = await prisma.transaction.findMany({
+      where: { id: { in: ids }, userId },
+      select: { id: true, type: true, amount: true, bankAccountId: true },
+    })
+
+    return prisma.$transaction(async (tx) => {
+      await tx.transaction.deleteMany({ where: { id: { in: ids }, userId } })
+
+      const balanceChanges = new Map<string, Decimal>()
+      for (const txn of transactions) {
+        if (txn.bankAccountId) {
+          const delta = txn.type === "income" ? txn.amount : txn.amount.negated()
+          const current = balanceChanges.get(txn.bankAccountId) ?? new Decimal(0)
+          balanceChanges.set(txn.bankAccountId, current.add(delta))
+        }
+      }
+
+      for (const [accountId, totalDelta] of balanceChanges) {
+        await tx.bankAccount.update({
+          where: { id: accountId, userId },
+          data: { balance: { decrement: totalDelta } },
+        })
+      }
+    })
   }
 
   static async exportAll(userId: string, query: GetAllQuery): Promise<string> {
