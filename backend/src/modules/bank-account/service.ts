@@ -1,7 +1,6 @@
 import { NotFoundError, status, t } from "elysia"
 import { prisma } from "../../lib/prisma"
 import { getAllQuery } from "./query"
-import { Static } from "elysia"
 
 export const bankAccountCreateBody = t.Object({
   displayName: t.String({ minLength: 1, maxLength: 100 }),
@@ -13,9 +12,9 @@ export const bankAccountUpdateBody = t.Object({
   displayName: t.String({ minLength: 1, maxLength: 100 }),
 })
 
-type GetAllQuery = Static<typeof getAllQuery>
-type BankAccountCreateInput = Static<typeof bankAccountCreateBody>
-type BankAccountUpdateInput = Static<typeof bankAccountUpdateBody>
+type GetAllQuery = (typeof getAllQuery)["static"]
+type BankAccountCreateInput = (typeof bankAccountCreateBody)["static"]
+type BankAccountUpdateInput = (typeof bankAccountUpdateBody)["static"]
 
 export abstract class BankAccountService {
   static async getAll(userId: string, query: GetAllQuery) {
@@ -58,14 +57,12 @@ export abstract class BankAccountService {
   }
 
   static async update(userId: string, id: string, input: BankAccountUpdateInput) {
-    const isExist = await prisma.bankAccount.findUnique({ where: { id, userId } })
-    if (!isExist) throw new NotFoundError("Bank account doesn't exist")
-
-    const result = await prisma.bankAccount.update({
-      where: { id, userId },
-      data: input,
-    })
-    return result
+    try {
+      return await prisma.bankAccount.update({ where: { id, userId }, data: input })
+    } catch (e: unknown) {
+      if ((e as { code?: string })?.code === "P2025") throw new NotFoundError("Bank account doesn't exist")
+      throw e
+    }
   }
 
   static async delete(userId: string, id: string, deleteTransactions: boolean) {
@@ -79,7 +76,7 @@ export abstract class BankAccountService {
       })
     } else {
       await prisma.$transaction(async (tx) => {
-        await tx.transaction.updateMany({ where: { bankAccountId: id }, data: { bankAccountId: null } })
+        await tx.transaction.updateMany({ where: { bankAccountId: id, userId }, data: { bankAccountId: null } })
         await tx.bankAccount.delete({ where: { id, userId } })
       })
     }
