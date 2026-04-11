@@ -38,7 +38,7 @@ export function BudgetCard({ data, onUpdate, onDelete }: Props) {
   const categoryColor = getCategoryStyle(data.category.color)
 
   return (
-    <div className="bg-card border-border flex aspect-video flex-col gap-4 rounded-3xl border p-5">
+    <div className="bg-card border-border flex h-64 w-full flex-col gap-4 rounded-3xl border p-5">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">

@@ -43,7 +43,7 @@ export default function BudgetPage() {
   return (
     <>
       <SiteHeader label="Budget" />
-      <MainPage>
+      <MainPage className="@container/main">
         <MainPageHeader>
           <div className="space-y-2">
             <MainPageTitle>Budgets</MainPageTitle>
@@ -53,7 +53,7 @@ export default function BudgetPage() {
           </div>
         </MainPageHeader>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 @lg/main:grid-cols-2">
           <Suspense fallback={<BudgetCardSkeleton />}>
             <BudgetList onAdd={handleAdd} onUpdate={handleUpdate} />
           </Suspense>
