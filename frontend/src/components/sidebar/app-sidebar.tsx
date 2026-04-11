@@ -17,7 +17,6 @@ import {
   LayersIcon,
   LayoutDashboardIcon,
   PieChartIcon,
-  PiggyBankIcon,
   Settings2Icon,
   Wallet,
 } from "lucide-react"
