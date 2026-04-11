@@ -16,7 +16,7 @@ export default function SettingsLayout({ children }: Props) {
         } as React.CSSProperties
       }
     >
-      <SettingsSidebar variant="inset" />
+      <SettingsSidebar variant="sidebar" />
       <SidebarInset>{children}</SidebarInset>
     </SidebarProvider>
   )

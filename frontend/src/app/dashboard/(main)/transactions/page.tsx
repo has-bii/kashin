@@ -1,22 +1,20 @@
 "use client"
 
-import { useState } from "react"
-import { DownloadIcon, Loader2Icon, PlusIcon } from "lucide-react"
-import dynamic from "next/dynamic"
-import { Suspense } from "react"
-import { toast } from "sonner"
-
-import { exportTransactionsCsv } from "@/features/transaction/api/export-transactions"
-import { TransactionBulkToolbar } from "@/features/transaction/components/TransactionBulkToolbar"
-import { TransactionFilterBar } from "@/features/transaction/components/TransactionFilterBar"
-import { TransactionListSkeleton } from "@/features/transaction/components/TransactionListSkeleton"
-import { TransactionSheet } from "@/features/transaction/components/TransactionSheet"
-import { useBulkDelete } from "@/features/transaction/hooks/use-bulk-delete"
-import { useTransactionFilters } from "@/features/transaction/hooks/use-transaction-filters"
-import type { Transaction } from "@/features/transaction/types"
-import { Button } from "@/components/ui/button"
-import { MainPage, MainPageHeader, MainPageTitle } from "@/components/sidebar/main-page"
+import { ResponsiveDialog } from "@/components/responsive-dialog"
+import {
+  MainPage,
+  MainPageDescripton,
+  MainPageHeader,
+  MainPageTitle,
+} from "@/components/sidebar/main-page"
 import { SiteHeader } from "@/components/sidebar/site-header"
+import { Button } from "@/components/ui/button"
+import { TransactionListSkeleton } from "@/features/transaction/components/transaciton-list-skeleton"
+import { TransactionForm } from "@/features/transaction/components/transaction-form"
+import type { Transaction } from "@/features/transaction/types"
+import { PlusIcon } from "lucide-react"
+import dynamic from "next/dynamic"
+import { useMemo, useState } from "react"
 
 const TransactionList = dynamic(
   () => import("@/features/transaction/components/transaction-list"),
@@ -26,51 +24,46 @@ const TransactionList = dynamic(
   },
 )
 
+const TransactionFilterBar = dynamic(
+  () => import("@/features/transaction/components/transaction-filter-bar"),
+  {
+    ssr: false,
+  },
+)
+
 export default function TransactionsPage() {
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null)
-  const [sheetOpen, setSheetOpen] = useState(false)
-  const [isExporting, setIsExporting] = useState(false)
+  const [dialogOpen, setDialogOpen] = useState(false)
 
-  const { filters, resolvedDateFrom, resolvedDateTo } = useTransactionFilters()
-  const { selectedIds, selectedCount, toggleId, toggleAll, clearSelection, isSelected, deleteSelected, isDeleting } = useBulkDelete()
-
-  // sheetMode derived: if selectedTransaction is set → "edit"; otherwise → "create"
-  const sheetMode = selectedTransaction ? "edit" : "create"
+  // dialogMode derived: if selectedTransaction is set → "edit"; otherwise → "create"
+  const dialogMode = useMemo(() => (selectedTransaction ? "edit" : "create"), [selectedTransaction])
 
   const handleRowClick = (transaction: Transaction) => {
     setSelectedTransaction(transaction)
-    setSheetOpen(true)
+    setDialogOpen(true)
   }
 
   const handleAddTransaction = () => {
     setSelectedTransaction(null)
-    setSheetOpen(true)
+    setDialogOpen(true)
   }
 
-  const handleSheetClose = (open: boolean) => {
-    setSheetOpen(open)
+  const handleDialogClose = () => {
+    setDialogOpen(false)
     // Reset selectedTransaction after close to avoid stale state (Pitfall 3)
-    if (!open) {
-      setTimeout(() => setSelectedTransaction(null), 200)
-    }
+    setTimeout(() => setSelectedTransaction(null), 200)
   }
 
-  const handleExport = async () => {
-    setIsExporting(true)
-    try {
-      await exportTransactionsCsv({
-        type: filters.type ?? undefined,
-        categoryId: filters.categoryId ?? undefined,
-        dateFrom: resolvedDateFrom,
-        dateTo: resolvedDateTo,
-        search: filters.search ?? undefined,
-      })
-    } catch {
-      toast.error("Failed to export transactions")
-    } finally {
-      setIsExporting(false)
+  // Dialog Info
+  const dialogInfo = useMemo(() => {
+    return {
+      title: dialogMode === "create" ? "Add Transaction" : "Edit Transaction",
+      description:
+        dialogMode === "create"
+          ? "Record a new expense or income."
+          : "Update the details of this transaction.",
     }
-  }
+  }, [dialogMode])
 
   return (
     <>
@@ -78,58 +71,47 @@ export default function TransactionsPage() {
       <MainPage>
         {/* Header */}
         <MainPageHeader>
-          <MainPageTitle>Transactions</MainPageTitle>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handleExport} disabled={isExporting}>
-              {isExporting ? (
-                <Loader2Icon className="size-4 animate-spin" />
-              ) : (
-                <DownloadIcon className="size-4" />
-              )}
-              Export
-            </Button>
-            <Button onClick={handleAddTransaction} size="sm">
-              <PlusIcon className="size-4" />
-              Add Transaction
-            </Button>
+          <div className="space-y-2">
+            <MainPageTitle>Transactions</MainPageTitle>
+            <MainPageDescripton>
+              Review and curate your financial history. Every transaction is a step toward your
+              long-term prosperity and sustainable growth.
+            </MainPageDescripton>
           </div>
+
+          <Button
+            onClick={handleAddTransaction}
+            size="xl"
+            className="fixed right-4 bottom-4 md:relative md:right-0 md:bottom-0"
+          >
+            <PlusIcon className="size-4" />
+            <span className="hidden md:block">Add Transaction</span>
+          </Button>
         </MainPageHeader>
 
         {/* Filter bar */}
-        <Suspense>
-          <TransactionFilterBar />
-        </Suspense>
-
-        {/* Bulk toolbar — shown when rows are selected */}
-        {selectedCount > 0 && (
-          <TransactionBulkToolbar
-            selectedCount={selectedCount}
-            isDeleting={isDeleting}
-            onDelete={deleteSelected}
-          />
-        )}
+        <TransactionFilterBar />
 
         {/* Transaction list */}
-        <Suspense fallback={<TransactionListSkeleton />}>
-          <TransactionList
-            onRowClick={handleRowClick}
-            selectedIds={selectedIds}
-            onToggleId={toggleId}
-            onToggleAll={toggleAll}
-          />
-        </Suspense>
+        <TransactionList onRowClick={handleRowClick} />
 
-        {/* Transaction sheet — create or edit mode */}
-        {sheetMode === "edit" && selectedTransaction ? (
-          <TransactionSheet
-            mode="edit"
-            open={sheetOpen}
-            onOpenChange={handleSheetClose}
-            data={selectedTransaction}
-          />
-        ) : (
-          <TransactionSheet mode="create" open={sheetOpen} onOpenChange={handleSheetClose} />
-        )}
+        {/* Transaction Responsive Dialog - Create or update mode */}
+        <ResponsiveDialog
+          title={dialogInfo.title}
+          description={dialogInfo.description}
+          open={dialogOpen}
+          onOpenChange={handleDialogClose}
+        >
+          {dialogMode === "create" ? (
+            <TransactionForm mode="create" onSuccess={handleDialogClose} />
+          ) : (
+            <TransactionForm
+              mode="edit"
+              data={selectedTransaction!}
+              onSuccess={handleDialogClose}
+            />
+          )}
+        </ResponsiveDialog>
       </MainPage>
     </>
   )

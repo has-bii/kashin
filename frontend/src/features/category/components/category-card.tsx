@@ -6,7 +6,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { CATEGORY_COLORS } from "@/constants/category-colors"
 import { EllipsisIcon, PencilIcon, Trash2Icon } from "lucide-react"
+import { useMemo } from "react"
 
 type Props = {
   data: Category
@@ -15,10 +17,22 @@ type Props = {
 }
 
 export function CategoryCard({ data, onDelete, onUpdate }: Props) {
+  const styles = useMemo(() => {
+    const isExist = CATEGORY_COLORS.find((acc) => acc.background === data.color)
+
+    if (!isExist)
+      return {
+        background: CATEGORY_COLORS[0].background,
+        foreground: CATEGORY_COLORS[0].foreground,
+      }
+
+    return isExist
+  }, [data.color])
+
   return (
     <div
       className="flex aspect-square flex-col overflow-hidden rounded-4xl py-6"
-      style={{ backgroundColor: data.color }}
+      style={{ backgroundColor: styles.background }}
     >
       <div className="flex items-start justify-between px-6">
         {/* Icon */}
@@ -46,16 +60,10 @@ export function CategoryCard({ data, onDelete, onUpdate }: Props) {
         </DropdownMenu>
       </div>
       <div className="flex flex-1 flex-col justify-end px-6">
-        <h5
-          className="font-heading text-lg font-bold"
-          style={{ color: `color-mix(in srgb, ${data.color}, black 65%)` }}
-        >
+        <h5 className="font-heading text-lg font-bold" style={{ color: styles.foreground }}>
           {data.name}
         </h5>
-        <p
-          className="text-sm capitalize"
-          style={{ color: `color-mix(in srgb, ${data.color}, black 40%)` }}
-        >
+        <p className="text-sm capitalize opacity-60" style={{ color: styles.foreground }}>
           {data.type}
         </p>
       </div>

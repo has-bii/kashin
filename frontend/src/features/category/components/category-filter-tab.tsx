@@ -1,12 +1,11 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
 import { useGetCategoryFilter } from "../hooks/use-get-category-filter"
-import { Button } from "@/components/ui/button"
+import { SelectTab, SelectTabItem } from "@/components/select-tab"
 import { TransactionType } from "@/types/enums"
 
-const TYPES: Array<{ label: string; value: TransactionType | null }> = [
-  { label: "All", value: null },
+const TYPES: Array<{ label: string; value: TransactionType | "all" }> = [
+  { label: "All", value: "all" },
   { label: "Expense", value: "expense" },
   { label: "Income", value: "income" },
 ]
@@ -14,17 +13,16 @@ const TYPES: Array<{ label: string; value: TransactionType | null }> = [
 export function CategoryFilterTab() {
   const { type, setType } = useGetCategoryFilter()
 
+  const onChangeValue = (value: string) =>
+    setType(value === "all" ? null : (value as TransactionType))
+
   return (
-    <div className="inline-flex items-center gap-2">
+    <SelectTab className="md:max-w-xs" value={type ? type : "all"} onChangeValue={onChangeValue}>
       {TYPES.map((item) => (
-        <Button
-          key={item.label}
-          variant={type === item.value ? "secondary" : "ghost"}
-          onClick={() => setType(item.value as any)}
-        >
+        <SelectTabItem key={item.label} value={item.value}>
           {item.label}
-        </Button>
+        </SelectTabItem>
       ))}
-    </div>
+    </SelectTab>
   )
 }

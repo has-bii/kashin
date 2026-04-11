@@ -59,6 +59,12 @@ enum RecurringFrequency {
   yearly
 }
 
+enum BudgetPeriod {
+  daily
+  weekly
+  monthly
+}
+
 // -----------------------------------------------------------
 // Better Auth tables (do not modify)
 // -----------------------------------------------------------
@@ -69,14 +75,10 @@ model User {
   email         String    @db.VarChar(255)
   emailVerified Boolean   @default(false)
   image         String?   @db.Text
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime  @default(now()) @db.Timestamptz
+  updatedAt     DateTime  @updatedAt @db.Timestamptz
   sessions      Session[]
   accounts      Account[]
-
-  // App-specific profile fields
-  currency String @default("IDR") @db.Char(3)
-  timezone String @default("Asia/Jakarta") @db.VarChar(64)
 
   // App relations
   categories            Category[]
@@ -85,6 +87,7 @@ model User {
   emailLogs             EmailLog[]
   aiExtractions         AiExtraction[]
   recurringTransactions RecurringTransaction[]
+  budgets               Budget[]
 
   @@unique([email])
   @@map("users")
@@ -149,13 +152,14 @@ model Category {
   type      TransactionType
   icon      String          @db.VarChar(50)
   color     String          @db.Char(7)
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
+  createdAt DateTime        @default(now()) @db.Timestamptz
+  updatedAt DateTime        @updatedAt @db.Timestamptz
 
   user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions          Transaction[]
   aiExtractions         AiExtraction[]         @relation("SuggestedCategory")
   recurringTransactions RecurringTransaction[]
+  budgets               Budget[]
 
   @@unique([name, userId])
   @@index([userId])
@@ -172,12 +176,12 @@ model Transaction {
   type            TransactionType
   amount          Decimal           @db.Decimal(15, 2)
   currency        String            @default("IDR") @db.Char(3)
-  transactionDate DateTime          @db.Date
+  transactionDate DateTime          @db.Timestamptz
   description     String?           @db.VarChar(255)
   notes           String?           @db.Text
   source          TransactionSource @default(manual)
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  createdAt       DateTime          @default(now()) @db.Timestamptz
+  updatedAt       DateTime          @updatedAt @db.Timestamptz
 
   user                 User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   category             Category?             @relation(fields: [categoryId], references: [id], onDelete: SetNull)
@@ -200,8 +204,8 @@ model EmailInbox {
   userId       String   @db.Uuid
   emailAddress String   @unique @db.VarChar(255)
   isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime @default(now()) @db.Timestamptz
+  updatedAt    DateTime @updatedAt @db.Timestamptz
 
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   emailLogs EmailLog[]
@@ -223,9 +227,9 @@ model AiExtraction {
   extractedNotes      String?            @db.Text
   confidenceScore     Float?             @db.Real
   status              AiExtractionStatus @default(pending)
-  confirmedAt         DateTime?
-  createdAt           DateTime           @default(now())
-  updatedAt           DateTime           @updatedAt
+  confirmedAt         DateTime?          @db.Timestamptz
+  createdAt           DateTime           @default(now()) @db.Timestamptz
+  updatedAt           DateTime           @updatedAt @db.Timestamptz
 
   emailLog          EmailLog     @relation(fields: [emailLogId], references: [id], onDelete: Cascade)
   user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -247,11 +251,11 @@ model RecurringTransaction {
   currency          String             @default("IDR") @db.Char(3)
   description       String             @db.VarChar(255)
   frequency         RecurringFrequency
-  nextDueDate       DateTime           @db.Date
-  lastGeneratedDate DateTime?          @db.Date
+  nextDueDate       DateTime           @db.Timestamptz
+  lastGeneratedDate DateTime?          @db.Timestamptz
   isActive          Boolean            @default(true)
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
+  createdAt         DateTime           @default(now()) @db.Timestamptz
+  updatedAt         DateTime           @updatedAt @db.Timestamptz
 
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   category     Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
@@ -261,6 +265,24 @@ model RecurringTransaction {
   @@index([categoryId])
   @@index([isActive, nextDueDate])
   @@map("recurring_transactions")
+}
+
+model Budget {
+  id             String       @id @default(uuid(7)) @db.Uuid
+  userId         String       @db.Uuid
+  categoryId     String       @db.Uuid
+  amount         Decimal      @db.Decimal(15, 2)
+  period         BudgetPeriod
+  alertThreshold Float        @default(0.8) @db.Real
+  createdAt      DateTime     @default(now()) @db.Timestamptz
+  updatedAt      DateTime     @updatedAt @db.Timestamptz
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, categoryId, period])
+  @@index([userId])
+  @@map("budgets")
 }
 
 // -----------------------------------------------------------
@@ -276,9 +298,9 @@ model EmailLog {
   rawBody      String?        @db.Text
   status       EmailLogStatus @default(received)
   errorMessage String?        @db.Text
-  receivedAt   DateTime       @default(now())
-  processedAt  DateTime?
-  createdAt    DateTime       @default(now())
+  receivedAt   DateTime       @default(now()) @db.Timestamptz
+  processedAt  DateTime?      @db.Timestamptz
+  createdAt    DateTime       @default(now()) @db.Timestamptz
 
   inbox        EmailInbox    @relation(fields: [inboxId], references: [id], onDelete: Cascade)
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -300,8 +322,8 @@ model Attachment {
   fileName      String   @db.VarChar(255)
   fileType      String?  @db.VarChar(100)
   fileSize      BigInt?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime @default(now()) @db.Timestamptz
+  updatedAt     DateTime @updatedAt @db.Timestamptz
 
   transaction Transaction? @relation(fields: [transactionId], references: [id], onDelete: Cascade)
   emailLog    EmailLog?    @relation(fields: [emailLogId], references: [id], onDelete: Cascade)

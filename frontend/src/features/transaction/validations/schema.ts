@@ -3,7 +3,7 @@ import { z } from "zod/v4"
 export const transactionCreateSchema = z.object({
   type: z.enum(["expense", "income"]),
   amount: z.number().positive(),
-  transactionDate: z.string().date(),
+  transactionDate: z.iso.datetime(),
   categoryId: z.string().nullable(),
   description: z.string().max(255),
   notes: z.string(),

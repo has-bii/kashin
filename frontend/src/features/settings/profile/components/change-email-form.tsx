@@ -1,6 +1,7 @@
 "use client"
 
 import { useChangeEmailForm } from "../hooks/use-change-email-form"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -10,7 +11,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -22,15 +22,14 @@ import {
 } from "@/components/ui/card"
 import { Field, FieldError, FieldGroup } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { authClient } from "@/lib/auth-client"
+import { getUserQueryOptions } from "@/features/auth/hooks/use-get-user"
+import { useSuspenseQuery } from "@tanstack/react-query"
 import { InfoIcon, Loader2 } from "lucide-react"
-import { useMemo } from "react"
 
 export default function ChangeEmailForm() {
-  const { data, isPending } = authClient.useSession()
-
-  const currentEmail = data?.user.email ?? ""
-  const defaultValues = useMemo(() => ({ newEmail: currentEmail }), [currentEmail])
+  const {
+    data: { user },
+  } = useSuspenseQuery(getUserQueryOptions())
 
   const {
     form,
@@ -41,7 +40,7 @@ export default function ChangeEmailForm() {
     resendOtp,
     resendCooldown,
     pendingNewEmail,
-  } = useChangeEmailForm({ defaultValues, currentEmail })
+  } = useChangeEmailForm({ currentEmail: user.email, defaultValues: { newEmail: user.email } })
 
   return (
     <>
@@ -73,7 +72,7 @@ export default function ChangeEmailForm() {
                         onChange={(e) => field.handleChange(e.target.value)}
                         aria-invalid={isInvalid}
                         autoComplete="off"
-                        placeholder={currentEmail}
+                        placeholder={user.email}
                         className="max-w-md"
                       />
                       {isInvalid && <FieldError errors={field.state.meta.errors} />}
@@ -91,7 +90,7 @@ export default function ChangeEmailForm() {
               <Button
                 type="submit"
                 form="change-email-form"
-                disabled={isSubmitting || !isDirty || !canSubmit || isPending}
+                disabled={isSubmitting || !isDirty || !canSubmit}
               >
                 Change
                 {isSubmitting && <Loader2 className="animate-spin" />}
@@ -115,7 +114,7 @@ export default function ChangeEmailForm() {
             <AlertDialogDescription>
               We sent a verification code to{" "}
               <span className="text-foreground font-medium">
-                {dialogStep === "verify-current" ? currentEmail : pendingNewEmail}
+                {dialogStep === "verify-current" ? user.email : pendingNewEmail}
               </span>
             </AlertDialogDescription>
           </AlertDialogHeader>

@@ -8,22 +8,6 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
-  user: {
-    additionalFields: {
-      currency: {
-        type: "string",
-        required: false,
-        defaultValue: "IDR",
-        input: true,
-      },
-      timezone: {
-        type: "string",
-        required: false,
-        defaultValue: "Asia/Jakarta",
-        input: true,
-      },
-    },
-  },
   emailAndPassword: {
     enabled: true,
     autoSignIn: false,
@@ -55,11 +39,6 @@ export const auth = betterAuth({
       generateId: false,
     },
     cookiePrefix: process.env.COOKIE_PREFIX,
-  },
-  rateLimit: {
-    enabled: true,
-    window: 15 * 60, // 15 minutes in seconds
-    max: 10, // 10 requests per 15 minutes for auth endpoints
   },
   trustedOrigins: [process.env.FRONTEND_URL!],
   plugins: [

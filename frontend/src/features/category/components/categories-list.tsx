@@ -5,32 +5,36 @@ import { useGetCategoryFilter } from "../hooks/use-get-category-filter"
 import { Category } from "../types"
 import { CategoryCard } from "./category-card"
 import CategoryDelete from "./category-delete"
-import { CategoryForm } from "./category-form"
 import { ResponsiveDialog } from "@/components/responsive-dialog"
 import { Button } from "@/components/ui/button"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { Plus } from "lucide-react"
 import React from "react"
 
-export default function CategoriesList() {
-  const { type } = useGetCategoryFilter()
-  const { data } = useSuspenseQuery({ ...getCategoriesQueryOptions({ type }) })
+type Props = {
+  handleAddCategoryAction: () => void
+  handleUpdateCategoryAction: (category: Category) => void
+}
 
-  // Update state
-  const [categoryUpdate, setCategoryUpdate] = React.useState<{
-    state: boolean
-    data: Category | null
-  }>({ state: false, data: null })
-  const selectCategoryUpdate = (data: Category) => setCategoryUpdate({ state: true, data })
-  const closeCategoryUpdate = () => setCategoryUpdate((prev) => ({ ...prev, state: false }))
+export default function CategoriesList({
+  handleAddCategoryAction,
+  handleUpdateCategoryAction,
+}: Props) {
+  const { type } = useGetCategoryFilter()
+  const { data } = useSuspenseQuery(getCategoriesQueryOptions({ type }))
 
   // Delete state
-  const [categoryDelete, setCategoryDelete] = React.useState<{
-    state: boolean
-    data: Category | null
-  }>({ state: false, data: null })
-  const selectCategoryDelete = (data: Category) => setCategoryDelete({ state: true, data })
-  const closeCategoryDelete = () => setCategoryDelete((prev) => ({ ...prev, state: false }))
+  const [selectedCategory, setSelectedCategory] = React.useState<Category | null>(null)
+  const [dialogOpen, setDialogOpen] = React.useState(false)
+  // Handler
+  const handleDeleteCategory = (category: Category) => {
+    setSelectedCategory(category)
+    setDialogOpen(true)
+  }
+  const handleDialogClose = () => {
+    setDialogOpen(false)
+    setTimeout(() => setSelectedCategory(null), 200)
+  }
 
   return (
     <>
@@ -38,47 +42,31 @@ export default function CategoriesList() {
         <CategoryCard
           key={category.id}
           data={category}
-          onUpdate={() => selectCategoryUpdate(category)}
-          onDelete={() => selectCategoryDelete(category)}
+          onUpdate={() => handleUpdateCategoryAction(category)}
+          onDelete={() => handleDeleteCategory(category)}
         />
       ))}
 
       {/* Create category */}
-      <ResponsiveDialog
-        title="New Category"
-        description="Define your expense/income category"
-        trigger={
-          <div
-            role="button"
-            className="flex aspect-square w-full flex-col items-center justify-center gap-3 rounded-4xl border-4 border-dashed"
-          >
-            <Button size="icon-xl">
-              <Plus />
-            </Button>
-            <p className="text-primary text-lg font-medium">Create new</p>
-          </div>
-        }
+      <div
+        onClick={handleAddCategoryAction}
+        role="button"
+        className="flex aspect-square w-full flex-col items-center justify-center gap-3 rounded-4xl border-4 border-dashed"
       >
-        <CategoryForm mode="create" />
-      </ResponsiveDialog>
+        <Button size="icon-xl">
+          <Plus />
+        </Button>
+        <p className="text-primary text-lg font-medium">Create new</p>
+      </div>
 
+      {/* Delete category */}
       <ResponsiveDialog
-        key={categoryUpdate.data?.id}
-        title="Edit Category"
-        description="Define your expense/income category"
-        open={categoryUpdate.state}
-        onOpenChange={closeCategoryUpdate}
-      >
-        <CategoryForm mode="update" data={categoryUpdate.data} />
-      </ResponsiveDialog>
-
-      <ResponsiveDialog
-        title={`Delete "${categoryDelete.data?.name}"?`}
+        title={`Delete "${selectedCategory?.name}"?`}
         description="This will permanently delete the category. This action cannot be undone."
-        open={categoryDelete.state}
-        onOpenChange={closeCategoryDelete}
+        open={dialogOpen}
+        onOpenChange={handleDialogClose}
       >
-        <CategoryDelete data={categoryDelete.data} close={closeCategoryDelete} />
+        <CategoryDelete data={selectedCategory} close={handleDialogClose} />
       </ResponsiveDialog>
     </>
   )
