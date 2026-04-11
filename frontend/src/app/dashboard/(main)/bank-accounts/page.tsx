@@ -17,7 +17,10 @@ import dynamic from "next/dynamic"
 import { useState } from "react"
 
 const BankAccountList = dynamic(
-  () => import("@/features/bank-account/components/bank-account-list"),
+  () =>
+    import("@/features/bank-account/components/bank-account-list").then((m) => ({
+      default: m.BankAccountList,
+    })),
   { ssr: false },
 )
 
