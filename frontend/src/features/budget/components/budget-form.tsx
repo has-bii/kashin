@@ -1,46 +1,46 @@
-'use client'
+"use client"
 
-import { useBudgetForm } from '../hooks/use-budget-form'
-import { Budget } from '../types'
-import { getCategoriesQueryOptions } from '@/features/category/api/get-categories.query'
-import { ResponsiveDialogFooter, useResponsiveDialog } from '@/components/responsive-dialog'
-import { Button } from '@/components/ui/button'
-import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
+import { useBudgetForm } from "../hooks/use-budget-form"
+import { Budget } from "../types"
+import { ResponsiveDialogFooter, useResponsiveDialog } from "@/components/responsive-dialog"
+import { Button } from "@/components/ui/button"
+import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
   InputGroupText,
-} from '@/components/ui/input-group'
+} from "@/components/ui/input-group"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { useSuspenseQuery } from '@tanstack/react-query'
-import { Loader2, Plus, SaveIcon } from 'lucide-react'
+} from "@/components/ui/select"
+import { getCategoriesQueryOptions } from "@/features/category/api/get-categories.query"
+import { useSuspenseQuery } from "@tanstack/react-query"
+import { Loader2, Plus, SaveIcon } from "lucide-react"
 
 const PERIOD_OPTIONS = [
-  { label: 'Daily', value: 'daily' },
-  { label: 'Weekly', value: 'weekly' },
-  { label: 'Monthly', value: 'monthly' },
+  { label: "Daily", value: "daily" },
+  { label: "Weekly", value: "weekly" },
+  { label: "Monthly", value: "monthly" },
 ] as const
 
-type Props = { mode: 'create' } | { mode: 'update'; data: Budget | null }
+type Props = { mode: "create" } | { mode: "update"; data: Budget | null }
 
-export function BudgetForm(props: Props) {
+export default function BudgetForm(props: Props) {
   const { setOpen } = useResponsiveDialog()
   const closeDialog = () => setOpen(false)
 
   const { data: categories } = useSuspenseQuery(getCategoriesQueryOptions({ type: null }))
 
   const hookArgs =
-    props.mode === 'create'
-      ? { mode: 'create' as const, onSuccess: closeDialog }
-      : { mode: 'update' as const, prevData: props.data, onSuccess: closeDialog }
+    props.mode === "create"
+      ? { mode: "create" as const, onSuccess: closeDialog }
+      : { mode: "update" as const, prevData: props.data, onSuccess: closeDialog }
 
   const { form } = useBudgetForm(hookArgs)
 
@@ -63,10 +63,7 @@ export function BudgetForm(props: Props) {
               return (
                 <Field data-invalid={isInvalid}>
                   <FieldLabel htmlFor={field.name}>Category</FieldLabel>
-                  <Select
-                    value={field.state.value}
-                    onValueChange={field.handleChange}
-                  >
+                  <Select value={field.state.value} onValueChange={field.handleChange}>
                     <SelectTrigger id={field.name} className="w-full" aria-invalid={isInvalid}>
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
@@ -120,7 +117,7 @@ export function BudgetForm(props: Props) {
                   <FieldLabel htmlFor={field.name}>Period</FieldLabel>
                   <Select
                     value={field.state.value}
-                    onValueChange={(v) => field.handleChange(v as 'daily' | 'weekly' | 'monthly')}
+                    onValueChange={(v) => field.handleChange(v as "daily" | "weekly" | "monthly")}
                   >
                     <SelectTrigger id={field.name} className="w-full" aria-invalid={isInvalid}>
                       <SelectValue placeholder="Select period" />
@@ -191,7 +188,7 @@ export function BudgetForm(props: Props) {
                 size="lg"
                 disabled={isSubmitting || !canSubmit || !isDirty}
               >
-                {props.mode === 'create' ? (
+                {props.mode === "create" ? (
                   <>Add {isSubmitting ? <Loader2 className="animate-spin" /> : <Plus />}</>
                 ) : (
                   <>Save {isSubmitting ? <Loader2 className="animate-spin" /> : <SaveIcon />}</>

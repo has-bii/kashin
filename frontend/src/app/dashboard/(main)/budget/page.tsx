@@ -9,14 +9,23 @@ import {
 } from "@/components/sidebar/main-page"
 import { SiteHeader } from "@/components/sidebar/site-header"
 import BudgetCardSkeleton from "@/features/budget/components/budget-card-skeleton"
-import { BudgetForm } from "@/features/budget/components/budget-form"
 import { Budget } from "@/features/budget/types"
+import { Loader2 } from "lucide-react"
 import dynamic from "next/dynamic"
 import { Suspense, useState } from "react"
 
 const BudgetList = dynamic(() => import("@/features/budget/components/budget-list"), {
   ssr: false,
   loading: () => <BudgetCardSkeleton />,
+})
+
+const BudgetForm = dynamic(() => import("@/features/budget/components/budget-form"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex aspect-square w-full items-center justify-center">
+      <Loader2 className="size-20 animate-spin" />
+    </div>
+  ),
 })
 
 export default function BudgetPage() {
@@ -53,7 +62,7 @@ export default function BudgetPage() {
           </div>
         </MainPageHeader>
 
-        <div className="grid grid-cols-1 gap-4 @lg/main:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 @xl/main:grid-cols-2">
           <Suspense fallback={<BudgetCardSkeleton />}>
             <BudgetList onAdd={handleAdd} onUpdate={handleUpdate} />
           </Suspense>
@@ -65,9 +74,7 @@ export default function BudgetPage() {
           title={dialogMode === "create" ? "New Budget" : "Edit Budget"}
           description="Set a spending limit for a category over a time period."
         >
-          <Suspense>
-            <BudgetForm mode={dialogMode} data={selectedBudget} />
-          </Suspense>
+          <BudgetForm mode={dialogMode} data={selectedBudget} />
         </ResponsiveDialog>
       </MainPage>
     </>
