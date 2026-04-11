@@ -88,6 +88,7 @@ model User {
   aiExtractions         AiExtraction[]
   recurringTransactions RecurringTransaction[]
   budgets               Budget[]
+  bankAccounts          BankAccount[]
 
   @@unique([email])
   @@map("users")
@@ -173,6 +174,7 @@ model Transaction {
   categoryId      String?           @db.Uuid
   recurringTxnId  String?           @db.Uuid
   aiExtractionId  String?           @unique @db.Uuid
+  bankAccountId   String?           @db.Uuid
   type            TransactionType
   amount          Decimal           @db.Decimal(15, 2)
   currency        String            @default("IDR") @db.Char(3)
@@ -187,6 +189,7 @@ model Transaction {
   category             Category?             @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   recurringTransaction RecurringTransaction? @relation(fields: [recurringTxnId], references: [id], onDelete: SetNull)
   aiExtraction         AiExtraction?         @relation(fields: [aiExtractionId], references: [id], onDelete: SetNull)
+  bankAccount          BankAccount?          @relation(fields: [bankAccountId], references: [id], onDelete: SetNull)
   attachments          Attachment[]
 
   @@index([userId])
@@ -196,6 +199,7 @@ model Transaction {
   @@index([userId, type])
   @@index([userId, categoryId])
   @@index([userId, source])
+  @@index([bankAccountId])
   @@map("transactions")
 }
 
@@ -283,6 +287,22 @@ model Budget {
   @@unique([userId, categoryId, period])
   @@index([userId])
   @@map("budgets")
+}
+
+model BankAccount {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  userId      String   @db.Uuid
+  displayName String   @db.VarChar(100)
+  bankName    String   @db.VarChar(50)
+  balance     Decimal  @db.Decimal(15, 2)
+  createdAt   DateTime @default(now()) @db.Timestamptz
+  updatedAt   DateTime @updatedAt @db.Timestamptz
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@index([userId])
+  @@map("bank_accounts")
 }
 
 // -----------------------------------------------------------
