@@ -7,11 +7,7 @@ const getDashboardTrends = async (params: TrendsParams) => {
   return data
 }
 
-export const getDashboardTrendsQueryKey = (params: TrendsParams) => [
-  "dashboard",
-  "trends",
-  params,
-]
+export const getDashboardTrendsQueryKey = (params: TrendsParams) => ["dashboard", "trends", params]
 
 export const getDashboardTrendsQueryOptions = (params: TrendsParams) => {
   return queryOptions({

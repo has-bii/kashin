@@ -24,9 +24,9 @@ import { useSuspenseQuery } from "@tanstack/react-query"
 import { Loader2, Plus, SaveIcon } from "lucide-react"
 
 const PERIOD_OPTIONS = [
-  { label: "Daily", value: "daily" },
-  { label: "Weekly", value: "weekly" },
-  { label: "Monthly", value: "monthly" },
+  { label: "Harian", value: "daily" },
+  { label: "Mingguan", value: "weekly" },
+  { label: "Bulanan", value: "monthly" },
 ] as const
 
 type Props = { mode: "create" } | { mode: "update"; data: Budget | null }
@@ -62,10 +62,10 @@ export default function BudgetForm(props: Props) {
               const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
               return (
                 <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Category</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>Kategori</FieldLabel>
                   <Select value={field.state.value} onValueChange={field.handleChange}>
                     <SelectTrigger id={field.name} className="w-full" aria-invalid={isInvalid}>
-                      <SelectValue placeholder="Select a category" />
+                      <SelectValue placeholder="Pilih kategori" />
                     </SelectTrigger>
                     <SelectContent>
                       {categories.map((cat) => (
@@ -89,7 +89,7 @@ export default function BudgetForm(props: Props) {
               const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
               return (
                 <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Budget Amount</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>Jumlah Anggaran</FieldLabel>
                   <Input
                     id={field.name}
                     type="number"
@@ -114,13 +114,13 @@ export default function BudgetForm(props: Props) {
               const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
               return (
                 <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Period</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>Periode</FieldLabel>
                   <Select
                     value={field.state.value}
                     onValueChange={(v) => field.handleChange(v as "daily" | "weekly" | "monthly")}
                   >
                     <SelectTrigger id={field.name} className="w-full" aria-invalid={isInvalid}>
-                      <SelectValue placeholder="Select period" />
+                      <SelectValue placeholder="Pilih periode" />
                     </SelectTrigger>
                     <SelectContent>
                       {PERIOD_OPTIONS.map((opt) => (
@@ -143,7 +143,7 @@ export default function BudgetForm(props: Props) {
               const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
               return (
                 <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Alert Threshold</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>Batas Peringatan</FieldLabel>
                   <InputGroup aria-invalid={isInvalid}>
                     <InputGroupInput
                       id={field.name}
@@ -180,7 +180,7 @@ export default function BudgetForm(props: Props) {
                 disabled={isSubmitting}
                 onClick={closeDialog}
               >
-                Cancel
+                Batal
               </Button>
               <Button
                 form="budget-form"
@@ -189,9 +189,9 @@ export default function BudgetForm(props: Props) {
                 disabled={isSubmitting || !canSubmit || !isDirty}
               >
                 {props.mode === "create" ? (
-                  <>Add {isSubmitting ? <Loader2 className="animate-spin" /> : <Plus />}</>
+                  <>Tambah {isSubmitting ? <Loader2 className="animate-spin" /> : <Plus />}</>
                 ) : (
-                  <>Save {isSubmitting ? <Loader2 className="animate-spin" /> : <SaveIcon />}</>
+                  <>Simpan {isSubmitting ? <Loader2 className="animate-spin" /> : <SaveIcon />}</>
                 )}
               </Button>
             </>

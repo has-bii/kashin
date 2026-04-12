@@ -86,7 +86,7 @@ export abstract class RecurringTransactionService {
       where: { id, userId },
       include: categoryInclude,
     })
-    if (!item) throw new NotFoundError("Recurring transaction not found")
+    if (!item) throw new NotFoundError("Transaksi berulang tidak ditemukan")
     return item
   }
 

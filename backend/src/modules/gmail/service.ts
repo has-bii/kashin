@@ -8,7 +8,7 @@ export abstract class GmailService {
       where: { userId, providerId: "google" },
     })
 
-    if (!user) throw new NotFoundError("User not found")
+    if (!user) throw new NotFoundError("Pengguna tidak ditemukan")
 
     if (!user.accessToken || !user.refreshToken) {
       return status(400, "Google account not linked yet!")

@@ -16,7 +16,7 @@ const app = new Elysia({ prefix: "/api" })
   .onError(({ code, error, set }) => {
     if (code === "VALIDATION") {
       set.status = 400
-      return { error: "Validation failed", code: "VALIDATION" }
+      return { error: "Validasi gagal", code: "VALIDATION" }
     }
     if ("status" in error && typeof error.status === "number") {
       set.status = error.status
@@ -24,7 +24,7 @@ const app = new Elysia({ prefix: "/api" })
     }
     console.error("[Unhandled Error]", error)
     set.status = 500
-    return { error: "Internal server error", code: "INTERNAL_ERROR" }
+    return { error: "Terjadi kesalahan pada server", code: "INTERNAL_ERROR" }
   })
   .use(
     cors({

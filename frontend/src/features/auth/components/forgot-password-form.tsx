@@ -21,15 +21,15 @@ export default function ForgotPasswordForm() {
     >
       <FieldGroup>
         <div className="flex flex-col items-center gap-1 text-center">
-          <h1 className="text-2xl font-bold">Forgot your password?</h1>
+          <h1 className="text-2xl font-bold">Lupa Kata Sandi?</h1>
           <p className="text-muted-foreground text-sm text-balance">
-            Enter your email and we&apos;ll send you a code to reset your password
+            Masukkan email Anda dan kami akan mengirim kode untuk memulihkan kata sandi
           </p>
         </div>
         {error && (
           <Alert variant="destructive">
             <InfoIcon />
-            <AlertTitle>Error</AlertTitle>
+            <AlertTitle>Terjadi Kesalahan</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
@@ -59,7 +59,7 @@ export default function ForgotPasswordForm() {
           children={({ isSubmitting, canSubmit, isDirty }) => (
             <Field>
               <Button type="submit" disabled={isSubmitting || !canSubmit || !isDirty}>
-                Send reset code
+                Kirim Kode Pemulihan
                 {isSubmitting && <Loader2 className="animate-spin" />}
               </Button>
             </Field>
@@ -68,7 +68,7 @@ export default function ForgotPasswordForm() {
         <Field>
           <FieldDescription className="text-center">
             <Link href="/auth/login" className="underline underline-offset-4">
-              Back to login
+              Kembali ke halaman masuk
             </Link>
           </FieldDescription>
         </Field>

@@ -8,7 +8,7 @@ import { Suspense } from "react"
 export default function AuthenticationPage() {
   return (
     <>
-      <SiteHeader label="Authentication" />
+      <SiteHeader label="Autentikasi" />
       <MainPage>
         <Suspense>
           <OAuthErrorHandler />

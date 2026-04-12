@@ -1,5 +1,5 @@
-export type BudgetPeriod = 'daily' | 'weekly' | 'monthly'
-export type BudgetAlertStatus = 'ok' | 'warning' | 'exceeded'
+export type BudgetPeriod = "daily" | "weekly" | "monthly"
+export type BudgetAlertStatus = "ok" | "warning" | "exceeded"
 
 export interface Budget {
   id: string

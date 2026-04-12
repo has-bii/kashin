@@ -98,7 +98,7 @@ export abstract class BudgetService {
 
   static async create(userId: string, input: CreateInput) {
     const count = await prisma.budget.count({ where: { userId } })
-    if (count >= 10) throw new Conflict("Budget limit of 10 reached")
+    if (count >= 10) throw new Conflict("Batas maksimal 10 anggaran telah tercapai")
 
     const duplicate = await prisma.budget.findUnique({
       where: {
@@ -109,7 +109,7 @@ export abstract class BudgetService {
         },
       },
     })
-    if (duplicate) throw new Conflict("Budget for this category and period already exists")
+    if (duplicate) throw new Conflict("Anggaran untuk kategori dan periode ini sudah ada")
 
     const result = await prisma.budget.create({
       data: { ...input, period: input.period as BudgetPeriod, userId },
@@ -121,7 +121,7 @@ export abstract class BudgetService {
 
   static async update(userId: string, id: string, input: UpdateInput) {
     const existing = await prisma.budget.findUnique({ where: { id, userId } })
-    if (!existing) throw new NotFoundError("Budget not found")
+    if (!existing) throw new NotFoundError("Anggaran tidak ditemukan")
 
     const newCategoryId = input.categoryId ?? existing.categoryId
     const newPeriod = (input.period ?? existing.period) as BudgetPeriod
@@ -145,7 +145,7 @@ export abstract class BudgetService {
 
   static async delete(userId: string, id: string) {
     const existing = await prisma.budget.findUnique({ where: { id, userId } })
-    if (!existing) throw new NotFoundError("Budget not found")
+    if (!existing) throw new NotFoundError("Anggaran tidak ditemukan")
 
     return prisma.budget.delete({ where: { id, userId } })
   }

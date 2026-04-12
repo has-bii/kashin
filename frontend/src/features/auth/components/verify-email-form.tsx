@@ -41,25 +41,25 @@ function VerifyEmailFormInner({ email }: { email: string }) {
     >
       <FieldGroup>
         <div className="flex flex-col items-center gap-1 text-center">
-          <h1 className="text-2xl font-bold">Verify your email</h1>
+          <h1 className="text-2xl font-bold">Verifikasi Email Anda</h1>
           <p className="text-muted-foreground text-sm text-balance">
-            We sent a verification code to{" "}
+            Kami telah mengirim kode verifikasi ke{" "}
             <span className="text-foreground font-medium">{email}</span>
           </p>
         </div>
         {isSuccess && (
           <Alert className="text-emerald-600">
             <CircleCheck />
-            <AlertTitle>Email verified</AlertTitle>
+            <AlertTitle>Email Terverifikasi</AlertTitle>
             <AlertDescription className="text-emerald-600/90">
-              Your email has been verified successfully. You can now log in.
+              Email Anda berhasil diverifikasi. Silakan masuk ke akun Anda.
             </AlertDescription>
           </Alert>
         )}
         {error && (
           <Alert variant="destructive">
             <InfoIcon />
-            <AlertTitle>Error</AlertTitle>
+            <AlertTitle>Terjadi Kesalahan</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
@@ -71,7 +71,7 @@ function VerifyEmailFormInner({ email }: { email: string }) {
                 const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
                 return (
                   <Field data-invalid={isInvalid}>
-                    <FieldLabel htmlFor={field.name}>Verification Code</FieldLabel>
+                    <FieldLabel htmlFor={field.name}>Kode Verifikasi</FieldLabel>
                     <Input
                       id={field.name}
                       name={field.name}
@@ -95,7 +95,7 @@ function VerifyEmailFormInner({ email }: { email: string }) {
               children={({ isSubmitting, canSubmit, isDirty }) => (
                 <Field>
                   <Button type="submit" disabled={isSubmitting || !canSubmit || !isDirty}>
-                    Verify
+                    Verifikasi
                     {isSubmitting && <Loader2 className="animate-spin" />}
                   </Button>
                 </Field>
@@ -111,12 +111,12 @@ function VerifyEmailFormInner({ email }: { email: string }) {
               onClick={resendOtp}
               disabled={resendCooldown > 0}
             >
-              {resendCooldown > 0 ? `Resend code (${resendCooldown}s)` : "Resend code"}
+              {resendCooldown > 0 ? `Kirim Ulang (${resendCooldown}d)` : "Kirim Ulang Kode"}
             </Button>
           )}
           <FieldDescription className="text-center">
             <Link href="/auth/login" className="underline underline-offset-4">
-              Back to login
+              Kembali ke halaman masuk
             </Link>
           </FieldDescription>
         </Field>

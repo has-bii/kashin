@@ -28,41 +28,41 @@ import * as React from "react"
 const data = {
   navMain: [
     {
-      title: "Dashboard",
+      title: "Dasbor",
       url: "/dashboard",
       icon: <LayoutDashboardIcon />,
     },
     {
-      title: "Transactions",
+      title: "Transaksi",
       url: "/dashboard/transactions",
       icon: <ArrowLeftRightIcon />,
     },
     {
-      title: "Bank Accounts",
+      title: "Rekening Bank",
       url: "/dashboard/bank-accounts",
       icon: <CreditCardIcon />,
     },
     {
-      title: "Category",
+      title: "Kategori",
       url: "/dashboard/category",
       icon: <LayersIcon />,
     },
   ],
   tools: [
     {
-      title: "Budget",
+      title: "Anggaran",
       url: "/dashboard/budget",
       icon: <PieChartIcon />,
     },
     {
-      title: "Recurring",
+      title: "Berulang",
       url: "/dashboard/recurring-transactions",
       icon: <RepeatIcon />,
     },
   ],
   navSecondary: [
     {
-      title: "Settings",
+      title: "Pengaturan",
       url: "/dashboard/settings",
       icon: <Settings2Icon />,
     },
@@ -97,7 +97,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <NavMain items={data.navMain} />
 
           {/* Tools */}
-          <NavMain label="Tools" items={data.tools} />
+          <NavMain label="Alat" items={data.tools} />
         </React.Suspense>
         <NavSecondary items={data.navSecondary} className="mt-auto pl-0" />
       </SidebarContent>

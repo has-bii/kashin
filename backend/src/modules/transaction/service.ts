@@ -73,7 +73,7 @@ export abstract class TransactionService {
       include: categoryInclude,
     })
 
-    if (!transaction) throw new NotFoundError("Transaction doesn't exist")
+    if (!transaction) throw new NotFoundError("Transaksi tidak ditemukan")
 
     return transaction
   }
@@ -106,7 +106,7 @@ export abstract class TransactionService {
 
   static async update(userId: string, id: string, input: TransactionUpdateInput) {
     const old = await prisma.transaction.findUnique({ where: { id, userId } })
-    if (!old) throw new NotFoundError("Transaction doesn't exist")
+    if (!old) throw new NotFoundError("Transaksi tidak ditemukan")
 
     const { categoryId, bankAccountId, ...rest } = input
 
@@ -146,7 +146,7 @@ export abstract class TransactionService {
 
   static async delete(userId: string, id: string) {
     const old = await prisma.transaction.findUnique({ where: { id, userId } })
-    if (!old) throw new NotFoundError("Transaction doesn't exist")
+    if (!old) throw new NotFoundError("Transaksi tidak ditemukan")
 
     return prisma.$transaction(async (tx) => {
       await tx.transaction.delete({ where: { id, userId } })

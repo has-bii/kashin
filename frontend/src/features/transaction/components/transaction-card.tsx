@@ -33,10 +33,10 @@ export function TransactionCard({ data, onRowClick }: Props) {
         {/* Detail */}
         <div className="truncate">
           <h4 className="text-card-foreground font-heading truncate text-base font-bold">
-            {description || "No description"}
+            {description || "Tanpa keterangan"}
           </h4>
           <div className="mt-2 flex items-center gap-2">
-            <Badge variant="secondary">{category?.name || "Uncategorized"}</Badge>
+            <Badge variant="secondary">{category?.name || "Tanpa kategori"}</Badge>
             <span className="text-outline-variant text-xs">• {date}</span>
           </div>
         </div>
@@ -54,7 +54,7 @@ export function TransactionCard({ data, onRowClick }: Props) {
 
           {/* Type */}
           <span className="text-muted-foreground mt-2 block text-xs font-medium tracking-tighter uppercase">
-            {type}
+            {type === "expense" ? "Pengeluaran" : "Pemasukan"}
           </span>
         </div>
       </CardContent>

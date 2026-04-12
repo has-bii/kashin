@@ -29,15 +29,15 @@ export default function LoginForm() {
     >
       <FieldGroup>
         <div className="flex flex-col items-center gap-1 text-center">
-          <h1 className="text-2xl font-bold">Login to your account</h1>
+          <h1 className="text-2xl font-bold">Masuk ke akun Anda</h1>
           <p className="text-muted-foreground text-sm text-balance">
-            Enter your email below to login to your account
+            Masukkan email Anda untuk melanjutkan
           </p>
         </div>
         {error && (
           <Alert variant="destructive">
             <InfoIcon />
-            <AlertTitle>Error</AlertTitle>
+            <AlertTitle>Terjadi Kesalahan</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
@@ -70,12 +70,12 @@ export default function LoginForm() {
             return (
               <Field data-invalid={isInvalid}>
                 <div className="flex items-center">
-                  <FieldLabel htmlFor={field.name}>Password</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>Kata Sandi</FieldLabel>
                   <Link
                     href="/auth/forgot-password"
                     className="ml-auto text-sm underline-offset-4 hover:underline"
                   >
-                    Forgot your password?
+                    Lupa kata sandi?
                   </Link>
                 </div>
 
@@ -98,22 +98,22 @@ export default function LoginForm() {
           children={({ isSubmitting, canSubmit, isDirty }) => (
             <Field>
               <Button type="submit" disabled={isSubmitting || !canSubmit || !isDirty}>
-                Login
+                Masuk
                 {isSubmitting && <Loader2 className="animate-spin" />}
               </Button>
             </Field>
           )}
         />
-        <FieldSeparator>Or continue with</FieldSeparator>
+        <FieldSeparator>Atau lanjutkan dengan</FieldSeparator>
         <Field>
           <Button variant="outline" type="button" onClick={loginWithGoogle}>
             <Google />
-            Login with Google
+            Masuk dengan Google
           </Button>
           <FieldDescription className="text-center">
-            Don&apos;t have an account?{" "}
+            Belum punya akun?{" "}
             <Link href="/auth/register" className="underline underline-offset-4">
-              Sign up
+              Daftar
             </Link>
           </FieldDescription>
         </Field>

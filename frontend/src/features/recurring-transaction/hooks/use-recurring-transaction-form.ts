@@ -35,11 +35,7 @@ export const useRecurringTransactionForm = (args: Args) => {
       amount: prevData?.amount ? Number(prevData.amount) : 0,
       description: prevData?.description ?? "",
       categoryId: (prevData?.categoryId ?? null) as string | null,
-      frequency: (prevData?.frequency ?? "monthly") as
-        | "weekly"
-        | "biweekly"
-        | "monthly"
-        | "yearly",
+      frequency: (prevData?.frequency ?? "monthly") as "weekly" | "biweekly" | "monthly" | "yearly",
       nextDueDate: prevData?.nextDueDate ?? new Date().toISOString(),
     },
     validators: {

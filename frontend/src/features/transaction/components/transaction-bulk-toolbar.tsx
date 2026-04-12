@@ -34,7 +34,7 @@ export function TransactionBulkToolbar({
     <>
       <div className="flex items-center justify-between rounded-xl border bg-background px-4 py-2.5 shadow-sm">
         <span className="text-sm font-medium">
-          {selectedCount} {selectedCount === 1 ? "transaction" : "transactions"} selected
+          {selectedCount} transaksi dipilih
         </span>
         <Button
           variant="destructive"
@@ -43,21 +43,20 @@ export function TransactionBulkToolbar({
           disabled={isDeleting}
         >
           <Trash2Icon className="size-4" />
-          Delete Selected
+          Hapus yang Dipilih
         </Button>
       </div>
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete {selectedCount} transactions?</AlertDialogTitle>
+            <AlertDialogTitle>Hapus {selectedCount} transaksi?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete {selectedCount}{" "}
-              {selectedCount === 1 ? "transaction" : "transactions"}. This cannot be undone.
+              Tindakan ini akan menghapus {selectedCount} transaksi secara permanen dan tidak dapat dibatalkan.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>Batal</AlertDialogCancel>
             <AlertDialogAction
               variant="destructive"
               onClick={() => {
@@ -66,7 +65,7 @@ export function TransactionBulkToolbar({
               }}
               disabled={isDeleting}
             >
-              Delete
+              Hapus
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

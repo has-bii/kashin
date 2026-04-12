@@ -36,7 +36,7 @@ export abstract class CategoryService {
         },
       },
     })
-    if (isExist) throw new Conflict("Category with the same name already exists")
+    if (isExist) throw new Conflict("Kategori dengan nama yang sama sudah ada")
 
     const data = await prisma.category.create({
       data: { ...input, userId },
@@ -64,7 +64,7 @@ export abstract class CategoryService {
         },
       })
 
-      if (isExist) throw new Conflict("Category with the same name already exists")
+      if (isExist) throw new Conflict("Kategori dengan nama yang sama sudah ada")
     }
 
     return prisma.category.update({
@@ -79,7 +79,7 @@ export abstract class CategoryService {
       where: { id, userId },
     })
 
-    if (!isExist) throw new NotFoundError("Category doesn't exist")
+    if (!isExist) throw new NotFoundError("Kategori tidak ditemukan")
 
     return prisma.category.delete({
       where: { id, userId },

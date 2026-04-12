@@ -19,7 +19,7 @@ const ChangeEmailForm = dynamic(
 export default function SettingsPage() {
   return (
     <>
-      <SiteHeader label="Settings" />
+      <SiteHeader label="Pengaturan" />
       <MainPage>
         <ChangeAvatarForm />
         <QueryErrorBoundary>

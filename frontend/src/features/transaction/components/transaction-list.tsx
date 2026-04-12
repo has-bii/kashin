@@ -39,8 +39,8 @@ export default function TransactionList({ onRowClick }: TransactionListProps) {
           <EmptyMedia variant="icon">
             <ReceiptIcon />
           </EmptyMedia>
-          <EmptyTitle>No transactions found</EmptyTitle>
-          <EmptyDescription>Try adjusting your filters or add a new transaction.</EmptyDescription>
+          <EmptyTitle>Belum ada transaksi</EmptyTitle>
+          <EmptyDescription>Coba sesuaikan filter atau tambah transaksi baru.</EmptyDescription>
         </EmptyHeader>
       </Empty>
     )
@@ -74,7 +74,7 @@ export default function TransactionList({ onRowClick }: TransactionListProps) {
             {/* Date */}
             <div className="flex items-center gap-4">
               <div className="text-muted-foreground shrink-0 text-sm font-medium uppercase">
-                {isToday(date) ? "Today" : formatDate(date, "EEEE, MMM d")}
+                {isToday(date) ? "Hari Ini" : formatDate(date, "EEEE, MMM d")}
               </div>
               <Separator orientation="horizontal" className="w-auto flex-1" />
             </div>

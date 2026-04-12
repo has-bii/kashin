@@ -42,7 +42,7 @@ export function NavUser() {
   const { isMobile } = useSidebar()
 
   const user = useMemo((): UserData => {
-    if (isPending || !data) return { name: "loading...", email: "loading...", avatar: undefined }
+    if (isPending || !data) return { name: "Memuat...", email: "Memuat...", avatar: undefined }
 
     return { name: data.user.name, email: data.user.email, avatar: data.user.image ?? undefined }
   }, [data, isPending])
@@ -51,7 +51,7 @@ export function NavUser() {
     const { error } = await authClient.signOut()
 
     if (error) {
-      toast.error(error.message ?? "Unexpected error has occurred")
+      toast.error(error.message ?? "Terjadi kesalahan yang tidak terduga")
       return
     }
 
@@ -101,22 +101,22 @@ export function NavUser() {
               <DropdownMenuItem asChild>
                 <Link href="/dashboard/settings">
                   <CircleUserRoundIcon />
-                  Settings
+                  Pengaturan
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <CreditCardIcon />
-                Billing
+                Tagihan
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <BellIcon />
-                Notifications
+                Notifikasi
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={logoutHandler}>
               <LogOutIcon />
-              Log out
+              Keluar
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

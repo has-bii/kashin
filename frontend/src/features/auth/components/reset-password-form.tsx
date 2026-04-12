@@ -41,25 +41,24 @@ function ResetPasswordFormInner({ email }: { email: string }) {
     >
       <FieldGroup>
         <div className="flex flex-col items-center gap-1 text-center">
-          <h1 className="text-2xl font-bold">Reset your password</h1>
+          <h1 className="text-2xl font-bold">Atur Ulang Kata Sandi</h1>
           <p className="text-muted-foreground text-sm text-balance">
-            Enter the code sent to <span className="text-foreground font-medium">{email}</span> and
-            your new password
+            Masukkan kode yang dikirim ke <span className="text-foreground font-medium">{email}</span> beserta kata sandi baru Anda
           </p>
         </div>
         {isSuccess && (
           <Alert className="text-emerald-600">
             <CircleCheck />
-            <AlertTitle>Password reset</AlertTitle>
+            <AlertTitle>Kata Sandi Diperbarui</AlertTitle>
             <AlertDescription className="text-emerald-600/90">
-              Your password has been reset successfully. You can now log in.
+              Kata sandi Anda berhasil diperbarui. Silakan masuk kembali.
             </AlertDescription>
           </Alert>
         )}
         {error && (
           <Alert variant="destructive">
             <InfoIcon />
-            <AlertTitle>Error</AlertTitle>
+            <AlertTitle>Terjadi Kesalahan</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
@@ -71,7 +70,7 @@ function ResetPasswordFormInner({ email }: { email: string }) {
                 const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
                 return (
                   <Field data-invalid={isInvalid}>
-                    <FieldLabel htmlFor={field.name}>Verification Code</FieldLabel>
+                    <FieldLabel htmlFor={field.name}>Kode Verifikasi</FieldLabel>
                     <Input
                       id={field.name}
                       name={field.name}
@@ -97,7 +96,7 @@ function ResetPasswordFormInner({ email }: { email: string }) {
                 const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
                 return (
                   <Field data-invalid={isInvalid}>
-                    <FieldLabel htmlFor={field.name}>New Password</FieldLabel>
+                    <FieldLabel htmlFor={field.name}>Kata Sandi Baru</FieldLabel>
                     <Input
                       id={field.name}
                       name={field.name}
@@ -119,7 +118,7 @@ function ResetPasswordFormInner({ email }: { email: string }) {
                 const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
                 return (
                   <Field data-invalid={isInvalid}>
-                    <FieldLabel htmlFor={field.name}>Confirm Password</FieldLabel>
+                    <FieldLabel htmlFor={field.name}>Konfirmasi Kata Sandi</FieldLabel>
                     <Input
                       id={field.name}
                       name={field.name}
@@ -139,7 +138,7 @@ function ResetPasswordFormInner({ email }: { email: string }) {
               children={({ isSubmitting, canSubmit, isDirty }) => (
                 <Field>
                   <Button type="submit" disabled={isSubmitting || !canSubmit || !isDirty}>
-                    Reset password
+                    Atur Ulang Kata Sandi
                     {isSubmitting && <Loader2 className="animate-spin" />}
                   </Button>
                 </Field>
@@ -155,12 +154,12 @@ function ResetPasswordFormInner({ email }: { email: string }) {
               onClick={resendOtp}
               disabled={resendCooldown > 0}
             >
-              {resendCooldown > 0 ? `Resend code (${resendCooldown}s)` : "Resend code"}
+              {resendCooldown > 0 ? `Kirim Ulang (${resendCooldown}d)` : "Kirim Ulang Kode"}
             </Button>
           )}
           <FieldDescription className="text-center">
             <Link href="/auth/login" className="underline underline-offset-4">
-              Back to login
+              Kembali ke halaman masuk
             </Link>
           </FieldDescription>
         </Field>

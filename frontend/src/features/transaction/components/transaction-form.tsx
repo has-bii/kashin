@@ -27,8 +27,8 @@ import { useQuery } from "@tanstack/react-query"
 import { Loader2, Plus, SaveIcon } from "lucide-react"
 
 const types: Array<{ label: string; value: TransactionType }> = [
-  { label: "Expense", value: "expense" },
-  { label: "Income", value: "income" },
+  { label: "Pengeluaran", value: "expense" },
+  { label: "Pemasukan", value: "income" },
 ]
 
 type Props =
@@ -82,7 +82,7 @@ export function TransactionForm(props: Props) {
               const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
               return (
                 <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Amount</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>Jumlah</FieldLabel>
                   <Input
                     id={field.name}
                     name={field.name}
@@ -136,12 +136,12 @@ export function TransactionForm(props: Props) {
                     onChangeValue={(input) => field.handleChange(input!)}
                   >
                     <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor={`date-${field.name}`}>Date</FieldLabel>
+                      <FieldLabel htmlFor={`date-${field.name}`}>Tanggal</FieldLabel>
                       <DatetimePickerDate />
                       {isInvalid && <FieldError errors={field.state.meta.errors} />}
                     </Field>
                     <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor={`time-${field.name}`}>Time</FieldLabel>
+                      <FieldLabel htmlFor={`time-${field.name}`}>Waktu</FieldLabel>
                       <DatetimePickerTime />
                     </Field>
                   </DatetimePicker>
@@ -181,7 +181,7 @@ export function TransactionForm(props: Props) {
               const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
               return (
                 <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Description</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>Keterangan</FieldLabel>
                   <Input
                     id={field.name}
                     name={field.name}
@@ -191,7 +191,7 @@ export function TransactionForm(props: Props) {
                     aria-invalid={isInvalid}
                     autoComplete="off"
                     maxLength={255}
-                    placeholder="e.g. Grocery shopping"
+                    placeholder="cth. Belanja bulanan"
                   />
                   {isInvalid && <FieldError errors={field.state.meta.errors} />}
                 </Field>
@@ -206,7 +206,7 @@ export function TransactionForm(props: Props) {
               const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
               return (
                 <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Notes</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>Catatan</FieldLabel>
                   <textarea
                     id={field.name}
                     name={field.name}
@@ -215,7 +215,7 @@ export function TransactionForm(props: Props) {
                     onChange={(e) => field.handleChange(e.target.value)}
                     aria-invalid={isInvalid}
                     rows={3}
-                    placeholder="Optional notes..."
+                    placeholder="Catatan tambahan (opsional)..."
                     className="bg-input/50 focus-visible:border-ring focus-visible:ring-ring/30 w-full resize-none rounded-2xl border border-transparent px-3 py-2 text-sm transition-[color,box-shadow,background-color] outline-none focus-visible:ring-3 disabled:cursor-not-allowed disabled:opacity-50"
                   />
                   {isInvalid && <FieldError errors={field.state.meta.errors} />}
@@ -237,9 +237,9 @@ export function TransactionForm(props: Props) {
               disabled={isSubmitting || !canSubmit}
             >
               {props.mode === "create" ? (
-                <>Add {isSubmitting ? <Loader2 className="animate-spin" /> : <Plus />}</>
+                <>Tambah {isSubmitting ? <Loader2 className="animate-spin" /> : <Plus />}</>
               ) : (
-                <>Save {isSubmitting ? <Loader2 className="animate-spin" /> : <SaveIcon />}</>
+                <>Simpan {isSubmitting ? <Loader2 className="animate-spin" /> : <SaveIcon />}</>
               )}
             </Button>
           )}
@@ -275,13 +275,13 @@ function BankAccountSelectField({
 
   return (
     <Field data-invalid={isInvalid}>
-      <FieldLabel htmlFor={fieldName}>Account</FieldLabel>
+      <FieldLabel htmlFor={fieldName}>Rekening</FieldLabel>
       <Select value={value ?? "__none__"} onValueChange={onChange}>
         <SelectTrigger id={fieldName} aria-invalid={isInvalid} onBlur={onBlur} className="w-full">
-          <SelectValue placeholder="No account" />
+          <SelectValue placeholder="Tanpa rekening" />
         </SelectTrigger>
         <SelectContent position="popper">
-          <SelectItem value="__none__">No account</SelectItem>
+          <SelectItem value="__none__">Tanpa rekening</SelectItem>
           {accounts.map((account) => (
             <SelectItem key={account.id} value={account.id}>
               {account.bank.name}
@@ -316,13 +316,13 @@ function CategorySelectField({
 
   return (
     <Field data-invalid={isInvalid}>
-      <FieldLabel htmlFor={fieldName}>Category</FieldLabel>
+      <FieldLabel htmlFor={fieldName}>Kategori</FieldLabel>
       <Select value={value ?? "__none__"} onValueChange={onChange}>
         <SelectTrigger id={fieldName} aria-invalid={isInvalid} onBlur={onBlur} className="w-full">
-          <SelectValue placeholder="No category" />
+          <SelectValue placeholder="Tanpa kategori" />
         </SelectTrigger>
         <SelectContent position="popper">
-          <SelectItem value="__none__">No category</SelectItem>
+          <SelectItem value="__none__">Tanpa kategori</SelectItem>
           {categories.map((cat) => (
             <SelectItem key={cat.id} value={cat.id}>
               <span>{cat.icon}</span>

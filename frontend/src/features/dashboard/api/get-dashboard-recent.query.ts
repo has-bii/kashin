@@ -7,11 +7,7 @@ const getDashboardRecent = async (params: RecentParams) => {
   return data
 }
 
-export const getDashboardRecentQueryKey = (params: RecentParams) => [
-  "dashboard",
-  "recent",
-  params,
-]
+export const getDashboardRecentQueryKey = (params: RecentParams) => ["dashboard", "recent", params]
 
 export const getDashboardRecentQueryOptions = (params: RecentParams) => {
   return queryOptions({

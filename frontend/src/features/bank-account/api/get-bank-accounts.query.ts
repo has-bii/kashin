@@ -1,13 +1,13 @@
+import type { PaginatedBankAccountResponse } from "../types"
 import { api } from "@/lib/api"
 import { queryOptions } from "@tanstack/react-query"
-import type { PaginatedBankAccountResponse } from "../types"
 
 const getBankAccounts = async (): Promise<PaginatedBankAccountResponse> => {
-  const { data } = await api.get<PaginatedBankAccountResponse>('/bank-account')
+  const { data } = await api.get<PaginatedBankAccountResponse>("/bank-account")
   return data
 }
 
-export const getBankAccountsQueryKey = () => ['bank-accounts']
+export const getBankAccountsQueryKey = () => ["bank-accounts"]
 
 export const getBankAccountsQueryOptions = () =>
   queryOptions({
