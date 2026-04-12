@@ -82,7 +82,7 @@ export function BudgetCard({ data, onUpdate, onDelete }: Props) {
         <h4 className="font-heading text-2xl font-bold">{data.category.name}</h4>
         <span className="text-muted-foreground capitalize">{data.period} period</span>
       </CardContent>
-      <CardFooter className="h-full items-end">
+      <CardFooter className="h-full items-end border-t pt-3!">
         <div className="flex w-full flex-col gap-2">
           <div className="flex items-end justify-between">
             <div className="w-fit shrink-0">
@@ -98,68 +98,6 @@ export function BudgetCard({ data, onUpdate, onDelete }: Props) {
           <Progress value={progress} className={progressStyle} />
         </div>
       </CardFooter>
-
-      {/* Header */}
-      {/* <div className="flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          <div
-            className="flex size-11 items-center justify-center rounded-2xl text-xl"
-            style={{ backgroundColor: categoryColor?.background }}
-          >
-            <span>{data.category.icon}</span>
-          </div>
-          <div>
-            <p className="font-semibold">{data.category.name}</p>
-            <p className="text-muted-foreground text-xs">{PERIOD_LABELS[data.period]}</p>
-          </div>
-        </div>
-
-        
-      </div> */}
-
-      {/* Amount */}
-      {/* <div className="mt-auto">
-        <p className="text-muted-foreground mb-1 text-xs">Budget</p>
-        <p className="text-xl font-bold">{formatCurrency(data.amount)}</p>
-      </div> */}
-
-      {/* Progress bar */}
-      {/* <div className="space-y-1.5">
-        <div className="bg-muted relative h-2.5 w-full overflow-hidden rounded-full"> */}
-      {/* Threshold marker */}
-      {/* <div
-            className="bg-foreground/20 absolute top-0 h-full w-0.5"
-            style={{ left: `${thresholdPercent}%` }}
-          /> */}
-      {/* Spent fill */}
-      {/* <div
-            className={cn("h-full rounded-full transition-all", STATUS_COLORS[data.alertStatus])}
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-        <div className="flex justify-between text-xs">
-          <span className="text-muted-foreground">{formatCurrency(data.spent)} spent</span>
-          <span
-            className={cn(
-              "font-medium",
-              data.alertStatus === "exceeded"
-                ? "text-destructive"
-                : data.alertStatus === "warning"
-                  ? "text-amber-500"
-                  : "text-muted-foreground",
-            )}
-          >
-            {data.remaining >= 0
-              ? `${formatCurrency(data.remaining)} left`
-              : `${formatCurrency(Math.abs(data.remaining))} over`}
-          </span>
-        </div>
-      </div> */}
-
-      {/* Period range */}
-      {/* <p className="text-muted-foreground text-xs">
-        {data.periodRange.from} – {data.periodRange.to}
-      </p> */}
     </Card>
   )
 }
