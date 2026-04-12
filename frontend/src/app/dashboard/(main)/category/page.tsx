@@ -45,19 +45,19 @@ export default function CategoryPage() {
     }
   }
 
-  const dialogTitle = dialogMode === "create" ? "New Category" : "Edit Category"
-  const DialogDescription = "Define your expense/income category"
+  const dialogTitle = dialogMode === "create" ? "Kategori Baru" : "Ubah Kategori"
+  const DialogDescription = "Tentukan kategori pengeluaran atau pemasukan Anda"
 
   return (
     <>
-      <SiteHeader label="Category" />
+      <SiteHeader label="Kategori" />
       <MainPage>
         {/* Header */}
         <MainPageHeader>
           <div className="space-y-2">
-            <MainPageTitle>Categories</MainPageTitle>
+            <MainPageTitle>Kategori</MainPageTitle>
             <MainPageDescripton>
-              A curated library of your spending patterns and income streams.
+              Kelola kategori pengeluaran dan pemasukan Anda secara terstruktur.
             </MainPageDescripton>
           </div>
         </MainPageHeader>

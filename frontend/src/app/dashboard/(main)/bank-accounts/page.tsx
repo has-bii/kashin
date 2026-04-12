@@ -47,13 +47,13 @@ export default function BankAccountsPage() {
 
   return (
     <>
-      <SiteHeader label="Bank Accounts" />
+      <SiteHeader label="Rekening Bank" />
       <MainPage className="@container/main">
         <MainPageHeader>
           <div className="space-y-2">
-            <MainPageTitle>Bank Accounts</MainPageTitle>
+            <MainPageTitle>Rekening Bank</MainPageTitle>
             <MainPageDescripton>
-              Manage your bank accounts and track your balances across all your accounts.
+              Kelola rekening bank Anda dan pantau saldo di seluruh akun dengan mudah.
             </MainPageDescripton>
           </div>
 
@@ -63,7 +63,7 @@ export default function BankAccountsPage() {
             className="fixed right-4 bottom-4 md:relative md:right-0 md:bottom-0"
           >
             <PlusIcon className="size-4" />
-            <span className="hidden md:block">Add Account</span>
+            <span className="hidden md:block">Tambah Rekening</span>
           </Button>
         </MainPageHeader>
 
@@ -72,8 +72,8 @@ export default function BankAccountsPage() {
         </QueryErrorBoundary>
 
         <ResponsiveDialog
-          title="Add Account"
-          description="Add a new bank account to track your balance."
+          title="Tambah Rekening"
+          description="Tambahkan rekening bank baru untuk memantau saldo Anda."
           open={addDialogOpen}
           onOpenChange={handleAddDialogClose}
         >
@@ -81,8 +81,8 @@ export default function BankAccountsPage() {
         </ResponsiveDialog>
 
         <ResponsiveDialog
-          title={`Delete ${selectedAccount?.bank.name} account?`}
-          description="This will permanently delete the account. What should happen to linked transactions?"
+          title={`Hapus rekening ${selectedAccount?.bank.name}?`}
+          description="Rekening ini akan dihapus secara permanen. Pilih tindakan untuk transaksi yang tertaut."
           open={deleteDialogOpen}
           onOpenChange={handleDeleteDialogClose}
         >

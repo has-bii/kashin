@@ -28,7 +28,7 @@ import * as React from "react"
 const data = {
   navMain: [
     {
-      title: "Dasbor",
+      title: "Beranda",
       url: "/dashboard",
       icon: <LayoutDashboardIcon />,
     },

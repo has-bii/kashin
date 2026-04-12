@@ -58,25 +58,25 @@ export default function TransactionsPage() {
   // Dialog Info
   const dialogInfo = useMemo(() => {
     return {
-      title: dialogMode === "create" ? "Add Transaction" : "Edit Transaction",
+      title: dialogMode === "create" ? "Tambah Transaksi" : "Ubah Transaksi",
       description:
         dialogMode === "create"
-          ? "Record a new expense or income."
-          : "Update the details of this transaction.",
+          ? "Catat pengeluaran atau pemasukan baru."
+          : "Perbarui detail transaksi ini.",
     }
   }, [dialogMode])
 
   return (
     <>
-      <SiteHeader label="Transactions" />
+      <SiteHeader label="Transaksi" />
       <MainPage>
         {/* Header */}
         <MainPageHeader>
           <div className="space-y-2">
-            <MainPageTitle>Transactions</MainPageTitle>
+            <MainPageTitle>Transaksi</MainPageTitle>
             <MainPageDescripton>
-              Review and curate your financial history. Every transaction is a step toward your
-              long-term prosperity and sustainable growth.
+              Tinjau dan kelola riwayat keuangan Anda. Setiap transaksi adalah langkah nyata menuju
+              kemakmuran finansial jangka panjang.
             </MainPageDescripton>
           </div>
 
@@ -86,7 +86,7 @@ export default function TransactionsPage() {
             className="fixed right-4 bottom-4 md:relative md:right-0 md:bottom-0"
           >
             <PlusIcon className="size-4" />
-            <span className="hidden md:block">Add Transaction</span>
+            <span className="hidden md:block">Tambah Transaksi</span>
           </Button>
         </MainPageHeader>
 

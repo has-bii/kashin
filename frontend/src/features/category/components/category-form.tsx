@@ -11,8 +11,8 @@ import { TransactionType } from "@/types/enums"
 import { Loader2, Plus, SaveIcon } from "lucide-react"
 
 const types: Array<{ label: string; value: TransactionType }> = [
-  { label: "Expense", value: "expense" },
-  { label: "Income", value: "income" },
+  { label: "Pengeluaran", value: "expense" },
+  { label: "Pemasukan", value: "income" },
 ] as const
 
 type Props = { mode: "create" } | { mode: "update"; data: Category | null }
@@ -69,7 +69,7 @@ export function CategoryForm(props: Props) {
               const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
               return (
                 <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Category Name</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>Nama Kategori</FieldLabel>
                   <Input
                     id={field.name}
                     name={field.name}
@@ -78,7 +78,7 @@ export function CategoryForm(props: Props) {
                     onChange={(e) => field.handleChange(e.target.value)}
                     aria-invalid={isInvalid}
                     autoComplete="off"
-                    placeholder="e.g. Food"
+                    placeholder="cth. Makanan"
                   />
                   {isInvalid && <FieldError errors={field.state.meta.errors} />}
                 </Field>
@@ -93,7 +93,7 @@ export function CategoryForm(props: Props) {
               const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
               return (
                 <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Select Color</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>Pilih Warna</FieldLabel>
                   <ColorPicker value={field.state.value} onChangeValue={field.handleChange} />
                   {isInvalid && <FieldError errors={field.state.meta.errors} />}
                 </Field>
@@ -108,7 +108,7 @@ export function CategoryForm(props: Props) {
               const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
               return (
                 <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Select Icon</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>Pilih Ikon</FieldLabel>
                   <EmojiPicker value={field.state.value} onChangeValue={field.handleChange} />
                   {isInvalid && <FieldError errors={field.state.meta.errors} />}
                 </Field>
@@ -129,7 +129,7 @@ export function CategoryForm(props: Props) {
                 disabled={isSubmitting}
                 onClick={closeDialog}
               >
-                Cancel
+                Batal
               </Button>
               <Button
                 form="category-form"
@@ -138,9 +138,9 @@ export function CategoryForm(props: Props) {
                 disabled={isSubmitting || !canSubmit || !isDirty}
               >
                 {props.mode === "create" ? (
-                  <>Add {isSubmitting ? <Loader2 className="animate-spin" /> : <Plus />}</>
+                  <>Tambah {isSubmitting ? <Loader2 className="animate-spin" /> : <Plus />}</>
                 ) : (
-                  <>Save {isSubmitting ? <Loader2 className="animate-spin" /> : <SaveIcon />}</>
+                  <>Simpan {isSubmitting ? <Loader2 className="animate-spin" /> : <SaveIcon />}</>
                 )}
               </Button>
             </>

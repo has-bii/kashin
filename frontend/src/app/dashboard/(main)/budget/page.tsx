@@ -52,13 +52,13 @@ export default function BudgetPage() {
 
   return (
     <>
-      <SiteHeader label="Budget" />
+      <SiteHeader label="Anggaran" />
       <MainPage className="@container/main">
         <MainPageHeader>
           <div className="space-y-2">
-            <MainPageTitle>Budgets</MainPageTitle>
+            <MainPageTitle>Anggaran</MainPageTitle>
             <MainPageDescripton>
-              Set spending limits per category and track your progress.
+              Tetapkan batas pengeluaran per kategori dan pantau realisasinya secara berkala.
             </MainPageDescripton>
           </div>
         </MainPageHeader>
@@ -72,8 +72,8 @@ export default function BudgetPage() {
         <ResponsiveDialog
           open={dialogOpen}
           onOpenChange={handleDialogClose}
-          title={dialogMode === "create" ? "New Budget" : "Edit Budget"}
-          description="Set a spending limit for a category over a time period."
+          title={dialogMode === "create" ? "Anggaran Baru" : "Ubah Anggaran"}
+          description="Tentukan batas pengeluaran untuk kategori dalam periode tertentu."
         >
           <BudgetForm mode={dialogMode} data={selectedBudget} />
         </ResponsiveDialog>

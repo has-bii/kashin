@@ -39,7 +39,7 @@ export function BankAccountForm(props: Props) {
               const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
               return (
                 <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Initial balance</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>Saldo Awal</FieldLabel>
                   <Input
                     id={field.name}
                     type="number"
@@ -83,7 +83,7 @@ export function BankAccountForm(props: Props) {
               form="bank-account-form"
               disabled={!canSubmit || !isDirty || isSubmitting}
             >
-              Add {isSubmitting ? <Loader2 className="animate-spin" /> : <Plus />}
+              Tambah {isSubmitting ? <Loader2 className="animate-spin" /> : <Plus />}
             </Button>
           )}
         />

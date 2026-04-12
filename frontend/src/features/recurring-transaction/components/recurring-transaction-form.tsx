@@ -22,15 +22,15 @@ import { useQuery } from "@tanstack/react-query"
 import { Loader2, Plus, SaveIcon } from "lucide-react"
 
 const types: Array<{ label: string; value: TransactionType }> = [
-  { label: "Expense", value: "expense" },
-  { label: "Income", value: "income" },
+  { label: "Pengeluaran", value: "expense" },
+  { label: "Pemasukan", value: "income" },
 ]
 
 const frequencies = [
-  { label: "Weekly", value: "weekly" },
-  { label: "Biweekly", value: "biweekly" },
-  { label: "Monthly", value: "monthly" },
-  { label: "Yearly", value: "yearly" },
+  { label: "Mingguan", value: "weekly" },
+  { label: "Dua Mingguan", value: "biweekly" },
+  { label: "Bulanan", value: "monthly" },
+  { label: "Tahunan", value: "yearly" },
 ] as const
 
 type Props =
@@ -84,7 +84,7 @@ export function RecurringTransactionForm(props: Props) {
               const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
               return (
                 <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Amount</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>Jumlah</FieldLabel>
                   <Input
                     id={field.name}
                     name={field.name}
@@ -113,7 +113,7 @@ export function RecurringTransactionForm(props: Props) {
               const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
               return (
                 <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Frequency</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>Frekuensi</FieldLabel>
                   <Select
                     value={field.state.value}
                     onValueChange={(value) =>
@@ -123,7 +123,7 @@ export function RecurringTransactionForm(props: Props) {
                     }
                   >
                     <SelectTrigger id={field.name} aria-invalid={isInvalid} onBlur={field.handleBlur} className="w-full">
-                      <SelectValue placeholder="Select frequency" />
+                      <SelectValue placeholder="Pilih frekuensi" />
                     </SelectTrigger>
                     <SelectContent position="popper">
                       {frequencies.map((f) => (
@@ -151,12 +151,12 @@ export function RecurringTransactionForm(props: Props) {
                     onChangeValue={(input) => field.handleChange(input!)}
                   >
                     <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor={`date-${field.name}`}>Next Due Date</FieldLabel>
+                      <FieldLabel htmlFor={`date-${field.name}`}>Tanggal Jatuh Tempo</FieldLabel>
                       <DatetimePickerDate />
                       {isInvalid && <FieldError errors={field.state.meta.errors} />}
                     </Field>
                     <Field>
-                      <FieldLabel htmlFor={`time-${field.name}`}>Time</FieldLabel>
+                      <FieldLabel htmlFor={`time-${field.name}`}>Waktu</FieldLabel>
                       <DatetimePickerTime />
                     </Field>
                   </DatetimePicker>
@@ -196,7 +196,7 @@ export function RecurringTransactionForm(props: Props) {
               const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
               return (
                 <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Description</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>Deskripsi</FieldLabel>
                   <Input
                     id={field.name}
                     name={field.name}
@@ -206,7 +206,7 @@ export function RecurringTransactionForm(props: Props) {
                     aria-invalid={isInvalid}
                     autoComplete="off"
                     maxLength={255}
-                    placeholder="e.g. Netflix subscription"
+                    placeholder="cth. Langganan Netflix"
                   />
                   {isInvalid && <FieldError errors={field.state.meta.errors} />}
                 </Field>
@@ -227,9 +227,9 @@ export function RecurringTransactionForm(props: Props) {
               disabled={isSubmitting || !canSubmit}
             >
               {props.mode === "create" ? (
-                <>Add {isSubmitting ? <Loader2 className="animate-spin" /> : <Plus />}</>
+                <>Tambah {isSubmitting ? <Loader2 className="animate-spin" /> : <Plus />}</>
               ) : (
-                <>Save {isSubmitting ? <Loader2 className="animate-spin" /> : <SaveIcon />}</>
+                <>Simpan {isSubmitting ? <Loader2 className="animate-spin" /> : <SaveIcon />}</>
               )}
             </Button>
           )}
@@ -267,13 +267,13 @@ function CategorySelectField({
 
   return (
     <Field data-invalid={isInvalid}>
-      <FieldLabel htmlFor={fieldName}>Category</FieldLabel>
+      <FieldLabel htmlFor={fieldName}>Kategori</FieldLabel>
       <Select value={value ?? "__none__"} onValueChange={onChange}>
         <SelectTrigger id={fieldName} aria-invalid={isInvalid} onBlur={onBlur} className="w-full">
-          <SelectValue placeholder="No category" />
+          <SelectValue placeholder="Tanpa Kategori" />
         </SelectTrigger>
         <SelectContent position="popper">
-          <SelectItem value="__none__">No category</SelectItem>
+          <SelectItem value="__none__">Tanpa Kategori</SelectItem>
           {categories.map((cat) => (
             <SelectItem key={cat.id} value={cat.id}>
               <span>{cat.icon}</span>

@@ -48,24 +48,24 @@ export default function RecurringTransactionsPage() {
 
   const dialogInfo = useMemo(
     () => ({
-      title: dialogMode === "create" ? "Add Recurring Transaction" : "Edit Recurring Transaction",
+      title: dialogMode === "create" ? "Tambah Transaksi Berulang" : "Ubah Transaksi Berulang",
       description:
         dialogMode === "create"
-          ? "Set up a new recurring expense or income."
-          : "Update this recurring transaction.",
+          ? "Atur pengeluaran atau pemasukan berulang baru."
+          : "Perbarui transaksi berulang ini.",
     }),
     [dialogMode],
   )
 
   return (
     <>
-      <SiteHeader label="Recurring Transactions" />
+      <SiteHeader label="Transaksi Berulang" />
       <MainPage>
         <MainPageHeader>
           <div className="space-y-2">
-            <MainPageTitle>Recurring Transactions</MainPageTitle>
+            <MainPageTitle>Transaksi Berulang</MainPageTitle>
             <MainPageDescripton>
-              Automate regular expenses and income. Set it once and let Kashin handle the rest.
+              Otomatiskan pengeluaran dan pemasukan rutin Anda. Atur sekali, Kashin yang mengelola sisanya.
             </MainPageDescripton>
           </div>
 
@@ -75,7 +75,7 @@ export default function RecurringTransactionsPage() {
             className="fixed right-4 bottom-4 md:relative md:right-0 md:bottom-0"
           >
             <PlusIcon className="size-4" />
-            <span className="hidden md:block">Add Recurring</span>
+            <span className="hidden md:block">Tambah Berulang</span>
           </Button>
         </MainPageHeader>
 
