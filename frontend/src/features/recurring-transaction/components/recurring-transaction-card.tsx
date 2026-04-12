@@ -2,13 +2,12 @@
 
 import { useToggleRecurringTransaction } from "../hooks/use-toggle-recurring-transaction"
 import { RecurringTransaction } from "../types"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardFooter } from "@/components/ui/card"
+import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
 import { formatAmount } from "@/utils/format-amount"
 import { formatDate } from "@/utils/format-date"
-import { Loader2, PauseIcon, PlayIcon } from "lucide-react"
+import { isToday } from "date-fns"
 
 type Props = {
   data: RecurringTransaction
@@ -31,6 +30,8 @@ export function RecurringTransactionCard({ data, onRowClick }: Props) {
     toggle.mutate(data.id)
   }
 
+  const nextDueDateLabel = formatDate(nextDueDate, isToday(nextDueDate) ? "p a" : "PP")
+
   return (
     <Card
       role="button"
@@ -51,20 +52,18 @@ export function RecurringTransactionCard({ data, onRowClick }: Props) {
 
         {/* Detail */}
         <div className="min-w-0 flex-1 truncate">
-          <h4 className="text-card-foreground font-heading truncate text-base font-bold">
+          <h4 className="text-card-foreground font-heading truncate text-lg font-bold">
             {description || "No description"}
           </h4>
-          <div className="mt-2 flex items-center gap-2">
-            <Badge variant="secondary">{category?.name || "Uncategorized"}</Badge>
-            <Badge variant="outline">{frequencyLabels[frequency]}</Badge>
-            <span className="text-outline-variant text-xs">
-              • Next: {formatDate(nextDueDate, "MMM d")}
-            </span>
+          <div className="text-muted-foreground flex items-center gap-2 truncate text-xs font-medium tracking-wide uppercase">
+            <span>{category?.name || "Uncategorized"}</span>
+            <span>•</span>
+            <span>{frequencyLabels[frequency]}</span>
           </div>
         </div>
 
         {/* Right side */}
-        <div className="ml-auto flex shrink-0 flex-col items-end gap-2">
+        <div className="ml-auto flex shrink-0 flex-col items-end">
           <span
             className={cn(
               "font-heading text-base font-extrabold",
@@ -74,7 +73,9 @@ export function RecurringTransactionCard({ data, onRowClick }: Props) {
             {formatAmount(amount, type)}
           </span>
 
-          <Button
+          <span className="text-muted-foreground mt-0.5 text-sm">{nextDueDateLabel}</span>
+
+          {/* <Button
             variant="ghost"
             size="sm"
             className="h-7 px-2"
@@ -89,9 +90,20 @@ export function RecurringTransactionCard({ data, onRowClick }: Props) {
             ) : (
               <PlayIcon className="size-3.5" />
             )}
-          </Button>
+          </Button> */}
         </div>
       </CardContent>
+      <CardFooter className="border-t pt-4! lg:hidden">
+        <div className="flex w-full items-center justify-between gap-2">
+          <p className="text-muted-foreground">Active Status</p>
+          <Switch
+            checked={isActive}
+            onClick={handleToggle}
+            disabled={toggle.isPending}
+            aria-label={isActive ? "Pause recurring transaction" : "Activate recurring transaction"}
+          />
+        </div>
+      </CardFooter>
     </Card>
   )
 }
