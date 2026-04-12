@@ -10,15 +10,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Loader2, Plus, SaveIcon } from 'lucide-react'
+import { Loader2, Plus } from 'lucide-react'
 import { useBankAccountForm } from '../hooks/use-bank-account-form'
-import type { BankAccount } from '../types'
 
-const BANK_OPTIONS = ['BCA', 'Bank Jago', 'Cash'] as const
+const BANK_OPTIONS = [
+  { value: 'bca', label: 'BCA' },
+  { value: 'jago', label: 'Jago' },
+  { value: 'cash', label: 'Cash' },
+] as const
 
-type Props =
-  | { mode: 'create'; onSuccess?: () => void }
-  | { mode: 'update'; prevData: BankAccount | null; onSuccess?: () => void }
+type Props = { mode: 'create'; onSuccess?: () => void }
 
 export function BankAccountForm(props: Props) {
   const { form } = useBankAccountForm(props)
@@ -35,77 +36,53 @@ export function BankAccountForm(props: Props) {
     >
       <FieldGroup>
         <form.Field
-          name="displayName"
+          name="bankName"
           children={(field) => {
             const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
             return (
               <Field data-invalid={isInvalid}>
-                <FieldLabel htmlFor={field.name}>Account name</FieldLabel>
-                <Input
-                  id={field.name}
+                <FieldLabel htmlFor={field.name}>Bank</FieldLabel>
+                <Select
                   value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="e.g. My Savings"
-                />
+                  onValueChange={(value) => field.handleChange(value as typeof field.state.value)}
+                >
+                  <SelectTrigger id={field.name} onBlur={field.handleBlur}>
+                    <SelectValue placeholder="Select a bank" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {BANK_OPTIONS.map((bank) => (
+                      <SelectItem key={bank.value} value={bank.value}>
+                        {bank.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 {isInvalid && <FieldError errors={field.state.meta.errors} />}
               </Field>
             )
           }}
         />
 
-        {props.mode === 'create' && (
-          <>
-            <form.Field
-              name="bankName"
-              children={(field) => {
-                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
-                return (
-                  <Field data-invalid={isInvalid}>
-                    <FieldLabel htmlFor={field.name}>Bank</FieldLabel>
-                    <Select
-                      value={field.state.value}
-                      onValueChange={(value) => field.handleChange(value)}
-                    >
-                      <SelectTrigger id={field.name} onBlur={field.handleBlur}>
-                        <SelectValue placeholder="Select a bank" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {BANK_OPTIONS.map((bank) => (
-                          <SelectItem key={bank} value={bank}>
-                            {bank}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                  </Field>
-                )
-              }}
-            />
-
-            <form.Field
-              name="initialBalance"
-              children={(field) => {
-                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
-                return (
-                  <Field data-invalid={isInvalid}>
-                    <FieldLabel htmlFor={field.name}>Initial balance</FieldLabel>
-                    <Input
-                      id={field.name}
-                      type="number"
-                      value={field.state.value}
-                      onBlur={field.handleBlur}
-                      onChange={(e) => field.handleChange(Number(e.target.value))}
-                      placeholder="0"
-                    />
-                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                  </Field>
-                )
-              }}
-            />
-          </>
-        )}
+        <form.Field
+          name="initialBalance"
+          children={(field) => {
+            const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+            return (
+              <Field data-invalid={isInvalid}>
+                <FieldLabel htmlFor={field.name}>Initial balance</FieldLabel>
+                <Input
+                  id={field.name}
+                  type="number"
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(Number(e.target.value))}
+                  placeholder="0"
+                />
+                {isInvalid && <FieldError errors={field.state.meta.errors} />}
+              </Field>
+            )
+          }}
+        />
       </FieldGroup>
 
       <form.Subscribe
@@ -115,11 +92,7 @@ export function BankAccountForm(props: Props) {
             form="bank-account-form"
             disabled={!canSubmit || !isDirty || isSubmitting}
           >
-            {props.mode === 'create' ? (
-              <>Add {isSubmitting ? <Loader2 className="animate-spin" /> : <Plus />}</>
-            ) : (
-              <>Save {isSubmitting ? <Loader2 className="animate-spin" /> : <SaveIcon />}</>
-            )}
+            Add {isSubmitting ? <Loader2 className="animate-spin" /> : <Plus />}
           </Button>
         )}
       />

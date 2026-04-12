@@ -1,8 +1,9 @@
+export type BankName = "bca" | "jago" | "cash"
+
 export interface BankAccount {
   id: string
   userId: string
-  displayName: string
-  bankName: string
+  bankName: BankName
   balance: string // Decimal comes as string from API
   createdAt: string
   updatedAt: string

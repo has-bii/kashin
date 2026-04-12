@@ -1,7 +1,7 @@
 "use client"
 
 import type { BankAccount } from "../types"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,16 +10,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { formatCurrency } from "@/utils/format-amount"
-import { EllipsisIcon, PencilIcon, Trash2Icon } from "lucide-react"
+import { EllipsisIcon, Trash2Icon } from "lucide-react"
 
 type Props = {
   account: BankAccount
-  onEdit: (account: BankAccount) => void
   onDelete: (account: BankAccount) => void
 }
 
-export const BankAccountCard = ({ account, onEdit, onDelete }: Props) => {
-  const editHandler = () => onEdit(account)
+export const BankAccountCard = ({ account, onDelete }: Props) => {
   const deleteHandler = () => onDelete(account)
 
   return (
@@ -31,8 +29,7 @@ export const BankAccountCard = ({ account, onEdit, onDelete }: Props) => {
 
           {/* Info */}
           <div>
-            <CardTitle className="font-heading text-xl font-bold">{account.bankName}</CardTitle>
-            <CardDescription>{account.displayName}</CardDescription>
+            <CardTitle className="font-heading text-xl font-bold">{account.bankName.toUpperCase()}</CardTitle>
           </div>
 
           {/* Action */}
@@ -42,10 +39,6 @@ export const BankAccountCard = ({ account, onEdit, onDelete }: Props) => {
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuGroup>
-                <DropdownMenuItem onClick={editHandler}>
-                  <PencilIcon />
-                  Edit
-                </DropdownMenuItem>
                 <DropdownMenuItem variant="destructive" onClick={deleteHandler}>
                   <Trash2Icon />
                   Delete

@@ -27,38 +27,22 @@ const BankAccountList = dynamic(
 
 export default function BankAccountsPage() {
   const [selectedAccount, setSelectedAccount] = useState<BankAccount | null>(null)
-  const [dialogOpen, setDialogOpen] = useState(false)
+  const [addDialogOpen, setAddDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
-  const handleAddAccount = () => {
-    setSelectedAccount(null)
-    setDialogOpen(true)
-  }
-
-  const handleEditAccount = (account: BankAccount) => {
-    setSelectedAccount(account)
-    setDialogOpen(true)
-  }
+  const handleAddAccount = () => setAddDialogOpen(true)
 
   const handleDeleteAccount = (account: BankAccount) => {
     setSelectedAccount(account)
     setDeleteDialogOpen(true)
   }
 
-  const handleDialogClose = () => {
-    setDialogOpen(false)
-    setTimeout(() => setSelectedAccount(null), 200)
-  }
+  const handleAddDialogClose = () => setAddDialogOpen(false)
 
   const handleDeleteDialogClose = () => {
     setDeleteDialogOpen(false)
     setTimeout(() => setSelectedAccount(null), 200)
   }
-
-  const dialogTitle = selectedAccount ? "Edit Account" : "Add Account"
-  const dialogDescription = selectedAccount
-    ? "Update your bank account details."
-    : "Add a new bank account to track your balance."
 
   return (
     <>
@@ -82,27 +66,19 @@ export default function BankAccountsPage() {
           </Button>
         </MainPageHeader>
 
-        <BankAccountList onEdit={handleEditAccount} onDelete={handleDeleteAccount} />
+        <BankAccountList onDelete={handleDeleteAccount} />
 
         <ResponsiveDialog
-          title={dialogTitle}
-          description={dialogDescription}
-          open={dialogOpen}
-          onOpenChange={handleDialogClose}
+          title="Add Account"
+          description="Add a new bank account to track your balance."
+          open={addDialogOpen}
+          onOpenChange={handleAddDialogClose}
         >
-          {selectedAccount ? (
-            <BankAccountForm
-              mode="update"
-              prevData={selectedAccount}
-              onSuccess={handleDialogClose}
-            />
-          ) : (
-            <BankAccountForm mode="create" onSuccess={handleDialogClose} />
-          )}
+          <BankAccountForm mode="create" onSuccess={handleAddDialogClose} />
         </ResponsiveDialog>
 
         <ResponsiveDialog
-          title={`Delete "${selectedAccount?.displayName}"?`}
+          title={`Delete ${selectedAccount?.bankName.toUpperCase()} account?`}
           description="This will permanently delete the account. What should happen to linked transactions?"
           open={deleteDialogOpen}
           onOpenChange={handleDeleteDialogClose}

@@ -1,20 +1,15 @@
 import { NotFoundError, status, t } from "elysia"
 import { prisma } from "../../lib/prisma"
+import { Conflict } from "../../global/error"
 import { getAllQuery } from "./query"
 
 export const bankAccountCreateBody = t.Object({
-  displayName: t.String({ minLength: 1, maxLength: 100 }),
-  bankName: t.String({ minLength: 1, maxLength: 50 }),
+  bankName: t.Enum({ bca: "bca", jago: "jago", cash: "cash" }),
   initialBalance: t.Number(),
-})
-
-export const bankAccountUpdateBody = t.Object({
-  displayName: t.String({ minLength: 1, maxLength: 100 }),
 })
 
 type GetAllQuery = (typeof getAllQuery)["static"]
 type BankAccountCreateInput = (typeof bankAccountCreateBody)["static"]
-type BankAccountUpdateInput = (typeof bankAccountUpdateBody)["static"]
 
 export abstract class BankAccountService {
   static async getAll(userId: string, query: GetAllQuery) {
@@ -49,20 +44,13 @@ export abstract class BankAccountService {
   }
 
   static async create(userId: string, input: BankAccountCreateInput) {
-    const { displayName, bankName, initialBalance } = input
+    const { bankName, initialBalance } = input
+    const existing = await prisma.bankAccount.findUnique({ where: { userId_bankName: { userId, bankName } } })
+    if (existing) throw new Conflict(`You already have a ${bankName} account`)
     const result = await prisma.bankAccount.create({
-      data: { userId, displayName, bankName, balance: initialBalance },
+      data: { userId, bankName, balance: initialBalance },
     })
     return status(201, result)
-  }
-
-  static async update(userId: string, id: string, input: BankAccountUpdateInput) {
-    try {
-      return await prisma.bankAccount.update({ where: { id, userId }, data: input })
-    } catch (e: unknown) {
-      if ((e as { code?: string })?.code === "P2025") throw new NotFoundError("Bank account doesn't exist")
-      throw e
-    }
   }
 
   static async delete(userId: string, id: string, deleteTransactions: boolean) {

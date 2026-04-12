@@ -52,6 +52,12 @@ enum AiExtractionStatus {
   edited
 }
 
+enum BankName {
+  bca
+  jago
+  cash
+}
+
 enum RecurringFrequency {
   weekly
   biweekly
@@ -292,8 +298,7 @@ model Budget {
 model BankAccount {
   id          String   @id @default(uuid(7)) @db.Uuid
   userId      String   @db.Uuid
-  displayName String   @db.VarChar(100)
-  bankName    String   @db.VarChar(50)
+  bankName    BankName
   balance     Decimal  @db.Decimal(15, 2)
   createdAt   DateTime @default(now()) @db.Timestamptz
   updatedAt   DateTime @updatedAt @db.Timestamptz
@@ -301,7 +306,7 @@ model BankAccount {
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Transaction[]
 
-  @@index([userId])
+  @@unique([userId, bankName])
   @@map("bank_accounts")
 }
 

@@ -11,6 +11,9 @@ CREATE TYPE "EmailLogStatus" AS ENUM ('received', 'processing', 'parsed', 'faile
 CREATE TYPE "AiExtractionStatus" AS ENUM ('pending', 'confirmed', 'rejected', 'edited');
 
 -- CreateEnum
+CREATE TYPE "BankName" AS ENUM ('bca', 'jago', 'cash');
+
+-- CreateEnum
 CREATE TYPE "RecurringFrequency" AS ENUM ('weekly', 'biweekly', 'monthly', 'yearly');
 
 -- CreateEnum
@@ -95,6 +98,7 @@ CREATE TABLE "transactions" (
     "categoryId" UUID,
     "recurringTxnId" UUID,
     "aiExtractionId" UUID,
+    "bankAccountId" UUID,
     "type" "TransactionType" NOT NULL,
     "amount" DECIMAL(15,2) NOT NULL,
     "currency" CHAR(3) NOT NULL DEFAULT 'IDR',
@@ -172,6 +176,18 @@ CREATE TABLE "budgets" (
     "updatedAt" TIMESTAMPTZ NOT NULL,
 
     CONSTRAINT "budgets_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "bank_accounts" (
+    "id" UUID NOT NULL,
+    "userId" UUID NOT NULL,
+    "bankName" "BankName" NOT NULL,
+    "balance" DECIMAL(15,2) NOT NULL,
+    "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT "bank_accounts_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -255,6 +271,9 @@ CREATE INDEX "transactions_userId_categoryId_idx" ON "transactions"("userId", "c
 CREATE INDEX "transactions_userId_source_idx" ON "transactions"("userId", "source");
 
 -- CreateIndex
+CREATE INDEX "transactions_bankAccountId_idx" ON "transactions"("bankAccountId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "email_inboxes_emailAddress_key" ON "email_inboxes"("emailAddress");
 
 -- CreateIndex
@@ -286,6 +305,9 @@ CREATE INDEX "budgets_userId_idx" ON "budgets"("userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "budgets_userId_categoryId_period_key" ON "budgets"("userId", "categoryId", "period");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "bank_accounts_userId_bankName_key" ON "bank_accounts"("userId", "bankName");
 
 -- CreateIndex
 CREATE INDEX "email_logs_inboxId_idx" ON "email_logs"("inboxId");
@@ -327,6 +349,9 @@ ALTER TABLE "transactions" ADD CONSTRAINT "transactions_recurringTxnId_fkey" FOR
 ALTER TABLE "transactions" ADD CONSTRAINT "transactions_aiExtractionId_fkey" FOREIGN KEY ("aiExtractionId") REFERENCES "ai_extractions"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "transactions" ADD CONSTRAINT "transactions_bankAccountId_fkey" FOREIGN KEY ("bankAccountId") REFERENCES "bank_accounts"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "email_inboxes" ADD CONSTRAINT "email_inboxes_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -349,6 +374,9 @@ ALTER TABLE "budgets" ADD CONSTRAINT "budgets_userId_fkey" FOREIGN KEY ("userId"
 
 -- AddForeignKey
 ALTER TABLE "budgets" ADD CONSTRAINT "budgets_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "bank_accounts" ADD CONSTRAINT "bank_accounts_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "email_logs" ADD CONSTRAINT "email_logs_inboxId_fkey" FOREIGN KEY ("inboxId") REFERENCES "email_inboxes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
