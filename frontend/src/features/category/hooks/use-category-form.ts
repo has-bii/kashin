@@ -5,7 +5,6 @@ import { api } from "@/lib/api"
 import { TransactionType } from "@/types/enums"
 import { useForm } from "@tanstack/react-form"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { isAxiosError } from "axios"
 import { toast } from "sonner"
 
 type Args =
@@ -55,19 +54,7 @@ export const useCategoryForm = (args: Args) => {
       })
     },
     onError: (error) => {
-      let message: string = "Unexpected error has occurred"
-      if (isAxiosError(error)) {
-        switch (error.status) {
-          case 409:
-            message = "Category with the same name already exits"
-            break
-          default:
-            break
-        }
-      } else {
-        message = error.message
-      }
-      toast.error(message)
+      toast.error(error.message ?? "Unexpected error has occurred")
     },
   })
 

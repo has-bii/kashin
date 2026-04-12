@@ -4,7 +4,6 @@ import type { BankAccountCreateDto } from "../validations/schema"
 import { api } from "@/lib/api"
 import { useForm } from "@tanstack/react-form"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { isAxiosError } from "axios"
 import { toast } from "sonner"
 
 type Args = { mode: "create"; onSuccess?: () => void }
@@ -33,11 +32,7 @@ export const useBankAccountForm = (args: Args) => {
       queryClient.invalidateQueries({ queryKey: ["bank-accounts"] })
     },
     onError: (error) => {
-      if (isAxiosError(error)) {
-        toast.error(error.response?.data?.message ?? "Something went wrong")
-      } else {
-        toast.error("Something went wrong")
-      }
+      toast.error(error.message ?? "Something went wrong")
     },
   })
 

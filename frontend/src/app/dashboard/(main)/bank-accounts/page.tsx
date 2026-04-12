@@ -1,5 +1,6 @@
 "use client"
 
+import { QueryErrorBoundary } from "@/components/query-error-boundary"
 import { ResponsiveDialog } from "@/components/responsive-dialog"
 import {
   MainPage,
@@ -66,7 +67,9 @@ export default function BankAccountsPage() {
           </Button>
         </MainPageHeader>
 
-        <BankAccountList onDelete={handleDeleteAccount} />
+        <QueryErrorBoundary>
+          <BankAccountList onDelete={handleDeleteAccount} />
+        </QueryErrorBoundary>
 
         <ResponsiveDialog
           title="Add Account"

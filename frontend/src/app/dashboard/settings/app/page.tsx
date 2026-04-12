@@ -1,5 +1,6 @@
 "use client"
 
+import { QueryErrorBoundary } from "@/components/query-error-boundary"
 import { MainPage } from "@/components/sidebar/main-page"
 import { SiteHeader } from "@/components/sidebar/site-header"
 import SettingFormSkeleton from "@/features/settings/components/setting-form-skeleton"
@@ -15,7 +16,9 @@ export default function SettingsAppPage() {
     <>
       <SiteHeader label="Application Settings" />
       <MainPage>
-        <AccessPermission />
+        <QueryErrorBoundary>
+          <AccessPermission />
+        </QueryErrorBoundary>
       </MainPage>
     </>
   )

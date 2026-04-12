@@ -3,7 +3,6 @@ import { TransactionCreateDto, transactionCreateSchema } from "../validations/sc
 import { api } from "@/lib/api"
 import { useForm } from "@tanstack/react-form"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { isAxiosError } from "axios"
 import { toast } from "sonner"
 
 type Args =
@@ -59,19 +58,7 @@ export const useTransactionForm = (args: Args) => {
       queryClient.invalidateQueries({ queryKey: ["bank-accounts"] })
     },
     onError: (error) => {
-      let message = "Unexpected error has occurred"
-      if (isAxiosError(error)) {
-        switch (error.status) {
-          case 409:
-            message = "A duplicate transaction already exists"
-            break
-          default:
-            break
-        }
-      } else {
-        message = error.message
-      }
-      toast.error(message)
+      toast.error(error.message ?? "Unexpected error has occurred")
     },
   })
 

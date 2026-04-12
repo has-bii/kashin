@@ -1,5 +1,6 @@
 "use client"
 
+import { QueryErrorBoundary } from "@/components/query-error-boundary"
 import { ResponsiveDialog } from "@/components/responsive-dialog"
 import {
   MainPage,
@@ -78,7 +79,9 @@ export default function RecurringTransactionsPage() {
           </Button>
         </MainPageHeader>
 
-        <RecurringTransactionList onRowClick={handleRowClick} />
+        <QueryErrorBoundary>
+          <RecurringTransactionList onRowClick={handleRowClick} />
+        </QueryErrorBoundary>
 
         <ResponsiveDialog
           title={dialogInfo.title}

@@ -1,5 +1,6 @@
 "use client"
 
+import { QueryErrorBoundary } from "@/components/query-error-boundary"
 import { ResponsiveDialog } from "@/components/responsive-dialog"
 import {
   MainPage,
@@ -63,7 +64,9 @@ export default function BudgetPage() {
         </MainPageHeader>
 
         <div className="grid grid-cols-1 gap-4 @lg/main:grid-cols-2 @3xl/main:grid-cols-3">
-          <BudgetList onAdd={handleAdd} onUpdate={handleUpdate} />
+          <QueryErrorBoundary>
+            <BudgetList onAdd={handleAdd} onUpdate={handleUpdate} />
+          </QueryErrorBoundary>
         </div>
 
         <ResponsiveDialog

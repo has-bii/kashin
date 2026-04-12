@@ -1,5 +1,6 @@
 "use client"
 
+import { QueryErrorBoundary } from "@/components/query-error-boundary"
 import { ResponsiveDialog } from "@/components/responsive-dialog"
 import {
   MainPage,
@@ -67,10 +68,12 @@ export default function CategoryPage() {
         </Suspense>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <CategoryList
-            handleAddCategoryAction={handleAddCategory}
-            handleUpdateCategoryAction={handleUpdateCategory}
-          />
+          <QueryErrorBoundary>
+            <CategoryList
+              handleAddCategoryAction={handleAddCategory}
+              handleUpdateCategoryAction={handleUpdateCategory}
+            />
+          </QueryErrorBoundary>
         </div>
 
         {/* Category dialog - create or edit mode */}

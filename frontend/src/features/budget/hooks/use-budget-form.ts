@@ -3,7 +3,6 @@ import { BudgetDto, budgetSchema } from '../validations/schema'
 import { api } from '@/lib/api'
 import { useForm } from '@tanstack/react-form'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { isAxiosError } from 'axios'
 import { toast } from 'sonner'
 
 type Args =
@@ -54,18 +53,7 @@ export const useBudgetForm = (args: Args) => {
       queryClient.invalidateQueries({ queryKey: ['budgets'] })
     },
     onError: (error) => {
-      let message = 'Unexpected error has occurred'
-      if (isAxiosError(error)) {
-        switch (error.status) {
-          case 409:
-            message = 'A budget for this category and period already exists'
-            break
-          case 403:
-            message = 'Budget limit of 10 reached'
-            break
-        }
-      }
-      toast.error(message)
+      toast.error(error.message ?? 'Unexpected error has occurred')
     },
   })
 

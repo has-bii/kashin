@@ -1,5 +1,6 @@
 "use client"
 
+import { QueryErrorBoundary } from "@/components/query-error-boundary"
 import { ResponsiveDialog } from "@/components/responsive-dialog"
 import {
   MainPage,
@@ -90,10 +91,14 @@ export default function TransactionsPage() {
         </MainPageHeader>
 
         {/* Filter bar */}
-        <TransactionFilterBar />
+        <QueryErrorBoundary>
+          <TransactionFilterBar />
+        </QueryErrorBoundary>
 
         {/* Transaction list */}
-        <TransactionList onRowClick={handleRowClick} />
+        <QueryErrorBoundary>
+          <TransactionList onRowClick={handleRowClick} />
+        </QueryErrorBoundary>
 
         {/* Transaction Responsive Dialog - Create or update mode */}
         <ResponsiveDialog

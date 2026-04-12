@@ -1,5 +1,6 @@
 "use client"
 
+import { QueryErrorBoundary } from "@/components/query-error-boundary"
 import { MainPage } from "@/components/sidebar/main-page"
 import { SiteHeader } from "@/components/sidebar/site-header"
 import {
@@ -34,12 +35,20 @@ export default function Page() {
     <>
       <SiteHeader label="Dashboard" />
       <MainPage className="@container/main gap-6 p-6">
-        <SectionCards />
+        <QueryErrorBoundary>
+          <SectionCards />
+        </QueryErrorBoundary>
         <div className="grid grid-cols-1 gap-4 @xl/main:grid-cols-2">
-          <MonthlyTrendsChart />
-          <CategoryBreakdownChart />
+          <QueryErrorBoundary>
+            <MonthlyTrendsChart />
+          </QueryErrorBoundary>
+          <QueryErrorBoundary>
+            <CategoryBreakdownChart />
+          </QueryErrorBoundary>
         </div>
-        <RecentTransactionsWidget />
+        <QueryErrorBoundary>
+          <RecentTransactionsWidget />
+        </QueryErrorBoundary>
       </MainPage>
     </>
   )
