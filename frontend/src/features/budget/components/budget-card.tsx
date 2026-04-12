@@ -44,7 +44,7 @@ export function BudgetCard({ data, onUpdate, onDelete }: Props) {
         : "bg-red-100 text-red-700"
 
   return (
-    <Card className="aspect-square w-full rounded-3xl shadow-none">
+    <Card className="h-64 w-full rounded-3xl shadow-none">
       <CardHeader>
         <div className="flex items-start justify-between">
           {/* Icon */}

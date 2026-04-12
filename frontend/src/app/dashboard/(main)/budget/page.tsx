@@ -12,7 +12,7 @@ import BudgetCardSkeleton from "@/features/budget/components/budget-card-skeleto
 import { Budget } from "@/features/budget/types"
 import { Loader2 } from "lucide-react"
 import dynamic from "next/dynamic"
-import { Suspense, useState } from "react"
+import { useState } from "react"
 
 const BudgetList = dynamic(() => import("@/features/budget/components/budget-list"), {
   ssr: false,
@@ -62,10 +62,8 @@ export default function BudgetPage() {
           </div>
         </MainPageHeader>
 
-        <div className="grid grid-cols-1 gap-4 @lg/main:grid-cols-2 @2xl/main:grid-cols-3">
-          <Suspense fallback={<BudgetCardSkeleton />}>
-            <BudgetList onAdd={handleAdd} onUpdate={handleUpdate} />
-          </Suspense>
+        <div className="grid grid-cols-1 gap-4 @lg/main:grid-cols-2 @3xl/main:grid-cols-3">
+          <BudgetList onAdd={handleAdd} onUpdate={handleUpdate} />
         </div>
 
         <ResponsiveDialog
