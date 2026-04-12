@@ -21,7 +21,7 @@ export default function BankAccountList({ onDelete }: Props) {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 @md/main:grid-cols-2 @2xl/main:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 @xl/main:grid-cols-2 @3xl/main:grid-cols-3">
       {data.data.map((account) => (
         <BankAccountCard key={account.id} account={account} onDelete={onDelete} />
       ))}

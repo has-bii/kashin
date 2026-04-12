@@ -284,7 +284,7 @@ function BankAccountSelectField({
           <SelectItem value="__none__">No account</SelectItem>
           {accounts.map((account) => (
             <SelectItem key={account.id} value={account.id}>
-              {account.displayName} — {account.bankName}
+              {account.bank.name}
             </SelectItem>
           ))}
         </SelectContent>

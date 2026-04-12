@@ -1,12 +1,12 @@
 "use client"
 
+import { useDeleteBankAccount } from "../hooks/use-delete-bank-account"
+import type { BankAccount } from "../types"
 import { ResponsiveDialogFooter } from "@/components/responsive-dialog"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { useState } from "react"
-import { useDeleteBankAccount } from "../hooks/use-delete-bank-account"
-import type { BankAccount } from "../types"
 
 type Props = {
   close: () => void
@@ -24,7 +24,7 @@ export default function BankAccountDelete({ close, data }: Props) {
 
   return (
     <>
-      <div className="flex items-center gap-2 py-2">
+      <div className="flex items-center gap-2 px-4 md:px-0">
         <Checkbox
           id="delete-transactions"
           checked={deleteTransactions}

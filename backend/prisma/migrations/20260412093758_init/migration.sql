@@ -11,9 +11,6 @@ CREATE TYPE "EmailLogStatus" AS ENUM ('received', 'processing', 'parsed', 'faile
 CREATE TYPE "AiExtractionStatus" AS ENUM ('pending', 'confirmed', 'rejected', 'edited');
 
 -- CreateEnum
-CREATE TYPE "BankName" AS ENUM ('bca', 'jago', 'cash');
-
--- CreateEnum
 CREATE TYPE "RecurringFrequency" AS ENUM ('weekly', 'biweekly', 'monthly', 'yearly');
 
 -- CreateEnum
@@ -179,10 +176,21 @@ CREATE TABLE "budgets" (
 );
 
 -- CreateTable
+CREATE TABLE "banks" (
+    "id" UUID NOT NULL,
+    "name" VARCHAR(100) NOT NULL,
+    "email" VARCHAR(255),
+    "imageUrl" TEXT NOT NULL,
+    "isSupportEmail" BOOLEAN NOT NULL,
+
+    CONSTRAINT "banks_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "bank_accounts" (
     "id" UUID NOT NULL,
     "userId" UUID NOT NULL,
-    "bankName" "BankName" NOT NULL,
+    "bankId" UUID NOT NULL,
     "balance" DECIMAL(15,2) NOT NULL,
     "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMPTZ NOT NULL,
@@ -307,7 +315,7 @@ CREATE INDEX "budgets_userId_idx" ON "budgets"("userId");
 CREATE UNIQUE INDEX "budgets_userId_categoryId_period_key" ON "budgets"("userId", "categoryId", "period");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "bank_accounts_userId_bankName_key" ON "bank_accounts"("userId", "bankName");
+CREATE UNIQUE INDEX "bank_accounts_userId_bankId_key" ON "bank_accounts"("userId", "bankId");
 
 -- CreateIndex
 CREATE INDEX "email_logs_inboxId_idx" ON "email_logs"("inboxId");
@@ -377,6 +385,9 @@ ALTER TABLE "budgets" ADD CONSTRAINT "budgets_categoryId_fkey" FOREIGN KEY ("cat
 
 -- AddForeignKey
 ALTER TABLE "bank_accounts" ADD CONSTRAINT "bank_accounts_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "bank_accounts" ADD CONSTRAINT "bank_accounts_bankId_fkey" FOREIGN KEY ("bankId") REFERENCES "banks"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "email_logs" ADD CONSTRAINT "email_logs_inboxId_fkey" FOREIGN KEY ("inboxId") REFERENCES "email_inboxes"("id") ON DELETE CASCADE ON UPDATE CASCADE;

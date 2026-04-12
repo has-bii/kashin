@@ -1,5 +1,6 @@
 import { betterAuthView } from "./modules/auth"
 import { bankAccountController } from "./modules/bank-account"
+import { bankController } from "./modules/bank"
 import { budgetController } from "./modules/budget"
 import { categoryController } from "./modules/category"
 import { dashboardController } from "./modules/dashboard"
@@ -31,6 +32,7 @@ const app = new Elysia({ prefix: "/api" })
   .use(transactionController)
   .use(dashboardController)
   .use(budgetController)
+  .use(bankController)
   .use(bankAccountController)
   .use(recurringTransactionController)
   .use(webhookController)

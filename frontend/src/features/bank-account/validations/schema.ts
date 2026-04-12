@@ -3,7 +3,7 @@ import { z } from "zod/v4"
 export const BANK_NAMES = ["bca", "jago", "cash"] as const
 
 export const bankAccountCreateSchema = z.object({
-  bankName: z.enum(BANK_NAMES),
+  bankId: z.string().min(0, "Bank is required"),
   initialBalance: z.number().min(0, "Must positive number"),
 })
 

@@ -4,7 +4,7 @@ import { Conflict } from "../../global/error"
 import { getAllQuery } from "./query"
 
 export const bankAccountCreateBody = t.Object({
-  bankName: t.Enum({ bca: "bca", jago: "jago", cash: "cash" }),
+  bankId: t.String({ format: "uuid" }),
   initialBalance: t.Number(),
 })
 
@@ -19,6 +19,7 @@ export abstract class BankAccountService {
     const [data, total] = await Promise.all([
       prisma.bankAccount.findMany({
         where: { userId },
+        include: { bank: true },
         skip,
         take: limit,
         orderBy: { createdAt: "desc" },
@@ -38,17 +39,20 @@ export abstract class BankAccountService {
   }
 
   static async getById(userId: string, id: string) {
-    const account = await prisma.bankAccount.findUnique({ where: { id, userId } })
+    const account = await prisma.bankAccount.findUnique({ where: { id, userId }, include: { bank: true } })
     if (!account) throw new NotFoundError("Bank account doesn't exist")
     return account
   }
 
   static async create(userId: string, input: BankAccountCreateInput) {
-    const { bankName, initialBalance } = input
-    const existing = await prisma.bankAccount.findUnique({ where: { userId_bankName: { userId, bankName } } })
-    if (existing) throw new Conflict(`You already have a ${bankName} account`)
+    const { bankId, initialBalance } = input
+    const bank = await prisma.bank.findUnique({ where: { id: bankId } })
+    if (!bank) throw new NotFoundError("Bank doesn't exist")
+    const existing = await prisma.bankAccount.findUnique({ where: { userId_bankId: { userId, bankId } } })
+    if (existing) throw new Conflict(`You already have a ${bank.name} account`)
     const result = await prisma.bankAccount.create({
-      data: { userId, bankName, balance: initialBalance },
+      data: { userId, bankId, balance: initialBalance },
+      include: { bank: true },
     })
     return status(201, result)
   }
