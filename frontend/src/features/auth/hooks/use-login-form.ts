@@ -42,6 +42,12 @@ export const useLoginForm = () => {
       const { error } = await authClient.signIn.social({
         provider: "google",
         callbackURL: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
+        errorCallbackURL: `${process.env.NEXT_PUBLIC_APP_URL}/auth/login`,
+        scopes: [
+          "openid",
+          "https://www.googleapis.com/auth/userinfo.profile",
+          "https://www.googleapis.com/auth/userinfo.email",
+        ],
       })
 
       if (error) {
