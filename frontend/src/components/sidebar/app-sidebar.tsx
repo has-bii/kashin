@@ -18,6 +18,7 @@ import {
   LayersIcon,
   LayoutDashboardIcon,
   PieChartIcon,
+  RepeatIcon,
   Settings2Icon,
   Wallet,
 } from "lucide-react"
@@ -45,6 +46,11 @@ const data = {
       title: "Category",
       url: "/dashboard/category",
       icon: <LayersIcon />,
+    },
+    {
+      title: "Recurring",
+      url: "/dashboard/recurring-transactions",
+      icon: <RepeatIcon />,
     },
   ],
   tools: [

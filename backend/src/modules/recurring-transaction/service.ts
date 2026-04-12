@@ -1,0 +1,193 @@
+import {
+  RecurringTransactionPlainInputCreate,
+  RecurringTransactionPlainInputUpdate,
+} from "../../generated/prismabox/RecurringTransaction"
+import { __nullable__ } from "../../generated/prismabox/__nullable__"
+import { prisma } from "../../lib/prisma"
+import { qstash } from "../../lib/qstash"
+import { getAllQuery } from "./query"
+import { NotFoundError, status, t } from "elysia"
+
+export const recurringCreateBody = t.Composite([
+  RecurringTransactionPlainInputCreate,
+  t.Object({
+    categoryId: t.Optional(__nullable__(t.String())),
+  }),
+])
+
+export const recurringUpdateBody = t.Composite([
+  RecurringTransactionPlainInputUpdate,
+  t.Object({
+    categoryId: t.Optional(__nullable__(t.String())),
+  }),
+])
+
+type RecurringCreateInput = (typeof recurringCreateBody)["static"]
+type RecurringUpdateInput = (typeof recurringUpdateBody)["static"]
+type GetAllQuery = (typeof getAllQuery)["static"]
+
+const categoryInclude = {
+  category: { select: { id: true, name: true, type: true, icon: true, color: true } },
+}
+
+function computeNextDueDate(from: Date, frequency: string): Date {
+  const d = new Date(from)
+  switch (frequency) {
+    case "weekly":
+      d.setDate(d.getDate() + 7)
+      break
+    case "biweekly":
+      d.setDate(d.getDate() + 14)
+      break
+    case "monthly":
+      d.setMonth(d.getMonth() + 1)
+      break
+    case "yearly":
+      d.setFullYear(d.getFullYear() + 1)
+      break
+  }
+  return d
+}
+
+async function scheduleNext(id: string, runAt: Date): Promise<void> {
+  const url = `${process.env.BETTER_AUTH_URL}/api/webhook/recurring-transaction`
+  await qstash.publishJSON({
+    url,
+    body: { recurringTransactionId: id },
+    notBefore: Math.floor(runAt.getTime() / 1000),
+  })
+}
+
+export abstract class RecurringTransactionService {
+  static async getAll(userId: string, query: GetAllQuery) {
+    const { page = 1, limit = 20, type, isActive } = query
+    const where = {
+      userId,
+      ...(type ? { type } : {}),
+      ...(isActive !== undefined ? { isActive } : {}),
+    }
+
+    const [data, total] = await prisma.$transaction([
+      prisma.recurringTransaction.findMany({
+        where,
+        include: categoryInclude,
+        orderBy: { nextDueDate: "asc" },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.recurringTransaction.count({ where }),
+    ])
+
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) }
+  }
+
+  static async getById(userId: string, id: string) {
+    const item = await prisma.recurringTransaction.findUnique({
+      where: { id, userId },
+      include: categoryInclude,
+    })
+    if (!item) throw new NotFoundError("Recurring transaction not found")
+    return item
+  }
+
+  static async create(userId: string, input: RecurringCreateInput) {
+    const { categoryId, ...rest } = input
+
+    const item = await prisma.recurringTransaction.create({
+      data: {
+        ...rest,
+        userId,
+        ...(categoryId !== undefined ? { categoryId } : {}),
+      },
+      include: categoryInclude,
+    })
+
+    await scheduleNext(item.id, item.nextDueDate)
+
+    return status(201, item)
+  }
+
+  static async update(userId: string, id: string, input: RecurringUpdateInput) {
+    const existing = await RecurringTransactionService.getById(userId, id)
+    const { categoryId, ...rest } = input
+
+    const updated = await prisma.recurringTransaction.update({
+      where: { id },
+      data: {
+        ...rest,
+        ...(categoryId !== undefined ? { categoryId } : {}),
+      },
+      include: categoryInclude,
+    })
+
+    // Reschedule if nextDueDate changed and the transaction is still active
+    if (input.nextDueDate && existing.isActive) {
+      await scheduleNext(id, updated.nextDueDate)
+    }
+
+    return updated
+  }
+
+  static async delete(userId: string, id: string) {
+    await RecurringTransactionService.getById(userId, id)
+    await prisma.recurringTransaction.delete({ where: { id } })
+    // Stale QStash messages will no-op: webhook checks existence before acting
+  }
+
+  static async toggle(userId: string, id: string) {
+    const existing = await RecurringTransactionService.getById(userId, id)
+
+    const updated = await prisma.recurringTransaction.update({
+      where: { id },
+      data: { isActive: !existing.isActive },
+      include: categoryInclude,
+    })
+
+    // Only re-schedule when turning ON (was inactive, now active)
+    if (!existing.isActive) {
+      await scheduleNext(id, updated.nextDueDate)
+    }
+
+    return updated
+  }
+
+  static async processWebhook(recurringTransactionId: string): Promise<void> {
+    let nextDueDate: Date | null = null
+
+    await prisma.$transaction(async (tx) => {
+      const recurring = await tx.recurringTransaction.findUnique({
+        where: { id: recurringTransactionId },
+      })
+
+      // Silently no-op if not found or paused — idempotent
+      if (!recurring || !recurring.isActive) return
+
+      const now = new Date()
+      nextDueDate = computeNextDueDate(now, recurring.frequency)
+
+      await tx.transaction.create({
+        data: {
+          userId: recurring.userId,
+          categoryId: recurring.categoryId,
+          recurringTxnId: recurring.id,
+          type: recurring.type,
+          amount: recurring.amount,
+          currency: recurring.currency,
+          description: recurring.description,
+          transactionDate: now,
+          source: "recurring",
+        },
+      })
+
+      await tx.recurringTransaction.update({
+        where: { id: recurringTransactionId },
+        data: { lastGeneratedDate: now, nextDueDate },
+      })
+    })
+
+    // Schedule outside the DB transaction to guarantee commit happens first
+    if (nextDueDate) {
+      await scheduleNext(recurringTransactionId, nextDueDate)
+    }
+  }
+}

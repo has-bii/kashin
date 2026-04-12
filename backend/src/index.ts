@@ -4,6 +4,7 @@ import { budgetController } from "./modules/budget"
 import { categoryController } from "./modules/category"
 import { dashboardController } from "./modules/dashboard"
 import { gmailController } from "./modules/gmail"
+import { recurringTransactionController } from "./modules/recurring-transaction"
 import { transactionController } from "./modules/transaction"
 import { webhookController } from "./modules/webhook"
 import cors from "@elysiajs/cors"
@@ -14,7 +15,7 @@ const app = new Elysia({ prefix: "/api" })
   .use(
     cors({
       origin: process.env.FRONTEND_URL,
-      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
       credentials: true,
       allowedHeaders: ["Content-Type", "Authorization"],
     }),
@@ -31,6 +32,7 @@ const app = new Elysia({ prefix: "/api" })
   .use(dashboardController)
   .use(budgetController)
   .use(bankAccountController)
+  .use(recurringTransactionController)
   .use(webhookController)
   .use(gmailController)
   .listen(Number(process.env.PORT || 3030))
