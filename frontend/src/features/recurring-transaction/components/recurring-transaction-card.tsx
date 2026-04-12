@@ -74,28 +74,11 @@ export function RecurringTransactionCard({ data, onRowClick }: Props) {
           </span>
 
           <span className="text-muted-foreground mt-0.5 text-sm">{nextDueDateLabel}</span>
-
-          {/* <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 px-2"
-            disabled={toggle.isPending}
-            onClick={handleToggle}
-            aria-label={isActive ? "Pause recurring transaction" : "Activate recurring transaction"}
-          >
-            {toggle.isPending ? (
-              <Loader2 className="size-3.5 animate-spin" />
-            ) : isActive ? (
-              <PauseIcon className="size-3.5" />
-            ) : (
-              <PlayIcon className="size-3.5" />
-            )}
-          </Button> */}
         </div>
       </CardContent>
-      <CardFooter className="border-t pt-4! lg:hidden">
+      <CardFooter className="border-t pt-4!">
         <div className="flex w-full items-center justify-between gap-2">
-          <p className="text-muted-foreground">Active Status</p>
+          <p className="text-muted-foreground">{isActive ? "Active" : "Inactive"} Status</p>
           <Switch
             checked={isActive}
             onClick={handleToggle}

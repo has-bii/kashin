@@ -62,7 +62,7 @@ export default function BudgetPage() {
           </div>
         </MainPageHeader>
 
-        <div className="grid grid-cols-1 gap-4 @xl/main:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 @lg/main:grid-cols-2 @2xl/main:grid-cols-3">
           <Suspense fallback={<BudgetCardSkeleton />}>
             <BudgetList onAdd={handleAdd} onUpdate={handleUpdate} />
           </Suspense>

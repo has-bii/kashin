@@ -11,9 +11,13 @@ export function formatAmount(amount: string, type: Transaction["type"]): string 
   return type === "expense" ? `-${formatted}` : `+${formatted}`
 }
 
-export function formatCurrency(amount: number | string): string {
+export function formatCurrency(
+  amount: number | string,
+  options?: Intl.NumberFormatOptions,
+): string {
   const num = typeof amount === "string" ? parseFloat(amount) : amount
   return new Intl.NumberFormat(LOCALE, {
+    ...options,
     style: "currency",
     currency: CURRENCY,
     minimumFractionDigits: DECIMAL,
