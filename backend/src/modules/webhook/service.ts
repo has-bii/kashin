@@ -24,27 +24,13 @@ export abstract class WebhookService {
 
       const { emailAddress, historyId } = decodedData
 
-      console.log("Before")
-
       // Process AI
-      this.testingPromise()
-
-      console.log("After")
+      // placeholder
 
       return status(200, { received: true })
     } catch (error) {
       console.error("Webhook Error: ", error)
       status(500)
     }
-  }
-
-  static async testingPromise() {
-    const hehe = await new Promise<"hehe">((resolve) =>
-      setTimeout(() => {
-        resolve("hehe")
-      }, 5000),
-    )
-
-    console.log(hehe)
   }
 }

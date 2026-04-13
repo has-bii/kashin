@@ -53,7 +53,7 @@ async function scheduleNext(id: string, runAt: Date): Promise<void> {
   const url = `${process.env.BETTER_AUTH_URL}/api/webhook/recurring-transaction`
   await qstash.publishJSON({
     url,
-    body: { recurringTransactionId: id },
+    body: { recurringTransactionId: id, scheduledFor: runAt.toISOString() },
     notBefore: Math.floor(runAt.getTime() / 1000),
   })
 }
@@ -93,18 +93,21 @@ export abstract class RecurringTransactionService {
   static async create(userId: string, input: RecurringCreateInput) {
     const { categoryId, ...rest } = input
 
-    const item = await prisma.recurringTransaction.create({
-      data: {
-        ...rest,
-        userId,
-        ...(categoryId !== undefined ? { categoryId } : {}),
-      },
-      include: categoryInclude,
+    const data = await prisma.$transaction(async (tx) => {
+      const item = await tx.recurringTransaction.create({
+        data: {
+          ...rest,
+          userId,
+          ...(categoryId !== undefined ? { categoryId } : {}),
+        },
+        include: categoryInclude,
+      })
+      await scheduleNext(item.id, item.nextDueDate)
+
+      return item
     })
 
-    await scheduleNext(item.id, item.nextDueDate)
-
-    return status(201, item)
+    return status(201, data)
   }
 
   static async update(userId: string, id: string, input: RecurringUpdateInput) {
@@ -151,7 +154,7 @@ export abstract class RecurringTransactionService {
     return updated
   }
 
-  static async processWebhook(recurringTransactionId: string): Promise<void> {
+  static async processWebhook(recurringTransactionId: string, scheduledFor: Date): Promise<void> {
     let nextDueDate: Date | null = null
 
     await prisma.$transaction(async (tx) => {
@@ -159,11 +162,24 @@ export abstract class RecurringTransactionService {
         where: { id: recurringTransactionId },
       })
 
-      // Silently no-op if not found or paused — idempotent
+      // Silently no-op if not found or paused
       if (!recurring || !recurring.isActive) return
+
+      // Idempotency guard — this occurrence was already processed
+      if (recurring.lastGeneratedDate && recurring.lastGeneratedDate >= scheduledFor) return
 
       const now = new Date()
       nextDueDate = computeNextDueDate(now, recurring.frequency)
+
+      // Atomic claim — prevents concurrent retries from both proceeding
+      const claim = await tx.recurringTransaction.updateMany({
+        where: {
+          id: recurringTransactionId,
+          OR: [{ lastGeneratedDate: null }, { lastGeneratedDate: { lt: scheduledFor } }],
+        },
+        data: { lastGeneratedDate: now, nextDueDate },
+      })
+      if (claim.count === 0) return
 
       await tx.transaction.create({
         data: {
@@ -178,14 +194,9 @@ export abstract class RecurringTransactionService {
           source: "recurring",
         },
       })
-
-      await tx.recurringTransaction.update({
-        where: { id: recurringTransactionId },
-        data: { lastGeneratedDate: now, nextDueDate },
-      })
     })
 
-    // Schedule outside the DB transaction to guarantee commit happens first
+    // Propagate errors — QStash will retry; idempotency guard prevents duplicate DB writes
     if (nextDueDate) {
       await scheduleNext(recurringTransactionId, nextDueDate)
     }

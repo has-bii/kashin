@@ -1,12 +1,7 @@
-import { Receiver } from "@upstash/qstash"
-import { WebhookService } from "./service"
+import { receiver } from "../../lib/qstash"
 import { RecurringTransactionService } from "../recurring-transaction/service"
+import { WebhookService } from "./service"
 import Elysia from "elysia"
-
-const receiver = new Receiver({
-  currentSigningKey: process.env.QSTASH_CURRENT_SIGNING_KEY!,
-  nextSigningKey: process.env.QSTASH_NEXT_SIGNING_KEY!,
-})
 
 export const webhookController = new Elysia({ prefix: "/webhook" })
   .post("/gmail", ({ headers, request, status }) => {
@@ -29,11 +24,12 @@ export const webhookController = new Elysia({ prefix: "/webhook" })
 
     if (!isValid) return status(401)
 
-    const { recurringTransactionId } = JSON.parse(rawBody) as {
+    const { recurringTransactionId, scheduledFor } = JSON.parse(rawBody) as {
       recurringTransactionId: string
+      scheduledFor: string
     }
 
-    await RecurringTransactionService.processWebhook(recurringTransactionId)
+    await RecurringTransactionService.processWebhook(recurringTransactionId, new Date(scheduledFor))
 
     return { received: true }
   })
