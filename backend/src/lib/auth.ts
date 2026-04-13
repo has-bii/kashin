@@ -1,9 +1,11 @@
 import { prisma } from "./prisma"
+import { passkey } from "@better-auth/passkey"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { betterAuth } from "better-auth/minimal"
 import { emailOTP } from "better-auth/plugins"
 
 export const auth = betterAuth({
+  appName: "Kashin",
   baseURL: process.env.BETTER_AUTH_URL,
   database: prismaAdapter(prisma, {
     provider: "postgresql",
@@ -50,6 +52,20 @@ export const auth = betterAuth({
       overrideDefaultEmailVerification: true,
       async sendVerificationOTP({ email, otp, type }) {
         console.log(`[OTP] ${email}: ${otp} (${type})`)
+      },
+    }),
+    passkey({
+      registration: {
+        requireSession: true,
+      },
+      rpID: new URL(process.env.FRONTEND_URL!).hostname,
+      rpName: "Kashin",
+      authenticatorSelection: {
+        userVerification: "required",
+        residentKey: "required",
+      },
+      advanced: {
+        webAuthnChallengeCookie: `${process.env.COOKIE_PREFIX}_pk_challenge`,
       },
     }),
   ],

@@ -79,6 +79,7 @@ model User {
   updatedAt     DateTime  @updatedAt @db.Timestamptz
   sessions      Session[]
   accounts      Account[]
+  passkeys      Passkey[]
 
   // App relations
   categories            Category[]
@@ -140,6 +141,23 @@ model Verification {
 
   @@index([identifier])
   @@map("verifications")
+}
+
+model Passkey {
+  id           String    @id @default(uuid(7)) @db.Uuid
+  name         String?   @db.VarChar(255)
+  publicKey    String    @db.Text
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String    @db.Uuid
+  credentialID String    @db.Text
+  counter      Int
+  deviceType   String    @db.VarChar(100)
+  backedUp     Boolean
+  transports   String?   @db.Text
+  createdAt    DateTime? @db.Timestamptz()
+  aaguid       String?   @db.Text
+
+  @@map("passkey")
 }
 
 // -----------------------------------------------------------

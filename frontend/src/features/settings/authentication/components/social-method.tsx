@@ -1,88 +1,52 @@
-"use client"
+import { cn } from "@/lib/utils"
+import { ComponentProps, ReactNode } from "react"
 
-import { getAccountInfoQueryOptions } from "../api/get-account-info.query"
-import { Button } from "@/components/ui/button"
-import { authClient } from "@/lib/auth-client"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { ReactNode } from "react"
-import { toast } from "sonner"
-
-type SocialMethodProps = {
-  provider: string
-  icon: ReactNode
-  accountId?: string
+function SocialMethodItem({ className, ...props }: ComponentProps<"div">) {
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-4 px-5 py-4 [&_svg]:pointer-events-none [&_svg]:size-6 [&_svg]:shrink-0",
+        className,
+      )}
+      {...props}
+    />
+  )
 }
 
-export default function SocialMethod({ provider, icon, accountId }: SocialMethodProps) {
-  const queryClient = useQueryClient()
-  const { data, isLoading } = useQuery({
-    ...getAccountInfoQueryOptions(accountId!),
-    enabled: !!accountId,
-  })
-
-  const label = provider.charAt(0).toUpperCase() + provider.slice(1)
-
-  const linkAction = async () => {
-    try {
-      const { error } = await authClient.linkSocial({
-        provider: provider as Parameters<typeof authClient.linkSocial>[0]["provider"],
-        callbackURL: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings/authentication`,
-        errorCallbackURL: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings/authentication`,
-      })
-
-      if (error) {
-        toast.error(error.message ?? `Failed to link your ${label} account`)
-        return
-      }
-
-      await queryClient.invalidateQueries({ queryKey: ["account-list"] })
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : `Failed to link your ${label} account`)
-    }
-  }
-
-  const unlinkAction = async () => {
-    if (!accountId) return
-    try {
-      const { error } = await authClient.unlinkAccount({
-        providerId: provider,
-        accountId,
-      })
-
-      if (error) {
-        toast.error(error.message ?? `Failed to unlink your ${label} account`)
-        return
-      }
-
-      toast.success(`Unlinked ${label} successfully`)
-      await queryClient.invalidateQueries({ queryKey: ["account-list"] })
-      await queryClient.invalidateQueries({ queryKey: ["account-info", accountId] })
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : `Failed to unlink your ${label} account`)
-    }
-  }
-
+function SocialMethodIcon({ className, ...props }: ComponentProps<"div">) {
   return (
-    <div className="flex items-center gap-4 px-5 py-4 [&_svg]:pointer-events-none [&_svg]:size-6 [&_svg]:shrink-0">
-      {icon}
-      <div className="space-y-0">
-        <h4 className="font-semibold capitalize">{provider}</h4>
-        <p className="text-muted-foreground text-sm">
-          {isLoading
-            ? "Loading..."
-            : data?.user.email
-              ? data.user.email
-              : `Connect to your ${label} account`}
-        </p>
-      </div>
-      <Button
-        variant={accountId ? "secondary" : "default"}
-        className="ml-auto"
-        disabled={isLoading}
-        onClick={accountId ? unlinkAction : linkAction}
-      >
-        {accountId ? "Disconnect" : "Connect"}
-      </Button>
+    <div
+      className={cn("shrink-0 [&_svg]:pointer-events-none [&_svg]:size-6", className)}
+      {...props}
+    />
+  )
+}
+
+type SocialMethodContentProps = {
+  asChild?: boolean
+  title?: string
+  description?: string
+  children?: ReactNode
+  className?: string
+}
+
+function SocialMethodContent(props: SocialMethodContentProps) {
+  return (
+    <div className={cn("w-fit shrink-0 space-y-0", props.className)}>
+      {props.asChild ? (
+        props.children
+      ) : (
+        <>
+          <h4 className="font-heading font-semibold capitalize">{props.title}</h4>
+          <p className="text-muted-foreground text-sm">{props.description}</p>
+        </>
+      )}
     </div>
   )
 }
+
+function SocialMethodAction({ className, ...props }: ComponentProps<"div">) {
+  return <div className={cn("ml-auto w-fit", className)} {...props} />
+}
+
+export { SocialMethodItem, SocialMethodContent, SocialMethodIcon, SocialMethodAction }

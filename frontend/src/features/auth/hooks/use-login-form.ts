@@ -2,10 +2,11 @@ import { loginSchema } from "../validations/login.schema"
 import { authClient } from "@/lib/auth-client"
 import { useForm } from "@tanstack/react-form"
 import { useRouter } from "next/navigation"
-import { useCallback, useState } from "react"
+import { useCallback, useState, useTransition } from "react"
 
 export const useLoginForm = () => {
   const router = useRouter()
+  const [isPasskeyLoading, startTransition] = useTransition()
   const [error, setError] = useState("")
 
   const form = useForm({
@@ -63,5 +64,22 @@ export const useLoginForm = () => {
     }
   }, [])
 
-  return { form, error, loginWithGoogle }
+  const loginWithPasskey = useCallback(() => {
+    setError("")
+
+    startTransition(async () => {
+      await authClient.signIn.passkey({
+        fetchOptions: {
+          onSuccess: () => {
+            router.refresh()
+          },
+          onError: (context) => {
+            setError(context.error.message)
+          },
+        },
+      })
+    })
+  }, [router])
+
+  return { form, error, loginWithGoogle, loginWithPasskey, isPasskeyLoading }
 }

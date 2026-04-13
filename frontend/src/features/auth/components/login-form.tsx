@@ -13,11 +13,11 @@ import {
   FieldSeparator,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { InfoIcon, Loader2 } from "lucide-react"
+import { Fingerprint, InfoIcon, Loader2 } from "lucide-react"
 import Link from "next/link"
 
 export default function LoginForm() {
-  const { form, loginWithGoogle, error } = useLoginForm()
+  const { form, loginWithGoogle, error, isPasskeyLoading, loginWithPasskey } = useLoginForm()
 
   return (
     <form
@@ -109,6 +109,15 @@ export default function LoginForm() {
           <Button variant="outline" type="button" onClick={loginWithGoogle}>
             <Google />
             Masuk dengan Google
+          </Button>
+          <Button
+            variant="outline"
+            type="button"
+            onClick={loginWithPasskey}
+            disabled={isPasskeyLoading}
+          >
+            {isPasskeyLoading ? <Loader2 className="animate-spin" /> : <Fingerprint />}
+            Masuk dengan Passkey
           </Button>
           <FieldDescription className="text-center">
             Belum punya akun?{" "}
