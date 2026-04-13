@@ -1,3 +1,8 @@
+---
+name: endpoint
+description: Creating new API routes, controllers, or adding endpoints to an existing module. Use when the user asks to add a route, create a controller, or build a new API resource.
+---
+
 # Skill: Endpoint
 
 ## When to Use

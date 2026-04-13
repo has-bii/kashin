@@ -1,3 +1,8 @@
+---
+name: lazy-loading
+description: Code-splitting data-fetching components or heavy third-party widgets with dynamic(). Use when the user asks to lazy load a component, add a skeleton, or improve initial page load.
+---
+
 # Skill: Lazy Loading
 
 ## When to Use

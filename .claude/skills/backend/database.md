@@ -1,3 +1,8 @@
+---
+name: database
+description: Writing Prisma queries, handling transactions, or working with related models. Use when the user asks about database queries, Prisma, transactions, or relations.
+---
+
 # Skill: Database
 
 ## When to Use
@@ -59,6 +64,6 @@ prisma.{model}.findMany({ include: categoryInclude })
 - Always scope queries to `userId` — never query across users
 - Use `{ where: { id, userId } }` pattern, not just `{ where: { id } }`
 - `prisma.$transaction([...])` = parallel array; `prisma.$transaction(async tx => ...)` = atomic callback
-- Run `bunx prisma migrate dev --name {description}` after schema changes
-- Run `bunx prisma generate` after generate to regenerate Prismabox
+- Run `bunx --bun prisma migrate dev --name {description}` after schema changes
+- Run `bunx --bun prisma generate` after schema changes to regenerate Prismabox
 - Never touch files in `src/generated/` — they are auto-generated

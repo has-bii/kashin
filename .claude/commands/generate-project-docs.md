@@ -477,7 +477,7 @@ Generate or update `CLAUDE.md`:
 
 ## Navigation
 
-Use code-review-graph MCP tools to understand existing code structure and dependencies.
+Use better-code-review-graph MCP tools to understand existing code structure and dependencies.
 Do NOT read files to "explore" or "understand" the project.
 Query the graph first, read files only when you need implementation details.
 
@@ -516,7 +516,8 @@ Router updated at CLAUDE.md
 
 Next steps:
 1. Review the generated docs and correct anything that's off
-2. Run /generate-project-skills to add implementation patterns (coming soon)
-3. Install code-review-graph for codebase navigation:
-   pip install code-review-graph && code-review-graph install && code-review-graph build
+2. Run /generate-backend-skills and /generate-frontend-skills to add implementation patterns
+3. Open a new session then send this:
+   Please set up better-code-review-graph for me. Follow this guide: https://raw.githubusercontent.com/n24q02m/better-code-review-graph/main/docs/setup-with-agent.md
+
 ```

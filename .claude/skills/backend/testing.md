@@ -1,3 +1,8 @@
+---
+name: testing
+description: Writing tests for backend service logic or API endpoints using Bun test. Use when the user asks to add tests, write specs, or verify service behavior.
+---
+
 # Skill: Backend Testing
 
 ## When to Use
@@ -5,8 +10,6 @@
 When writing tests for backend service logic or API endpoints.
 
 ## Setup
-
-No test files exist yet in this project. When adding tests:
 
 - Test runner: **Bun test** (`bun test`)
 - Test files: colocated as `modules/{domain}/{domain}.test.ts`

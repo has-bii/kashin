@@ -1,3 +1,8 @@
+---
+name: response
+description: Returning data from service methods or route handlers — shapes, status codes, and pagination format. Use when the user asks about response format, 201 status, or how to return API data.
+---
+
 # Skill: Response Format
 
 ## When to Use

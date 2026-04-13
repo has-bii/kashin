@@ -1,3 +1,8 @@
+---
+name: query-api
+description: Fetching data from API endpoints using React Query. Use when the user asks to load data, fetch a list, display resource details, or wire up a GET request in a component.
+---
+
 # Skill: API Queries
 
 ## When to Use

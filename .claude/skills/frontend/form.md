@@ -1,3 +1,8 @@
+---
+name: form
+description: Building create or edit forms that call the API using TanStack Form + React Query. Use when the user asks to add a form, create/edit dialog, or any input that submits data to the backend.
+---
+
 # Skill: Forms
 
 ## When to Use
@@ -100,10 +105,12 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Loader2, Plus, SaveIcon } from 'lucide-react'
 
-type Props = { mode: 'create' } | { mode: 'update'; data: {Resource} | null }
+type Props =
+  | { mode: 'create'; onSuccess?: () => void }
+  | { mode: 'update'; data: {Resource} | null; onSuccess?: () => void }
 
 export function {Resource}Form(props: Props) {
-  const { form } = use{Resource}Form({ ...props, onSuccess: closeDialog })
+  const { form } = use{Resource}Form(props)
 
   return (
     <form id="{resource}-form" onSubmit={(e) => { e.preventDefault(); form.handleSubmit() }}>

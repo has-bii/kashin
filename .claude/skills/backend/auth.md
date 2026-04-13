@@ -1,3 +1,8 @@
+---
+name: auth
+description: Protecting API routes with authentication, accessing the current user or session in handlers. Use when the user asks to add auth guards, access user.id, or work with Better Auth sessions.
+---
+
 # Skill: Auth
 
 ## When to Use

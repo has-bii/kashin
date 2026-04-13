@@ -1,3 +1,8 @@
+---
+name: url-state
+description: Implementing filters, tabs, or pagination via URL using nuqs. Use when the user asks to add filters, shareable URLs, or any state that should survive a page refresh.
+---
+
 # Skill: URL State
 
 ## When to Use

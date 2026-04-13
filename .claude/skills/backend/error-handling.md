@@ -1,3 +1,8 @@
+---
+name: error-handling
+description: Throwing errors in service methods or creating new custom error types. Use when the user asks about 404, 409, or any error thrown from a service.
+---
+
 # Skill: Error Handling
 
 ## When to Use

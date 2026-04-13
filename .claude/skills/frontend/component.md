@@ -1,3 +1,8 @@
+---
+name: component
+description: Creating any new React component or feature UI element. Use when the user asks to build a component, UI element, card, button group, or any visual piece of the frontend.
+---
+
 # Skill: Component
 
 ## When to Use

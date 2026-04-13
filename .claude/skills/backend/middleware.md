@@ -1,3 +1,8 @@
+---
+name: middleware
+description: Adding Elysia plugins, macros, or cross-cutting concerns like auth checks, context injection, rate limiting, or lifecycle hooks. Use when the user asks to add middleware, a plugin, or a macro.
+---
+
 # Skill: Middleware
 
 ## When to Use

@@ -1,3 +1,8 @@
+---
+name: mutation
+description: Deleting data or performing non-form mutations (POST/DELETE without a form). Use when the user asks to add a delete button, bulk action, or any mutation that isn't a create/edit form.
+---
+
 # Skill: Mutations
 
 ## When to Use

@@ -1,3 +1,8 @@
+---
+name: validation
+description: Defining request body schemas, query param schemas, or extending Prismabox-generated schemas. Use when the user asks about validating input, TypeBox schemas, or Prismabox models.
+---
+
 # Skill: Validation
 
 ## When to Use

@@ -1,3 +1,8 @@
+---
+name: routing
+description: Adding new pages, layouts, or route segments in Next.js App Router. Use when the user asks to add a new page, route, or layout to the dashboard or auth flow.
+---
+
 # Skill: Routing
 
 ## When to Use
