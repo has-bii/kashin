@@ -65,6 +65,13 @@ enum BudgetPeriod {
   monthly
 }
 
+enum EmailImportStatus {
+  gathering
+  processing
+  completed
+  failed
+}
+
 // -----------------------------------------------------------
 // Better Auth tables (do not modify)
 // -----------------------------------------------------------
@@ -91,6 +98,7 @@ model User {
   budgets               Budget[]
   bankAccounts          BankAccount[]
   settings              UserSettings?
+  emailImports          EmailImport[]
 
   @@unique([email])
   @@map("users")
@@ -341,17 +349,18 @@ model BankAccount {
 // -----------------------------------------------------------
 
 model EmailLog {
-  id           BigInt         @id @default(autoincrement())
-  inboxId      String         @db.Uuid
-  userId       String         @db.Uuid
-  fromAddress  String         @db.VarChar(255)
-  subject      String?        @db.Text
-  rawBody      String?        @db.Text
-  status       EmailLogStatus @default(received)
-  errorMessage String?        @db.Text
-  receivedAt   DateTime       @default(now()) @db.Timestamptz
-  processedAt  DateTime?      @db.Timestamptz
-  createdAt    DateTime       @default(now()) @db.Timestamptz
+  id             BigInt         @id @default(autoincrement())
+  inboxId        String         @db.Uuid
+  userId         String         @db.Uuid
+  gmailMessageId String?        @unique @db.VarChar(255)
+  fromAddress    String         @db.VarChar(255)
+  subject        String?        @db.Text
+  rawBody        String?        @db.Text
+  status         EmailLogStatus @default(received)
+  errorMessage   String?        @db.Text
+  receivedAt     DateTime       @default(now()) @db.Timestamptz
+  processedAt    DateTime?      @db.Timestamptz
+  createdAt      DateTime       @default(now()) @db.Timestamptz
 
   inbox        EmailInbox    @relation(fields: [inboxId], references: [id], onDelete: Cascade)
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -395,4 +404,25 @@ model UserSettings {
 
   @@index([userId])
   @@map("user_settings")
+}
+
+model EmailImport {
+  id              String            @id @default(uuid(7)) @db.Uuid
+  userId          String            @db.Uuid
+  status          EmailImportStatus @default(gathering)
+  afterDate       DateTime          @db.Date
+  beforeDate      DateTime          @db.Date
+  totalEmails     Int               @default(0)
+  skippedEmails   Int               @default(0)
+  processedEmails Int               @default(0)
+  failedEmails    Int               @default(0)
+  createdAt       DateTime          @default(now()) @db.Timestamptz
+  updatedAt       DateTime          @updatedAt @db.Timestamptz
+  completedAt     DateTime?         @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, status])
+  @@map("email_imports")
 }
