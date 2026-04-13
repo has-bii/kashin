@@ -42,6 +42,20 @@ export const auth = betterAuth({
     },
     cookiePrefix: process.env.COOKIE_PREFIX,
   },
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          await prisma.userSettings.create({
+            data: {
+              userId: user.id,
+              filterEmailsByBank: false,
+            },
+          })
+        },
+      },
+    },
+  },
   trustedOrigins: [process.env.FRONTEND_URL!],
   plugins: [
     emailOTP({
