@@ -14,7 +14,7 @@ export default function CategoryDelete({ close, data }: Props) {
   return (
     <ResponsiveDialogFooter>
       <Button variant="secondary" size="lg" disabled={deleteMutation.isPending} onClick={close}>
-        Cancel
+        Batal
       </Button>
       <Button
         variant="destructive"
@@ -22,7 +22,7 @@ export default function CategoryDelete({ close, data }: Props) {
         disabled={deleteMutation.isPending}
         onClick={() => data && deleteMutation.mutate(data.id)}
       >
-        Delete
+        Hapus
       </Button>
     </ResponsiveDialogFooter>
   )

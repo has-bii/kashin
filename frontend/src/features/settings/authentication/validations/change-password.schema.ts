@@ -2,12 +2,12 @@ import { z } from "zod/v4"
 
 export const changePasswordSchema = z
   .object({
-    oldPassword: z.string().min(8, "Min. 8 characters").max(32, "Max. 32 characters"),
-    newPassword: z.string().min(8, "Min. 8 characters").max(32, "Max. 32 characters"),
+    oldPassword: z.string().min(8, "Min. 8 karakter").max(32, "Maks. 32 karakter"),
+    newPassword: z.string().min(8, "Min. 8 karakter").max(32, "Maks. 32 karakter"),
     confirmPassword: z.string(),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
-    error: "Passwords do not match",
+    error: "Kata sandi tidak cocok",
     path: ["confirmPassword"],
   })
 

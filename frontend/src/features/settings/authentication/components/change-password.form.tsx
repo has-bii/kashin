@@ -20,8 +20,8 @@ export default function ChangePasswordForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Change Password</CardTitle>
-        <CardDescription>Enter old/current password</CardDescription>
+        <CardTitle>Ubah Kata Sandi</CardTitle>
+        <CardDescription>Masukkan kata sandi lama Anda</CardDescription>
       </CardHeader>
       <CardContent>
         <form
@@ -45,7 +45,7 @@ export default function ChangePasswordForm() {
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)}
                       aria-invalid={isInvalid}
-                      placeholder="Old password"
+                      placeholder="Kata sandi lama"
                       autoComplete="off"
                       className="max-w-md"
                       type="password"
@@ -68,7 +68,7 @@ export default function ChangePasswordForm() {
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)}
                       aria-invalid={isInvalid}
-                      placeholder="New password"
+                      placeholder="Kata sandi baru"
                       autoComplete="off"
                       className="max-w-md"
                       type="password"
@@ -91,7 +91,7 @@ export default function ChangePasswordForm() {
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)}
                       aria-invalid={isInvalid}
-                      placeholder="Confirm password"
+                      placeholder="Konfirmasi kata sandi"
                       autoComplete="off"
                       className="max-w-md"
                       type="password"
@@ -105,7 +105,7 @@ export default function ChangePasswordForm() {
         </form>
       </CardContent>
       <CardFooter className="justify-between">
-        <CardDescription>Please use Min. 8 characters and Max. 32 characters.</CardDescription>
+        <CardDescription>Gunakan min. 8 karakter dan maks. 32 karakter.</CardDescription>
         <form.Subscribe
           children={({ isSubmitting, isDirty, canSubmit }) => (
             <Button
@@ -113,7 +113,7 @@ export default function ChangePasswordForm() {
               form="change-password-form"
               disabled={isSubmitting || !isDirty || !canSubmit}
             >
-              Change
+              Ubah
               {isSubmitting && <Loader2 className="animate-spin" />}
             </Button>
           )}

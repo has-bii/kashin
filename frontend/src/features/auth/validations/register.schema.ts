@@ -2,13 +2,13 @@ import { z } from "zod/v4"
 
 export const registerSchema = z
   .object({
-    name: z.string().min(1, "Name is required").max(100, "Max. 100 characters"),
+    name: z.string().min(1, "Nama wajib diisi").max(100, "Maks. 100 karakter"),
     email: z.email(),
-    password: z.string().min(8, "Min. 8 characters").max(32, "Max. 32 characters"),
+    password: z.string().min(8, "Min. 8 karakter").max(32, "Maks. 32 karakter"),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    error: "Passwords do not match",
+    error: "Kata sandi tidak cocok",
     path: ["confirmPassword"],
   })
 

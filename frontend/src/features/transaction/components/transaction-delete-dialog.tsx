@@ -31,22 +31,22 @@ export function TransactionDeleteDialog({ transactionId, onSuccess }: Props) {
     <AlertDialog>
       <AlertDialogTrigger asChild>
         <Button variant="destructive" size="lg" className="w-full" type="button">
-          Delete
+          Hapus
           <Trash2 />
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete Transaction</AlertDialogTitle>
+          <AlertDialogTitle>Hapus Transaksi</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This transaction will be permanently removed from your
-            account.
+            Tindakan ini tidak dapat dibatalkan. Transaksi ini akan dihapus secara permanen dari
+            akun Anda.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={isPending}>Batal</AlertDialogCancel>
           <AlertDialogAction variant="destructive" disabled={isPending} onClick={handleDelete}>
-            {isPending ? <Loader2 className="animate-spin" /> : "Delete"}
+            {isPending ? <Loader2 className="animate-spin" /> : "Hapus"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

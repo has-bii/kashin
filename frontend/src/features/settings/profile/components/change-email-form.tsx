@@ -47,7 +47,7 @@ export default function ChangeEmailForm() {
       <Card>
         <CardHeader>
           <CardTitle>Email</CardTitle>
-          <CardDescription>Enter the email address you want to use to log in with.</CardDescription>
+          <CardDescription>Masukkan alamat email yang ingin Anda gunakan untuk login.</CardDescription>
         </CardHeader>
         <CardContent>
           <form
@@ -84,7 +84,7 @@ export default function ChangeEmailForm() {
           </form>
         </CardContent>
         <CardFooter className="justify-between">
-          <CardDescription>Email must be verified to be able to login with.</CardDescription>
+          <CardDescription>Email harus diverifikasi untuk dapat digunakan login.</CardDescription>
           <form.Subscribe
             children={({ isSubmitting, isDirty, canSubmit }) => (
               <Button
@@ -92,7 +92,7 @@ export default function ChangeEmailForm() {
                 form="change-email-form"
                 disabled={isSubmitting || !isDirty || !canSubmit}
               >
-                Change
+                Ubah
                 {isSubmitting && <Loader2 className="animate-spin" />}
               </Button>
             )}
@@ -108,11 +108,11 @@ export default function ChangeEmailForm() {
           <AlertDialogHeader>
             <AlertDialogTitle>
               {dialogStep === "verify-current"
-                ? "Verify your current email"
-                : "Verify your new email"}
+                ? "Verifikasi email Anda saat ini"
+                : "Verifikasi email baru Anda"}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              We sent a verification code to{" "}
+              Kami telah mengirim kode verifikasi ke{" "}
               <span className="text-foreground font-medium">
                 {dialogStep === "verify-current" ? user.email : pendingNewEmail}
               </span>
@@ -122,7 +122,7 @@ export default function ChangeEmailForm() {
           {error && (
             <Alert variant="destructive">
               <InfoIcon />
-              <AlertTitle>Error</AlertTitle>
+              <AlertTitle>Kesalahan</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
@@ -163,13 +163,13 @@ export default function ChangeEmailForm() {
 
           <AlertDialogFooter>
             <Button variant="outline" onClick={resendOtp} disabled={resendCooldown > 0}>
-              {resendCooldown > 0 ? `Resend code (${resendCooldown}s)` : "Resend code"}
+              {resendCooldown > 0 ? `Kirim ulang (${resendCooldown}d)` : "Kirim ulang kode"}
             </Button>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
             <otpForm.Subscribe
               children={({ isSubmitting }) => (
                 <Button type="submit" form="otp-form" disabled={isSubmitting}>
-                  Verify
+                  Verifikasi
                   {isSubmitting && <Loader2 className="animate-spin" />}
                 </Button>
               )}
