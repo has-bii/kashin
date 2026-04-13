@@ -1,5 +1,6 @@
 import { receiver } from "../../lib/qstash"
 import { RecurringTransactionService } from "../recurring-transaction/service"
+import { EmailProcessorService } from "../email-processor/service"
 import { WebhookService } from "./service"
 import Elysia from "elysia"
 
@@ -11,6 +12,27 @@ export const webhookController = new Elysia({ prefix: "/webhook" })
     const token = authHeader.split(" ")
 
     return WebhookService.handleGmailWebhook(token[1], request)
+  })
+  .post("/process-email", async ({ request, headers, status }) => {
+    const rawBody = await request.text()
+
+    const isValid = await receiver
+      .verify({
+        signature: headers["upstash-signature"] ?? "",
+        body: rawBody,
+      })
+      .catch(() => false)
+
+    if (!isValid) return status(401)
+
+    const { userId, historyId } = JSON.parse(rawBody) as {
+      userId: string
+      historyId: string
+    }
+
+    await EmailProcessorService.processEmail(userId, historyId)
+
+    return { received: true }
   })
   .post("/recurring-transaction", async ({ request, headers, status }) => {
     const rawBody = await request.text()

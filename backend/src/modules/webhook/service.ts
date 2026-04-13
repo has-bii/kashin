@@ -1,5 +1,7 @@
 import { status } from "elysia"
 import { OAuth2Client } from "google-auth-library"
+import { prisma } from "../../lib/prisma"
+import { qstash } from "../../lib/qstash"
 
 export abstract class WebhookService {
   private static client = new OAuth2Client()
@@ -24,13 +26,27 @@ export abstract class WebhookService {
 
       const { emailAddress, historyId } = decodedData
 
-      // Process AI
-      // placeholder
+      // Find the user by their Google email
+      const userAccount = await prisma.account.findFirst({
+        where: {
+          providerId: "google",
+          user: { email: emailAddress },
+        },
+        include: { user: true },
+      })
+
+      if (!userAccount) return status(200) // ack but ignore
+
+      // Queue to QStash for async processing
+      await qstash.publishJSON({
+        url: `${process.env.BACKEND_URL}/api/webhook/process-email`,
+        body: { userId: userAccount.userId, historyId },
+      })
 
       return status(200, { received: true })
     } catch (error) {
       console.error("Webhook Error: ", error)
-      status(500)
+      return status(500)
     }
   }
 }

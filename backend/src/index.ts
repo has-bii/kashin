@@ -7,6 +7,7 @@ import { dashboardController } from "./modules/dashboard"
 import { gmailController } from "./modules/gmail"
 import { recurringTransactionController } from "./modules/recurring-transaction"
 import { transactionController } from "./modules/transaction"
+import { userSettingsController } from "./modules/user-settings"
 import { webhookController } from "./modules/webhook"
 import cors from "@elysiajs/cors"
 import { Elysia } from "elysia"
@@ -48,6 +49,7 @@ const app = new Elysia({ prefix: "/api" })
   .use(bankController)
   .use(bankAccountController)
   .use(recurringTransactionController)
+  .use(userSettingsController)
   .use(webhookController)
   .use(gmailController)
   .listen(Number(process.env.PORT || 3030))

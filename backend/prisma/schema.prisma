@@ -90,6 +90,7 @@ model User {
   recurringTransactions RecurringTransaction[]
   budgets               Budget[]
   bankAccounts          BankAccount[]
+  settings              UserSettings?
 
   @@unique([email])
   @@map("users")
@@ -381,4 +382,17 @@ model Attachment {
   @@index([transactionId])
   @@index([emailLogId])
   @@map("attachments")
+}
+
+model UserSettings {
+  id                String   @id @default(uuid(7)) @db.Uuid
+  userId            String   @unique @db.Uuid
+  filterEmailsByBank Boolean  @default(false)
+  createdAt         DateTime @default(now()) @db.Timestamptz
+  updatedAt         DateTime @updatedAt @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_settings")
 }
