@@ -1,0 +1,6 @@
+# .graphifyignore
+frontend/node_modules/
+backend/node_modules/
+frontend/.next/
+frontend/.vscode/
+*.generated.py
