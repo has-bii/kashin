@@ -1,10 +1,12 @@
 import { betterAuthView } from "./modules/auth"
-import { bankAccountController } from "./modules/bank-account"
 import { bankController } from "./modules/bank"
+import { bankAccountController } from "./modules/bank-account"
 import { budgetController } from "./modules/budget"
 import { categoryController } from "./modules/category"
 import { dashboardController } from "./modules/dashboard"
-import { gmailController } from "./modules/gmail"
+import { emailImportController } from "./modules/email-import"
+import { emailLogController } from "./modules/email-log"
+import { inngestHandler } from "./modules/inngest"
 import { recurringTransactionController } from "./modules/recurring-transaction"
 import { transactionController } from "./modules/transaction"
 import { userSettingsController } from "./modules/user-settings"
@@ -42,6 +44,7 @@ const app = new Elysia({ prefix: "/api" })
     }),
   )
   .all("/auth/*", betterAuthView)
+  .all("/inngest", ({ request }) => inngestHandler(request))
   .use(categoryController)
   .use(transactionController)
   .use(dashboardController)
@@ -49,9 +52,10 @@ const app = new Elysia({ prefix: "/api" })
   .use(bankController)
   .use(bankAccountController)
   .use(recurringTransactionController)
+  .use(emailLogController)
+  .use(emailImportController)
   .use(userSettingsController)
   .use(webhookController)
-  .use(gmailController)
   .listen(Number(process.env.PORT || 3030))
 
 console.log(`🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`)

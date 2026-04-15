@@ -2,7 +2,7 @@
 // Prisma Schema — AI Expense & Income Tracker
 // Prisma 7 | PostgreSQL
 // Auth: Better Auth (user, session, account, verification)
-// PK strategy: UUID v7 Char(36) for user-facing tables,
+// PK strategy: UUID v7 for user-facing tables,
 //              BigInt AUTO_INCREMENT for internal tables
 // ============================================================
 
@@ -38,20 +38,6 @@ enum TransactionSource {
   recurring
 }
 
-enum EmailLogStatus {
-  received
-  processing
-  parsed
-  failed
-}
-
-enum AiExtractionStatus {
-  pending
-  confirmed
-  rejected
-  edited
-}
-
 enum RecurringFrequency {
   weekly
   biweekly
@@ -68,8 +54,24 @@ enum BudgetPeriod {
 enum EmailImportStatus {
   gathering
   processing
+  analyzing
   completed
   failed
+}
+
+enum EmailLogStatus {
+  received
+  failed
+  skipped
+  analyzing
+  completed
+}
+
+enum AiExtractionStatus {
+  pending
+  confirmed
+  rejected
+  edited
 }
 
 // -----------------------------------------------------------
@@ -91,7 +93,6 @@ model User {
   // App relations
   categories            Category[]
   transactions          Transaction[]
-  emailInboxes          EmailInbox[]
   emailLogs             EmailLog[]
   aiExtractions         AiExtraction[]
   recurringTransactions RecurringTransaction[]
@@ -169,6 +170,19 @@ model Passkey {
   @@map("passkey")
 }
 
+model UserSettings {
+  id                 String   @id @default(uuid(7)) @db.Uuid
+  userId             String   @unique @db.Uuid
+  filterEmailsByBank Boolean  @default(true)
+  createdAt          DateTime @default(now()) @db.Timestamptz
+  updatedAt          DateTime @updatedAt @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_settings")
+}
+
 // -----------------------------------------------------------
 // App tables — User-facing (UUID v7, Char(36))
 // -----------------------------------------------------------
@@ -185,7 +199,7 @@ model Category {
 
   user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions          Transaction[]
-  aiExtractions         AiExtraction[]         @relation("SuggestedCategory")
+  aiExtractions         AiExtraction[]
   recurringTransactions RecurringTransaction[]
   budgets               Budget[]
 
@@ -217,7 +231,6 @@ model Transaction {
   recurringTransaction RecurringTransaction? @relation(fields: [recurringTxnId], references: [id], onDelete: SetNull)
   aiExtraction         AiExtraction?         @relation(fields: [aiExtractionId], references: [id], onDelete: SetNull)
   bankAccount          BankAccount?          @relation(fields: [bankAccountId], references: [id], onDelete: SetNull)
-  attachments          Attachment[]
 
   @@index([userId])
   @@index([categoryId])
@@ -230,45 +243,33 @@ model Transaction {
   @@map("transactions")
 }
 
-model EmailInbox {
-  id           String   @id @default(uuid(7)) @db.Uuid
-  userId       String   @db.Uuid
-  emailAddress String   @unique @db.VarChar(255)
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now()) @db.Timestamptz
-  updatedAt    DateTime @updatedAt @db.Timestamptz
-
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  emailLogs EmailLog[]
-
-  @@index([userId])
-  @@map("email_inboxes")
-}
-
 model AiExtraction {
   id                  String             @id @default(uuid(7)) @db.Uuid
   emailLogId          BigInt             @unique
   userId              String             @db.Uuid
-  extractedVendor     String?            @db.VarChar(255)
   extractedAmount     Decimal?           @db.Decimal(15, 2)
   extractedCurrency   String?            @db.Char(3)
-  extractedDate       DateTime?          @db.Date
-  suggestedCategoryId String?            @db.Uuid
+  extractedDate       DateTime?          @db.Timestamptz
+  extractedCategoryId String?            @db.Uuid
+  suggestedCategory   String?            @db.Text
   extractedType       TransactionType?
   extractedNotes      String?            @db.Text
   confidenceScore     Float?             @db.Real
   status              AiExtractionStatus @default(pending)
   confirmedAt         DateTime?          @db.Timestamptz
+  notes               String?            @db.Text
+  errorMessage        String?            @db.Text
+  tokenUsage          Decimal?           @db.Decimal(15, 2)
   createdAt           DateTime           @default(now()) @db.Timestamptz
   updatedAt           DateTime           @updatedAt @db.Timestamptz
 
   emailLog          EmailLog     @relation(fields: [emailLogId], references: [id], onDelete: Cascade)
   user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  suggestedCategory Category?    @relation("SuggestedCategory", fields: [suggestedCategoryId], references: [id], onDelete: SetNull)
+  extractedCategory Category?    @relation(fields: [extractedCategoryId], references: [id], onDelete: SetNull)
   transaction       Transaction?
 
   @@index([userId])
-  @@index([suggestedCategoryId])
+  @@index([extractedCategoryId])
   @@index([userId, status])
   @@map("ai_extractions")
 }
@@ -318,7 +319,7 @@ model Budget {
 
 model Bank {
   id             String  @id @default(uuid(7)) @db.Uuid
-  name           String  @db.VarChar(100)
+  name           String  @unique @db.VarChar(100)
   email          String? @db.VarChar(255)
   imageUrl       String
   isSupportEmail Boolean
@@ -350,9 +351,8 @@ model BankAccount {
 
 model EmailLog {
   id             BigInt         @id @default(autoincrement())
-  inboxId        String         @db.Uuid
   userId         String         @db.Uuid
-  gmailMessageId String?        @unique @db.VarChar(255)
+  gmailMessageId String         @unique @db.VarChar(255)
   fromAddress    String         @db.VarChar(255)
   subject        String?        @db.Text
   rawBody        String?        @db.Text
@@ -362,63 +362,34 @@ model EmailLog {
   processedAt    DateTime?      @db.Timestamptz
   createdAt      DateTime       @default(now()) @db.Timestamptz
 
-  inbox        EmailInbox    @relation(fields: [inboxId], references: [id], onDelete: Cascade)
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   aiExtraction AiExtraction?
-  attachments  Attachment[]
 
-  @@index([inboxId])
   @@index([userId])
   @@index([userId, status])
   @@index([receivedAt])
   @@map("email_logs")
 }
 
-model Attachment {
-  id            BigInt   @id @default(autoincrement())
-  transactionId String?  @db.Uuid
-  emailLogId    BigInt?
-  fileUrl       String   @db.Text
-  fileName      String   @db.VarChar(255)
-  fileType      String?  @db.VarChar(100)
-  fileSize      BigInt?
-  createdAt     DateTime @default(now()) @db.Timestamptz
-  updatedAt     DateTime @updatedAt @db.Timestamptz
-
-  transaction Transaction? @relation(fields: [transactionId], references: [id], onDelete: Cascade)
-  emailLog    EmailLog?    @relation(fields: [emailLogId], references: [id], onDelete: Cascade)
-
-  @@index([transactionId])
-  @@index([emailLogId])
-  @@map("attachments")
-}
-
-model UserSettings {
-  id                String   @id @default(uuid(7)) @db.Uuid
-  userId            String   @unique @db.Uuid
-  filterEmailsByBank Boolean  @default(false)
-  createdAt         DateTime @default(now()) @db.Timestamptz
-  updatedAt         DateTime @updatedAt @db.Timestamptz
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@map("user_settings")
-}
-
 model EmailImport {
-  id              String            @id @default(uuid(7)) @db.Uuid
-  userId          String            @db.Uuid
-  status          EmailImportStatus @default(gathering)
-  afterDate       DateTime          @db.Date
-  beforeDate      DateTime          @db.Date
-  totalEmails     Int               @default(0)
-  skippedEmails   Int               @default(0)
-  processedEmails Int               @default(0)
-  failedEmails    Int               @default(0)
-  createdAt       DateTime          @default(now()) @db.Timestamptz
-  updatedAt       DateTime          @updatedAt @db.Timestamptz
-  completedAt     DateTime?         @db.Timestamptz
+  id                   String            @id @default(uuid(7)) @db.Uuid
+  userId               String            @db.Uuid
+  status               EmailImportStatus @default(gathering)
+  afterDate            DateTime          @db.Date
+  beforeDate           DateTime          @db.Date
+  // Gathering
+  totalEmails          Int               @default(0)
+  // Processing
+  receivedEmails       Int               @default(0)
+  skippedEmails        Int               @default(0)
+  failedEmails         Int               @default(0)
+  // Analyzing
+  analyzedEmails       Int               @default(0)
+  failedAnalyzedEmails Int               @default(0)
+  processedEmails      Int               @default(0)
+  createdAt            DateTime          @default(now()) @db.Timestamptz
+  updatedAt            DateTime          @updatedAt @db.Timestamptz
+  completedAt          DateTime?         @db.Timestamptz
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

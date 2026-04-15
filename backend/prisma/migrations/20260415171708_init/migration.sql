@@ -5,16 +5,19 @@ CREATE TYPE "TransactionType" AS ENUM ('expense', 'income');
 CREATE TYPE "TransactionSource" AS ENUM ('manual', 'email', 'recurring');
 
 -- CreateEnum
-CREATE TYPE "EmailLogStatus" AS ENUM ('received', 'processing', 'parsed', 'failed');
-
--- CreateEnum
-CREATE TYPE "AiExtractionStatus" AS ENUM ('pending', 'confirmed', 'rejected', 'edited');
-
--- CreateEnum
 CREATE TYPE "RecurringFrequency" AS ENUM ('weekly', 'biweekly', 'monthly', 'yearly');
 
 -- CreateEnum
 CREATE TYPE "BudgetPeriod" AS ENUM ('daily', 'weekly', 'monthly');
+
+-- CreateEnum
+CREATE TYPE "EmailImportStatus" AS ENUM ('gathering', 'processing', 'analyzing', 'completed', 'failed');
+
+-- CreateEnum
+CREATE TYPE "EmailLogStatus" AS ENUM ('received', 'failed', 'skipped', 'analyzing', 'completed');
+
+-- CreateEnum
+CREATE TYPE "AiExtractionStatus" AS ENUM ('pending', 'confirmed', 'rejected', 'edited');
 
 -- CreateTable
 CREATE TABLE "users" (
@@ -75,6 +78,34 @@ CREATE TABLE "verifications" (
 );
 
 -- CreateTable
+CREATE TABLE "passkey" (
+    "id" UUID NOT NULL,
+    "name" VARCHAR(255),
+    "publicKey" TEXT NOT NULL,
+    "userId" UUID NOT NULL,
+    "credentialID" TEXT NOT NULL,
+    "counter" INTEGER NOT NULL,
+    "deviceType" VARCHAR(100) NOT NULL,
+    "backedUp" BOOLEAN NOT NULL,
+    "transports" TEXT,
+    "createdAt" TIMESTAMPTZ,
+    "aaguid" TEXT,
+
+    CONSTRAINT "passkey_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "user_settings" (
+    "id" UUID NOT NULL,
+    "userId" UUID NOT NULL,
+    "filterEmailsByBank" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT "user_settings_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "categories" (
     "id" UUID NOT NULL,
     "userId" UUID NOT NULL,
@@ -110,32 +141,22 @@ CREATE TABLE "transactions" (
 );
 
 -- CreateTable
-CREATE TABLE "email_inboxes" (
-    "id" UUID NOT NULL,
-    "userId" UUID NOT NULL,
-    "emailAddress" VARCHAR(255) NOT NULL,
-    "isActive" BOOLEAN NOT NULL DEFAULT true,
-    "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMPTZ NOT NULL,
-
-    CONSTRAINT "email_inboxes_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "ai_extractions" (
     "id" UUID NOT NULL,
     "emailLogId" BIGINT NOT NULL,
     "userId" UUID NOT NULL,
-    "extractedVendor" VARCHAR(255),
     "extractedAmount" DECIMAL(15,2),
     "extractedCurrency" CHAR(3),
-    "extractedDate" DATE,
-    "suggestedCategoryId" UUID,
+    "extractedDate" TIMESTAMPTZ,
+    "extractedCategoryId" UUID,
+    "suggestedCategory" TEXT,
     "extractedType" "TransactionType",
     "extractedNotes" TEXT,
     "confidenceScore" REAL,
     "status" "AiExtractionStatus" NOT NULL DEFAULT 'pending',
     "confirmedAt" TIMESTAMPTZ,
+    "notes" TEXT,
+    "errorMessage" TEXT,
     "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMPTZ NOT NULL,
 
@@ -201,8 +222,8 @@ CREATE TABLE "bank_accounts" (
 -- CreateTable
 CREATE TABLE "email_logs" (
     "id" BIGSERIAL NOT NULL,
-    "inboxId" UUID NOT NULL,
     "userId" UUID NOT NULL,
+    "gmailMessageId" VARCHAR(255) NOT NULL,
     "fromAddress" VARCHAR(255) NOT NULL,
     "subject" TEXT,
     "rawBody" TEXT,
@@ -216,18 +237,24 @@ CREATE TABLE "email_logs" (
 );
 
 -- CreateTable
-CREATE TABLE "attachments" (
-    "id" BIGSERIAL NOT NULL,
-    "transactionId" UUID,
-    "emailLogId" BIGINT,
-    "fileUrl" TEXT NOT NULL,
-    "fileName" VARCHAR(255) NOT NULL,
-    "fileType" VARCHAR(100),
-    "fileSize" BIGINT,
+CREATE TABLE "email_imports" (
+    "id" UUID NOT NULL,
+    "userId" UUID NOT NULL,
+    "status" "EmailImportStatus" NOT NULL DEFAULT 'gathering',
+    "afterDate" DATE NOT NULL,
+    "beforeDate" DATE NOT NULL,
+    "totalEmails" INTEGER NOT NULL DEFAULT 0,
+    "receivedEmails" INTEGER NOT NULL DEFAULT 0,
+    "skippedEmails" INTEGER NOT NULL DEFAULT 0,
+    "failedEmails" INTEGER NOT NULL DEFAULT 0,
+    "analyzedEmails" INTEGER NOT NULL DEFAULT 0,
+    "failedAnalyzedEmails" INTEGER NOT NULL DEFAULT 0,
+    "processedEmails" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMPTZ NOT NULL,
+    "completedAt" TIMESTAMPTZ,
 
-    CONSTRAINT "attachments_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "email_imports_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -244,6 +271,12 @@ CREATE INDEX "accounts_userId_idx" ON "accounts"("userId");
 
 -- CreateIndex
 CREATE INDEX "verifications_identifier_idx" ON "verifications"("identifier");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "user_settings_userId_key" ON "user_settings"("userId");
+
+-- CreateIndex
+CREATE INDEX "user_settings_userId_idx" ON "user_settings"("userId");
 
 -- CreateIndex
 CREATE INDEX "categories_userId_idx" ON "categories"("userId");
@@ -282,19 +315,13 @@ CREATE INDEX "transactions_userId_source_idx" ON "transactions"("userId", "sourc
 CREATE INDEX "transactions_bankAccountId_idx" ON "transactions"("bankAccountId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "email_inboxes_emailAddress_key" ON "email_inboxes"("emailAddress");
-
--- CreateIndex
-CREATE INDEX "email_inboxes_userId_idx" ON "email_inboxes"("userId");
-
--- CreateIndex
 CREATE UNIQUE INDEX "ai_extractions_emailLogId_key" ON "ai_extractions"("emailLogId");
 
 -- CreateIndex
 CREATE INDEX "ai_extractions_userId_idx" ON "ai_extractions"("userId");
 
 -- CreateIndex
-CREATE INDEX "ai_extractions_suggestedCategoryId_idx" ON "ai_extractions"("suggestedCategoryId");
+CREATE INDEX "ai_extractions_extractedCategoryId_idx" ON "ai_extractions"("extractedCategoryId");
 
 -- CreateIndex
 CREATE INDEX "ai_extractions_userId_status_idx" ON "ai_extractions"("userId", "status");
@@ -315,10 +342,13 @@ CREATE INDEX "budgets_userId_idx" ON "budgets"("userId");
 CREATE UNIQUE INDEX "budgets_userId_categoryId_period_key" ON "budgets"("userId", "categoryId", "period");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "banks_name_key" ON "banks"("name");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "bank_accounts_userId_bankId_key" ON "bank_accounts"("userId", "bankId");
 
 -- CreateIndex
-CREATE INDEX "email_logs_inboxId_idx" ON "email_logs"("inboxId");
+CREATE UNIQUE INDEX "email_logs_gmailMessageId_key" ON "email_logs"("gmailMessageId");
 
 -- CreateIndex
 CREATE INDEX "email_logs_userId_idx" ON "email_logs"("userId");
@@ -330,16 +360,22 @@ CREATE INDEX "email_logs_userId_status_idx" ON "email_logs"("userId", "status");
 CREATE INDEX "email_logs_receivedAt_idx" ON "email_logs"("receivedAt");
 
 -- CreateIndex
-CREATE INDEX "attachments_transactionId_idx" ON "attachments"("transactionId");
+CREATE INDEX "email_imports_userId_idx" ON "email_imports"("userId");
 
 -- CreateIndex
-CREATE INDEX "attachments_emailLogId_idx" ON "attachments"("emailLogId");
+CREATE INDEX "email_imports_userId_status_idx" ON "email_imports"("userId", "status");
 
 -- AddForeignKey
 ALTER TABLE "sessions" ADD CONSTRAINT "sessions_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "accounts" ADD CONSTRAINT "accounts_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "passkey" ADD CONSTRAINT "passkey_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "user_settings" ADD CONSTRAINT "user_settings_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "categories" ADD CONSTRAINT "categories_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -360,16 +396,13 @@ ALTER TABLE "transactions" ADD CONSTRAINT "transactions_aiExtractionId_fkey" FOR
 ALTER TABLE "transactions" ADD CONSTRAINT "transactions_bankAccountId_fkey" FOREIGN KEY ("bankAccountId") REFERENCES "bank_accounts"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "email_inboxes" ADD CONSTRAINT "email_inboxes_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "ai_extractions" ADD CONSTRAINT "ai_extractions_emailLogId_fkey" FOREIGN KEY ("emailLogId") REFERENCES "email_logs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ai_extractions" ADD CONSTRAINT "ai_extractions_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ai_extractions" ADD CONSTRAINT "ai_extractions_suggestedCategoryId_fkey" FOREIGN KEY ("suggestedCategoryId") REFERENCES "categories"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "ai_extractions" ADD CONSTRAINT "ai_extractions_extractedCategoryId_fkey" FOREIGN KEY ("extractedCategoryId") REFERENCES "categories"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "recurring_transactions" ADD CONSTRAINT "recurring_transactions_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -390,13 +423,7 @@ ALTER TABLE "bank_accounts" ADD CONSTRAINT "bank_accounts_userId_fkey" FOREIGN K
 ALTER TABLE "bank_accounts" ADD CONSTRAINT "bank_accounts_bankId_fkey" FOREIGN KEY ("bankId") REFERENCES "banks"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "email_logs" ADD CONSTRAINT "email_logs_inboxId_fkey" FOREIGN KEY ("inboxId") REFERENCES "email_inboxes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "email_logs" ADD CONSTRAINT "email_logs_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "attachments" ADD CONSTRAINT "attachments_transactionId_fkey" FOREIGN KEY ("transactionId") REFERENCES "transactions"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "attachments" ADD CONSTRAINT "attachments_emailLogId_fkey" FOREIGN KEY ("emailLogId") REFERENCES "email_logs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "email_imports" ADD CONSTRAINT "email_imports_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;

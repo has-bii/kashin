@@ -1,0 +1,20 @@
+[
+  {
+    "name": "myBCA",
+    "email": "bca@bca.co.id",
+    "imageUrl": "/images/bank/mybca.jpg",
+    "isSupportEmail": true
+  },
+  {
+    "name": "BCA Card",
+    "email": "PasporBCA@klikbca.com",
+    "imageUrl": "/images/bank/bca-card.jpg",
+    "isSupportEmail": true
+  },
+  {
+    "name": "Jago",
+    "email": "noreply@jago.com",
+    "imageUrl": "/images/bank/jago.jpg",
+    "isSupportEmail": true
+  }
+]

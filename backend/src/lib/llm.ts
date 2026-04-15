@@ -1,10 +1,18 @@
 import { ChatOpenAI } from "@langchain/openai"
 
-export const llm = new ChatOpenAI({
-  modelName: process.env.LLM_EMAIL_EXTRACTION_MODEL,
-  apiKey: process.env.OPENROUTER_API_KEY,
+export const model = new ChatOpenAI({
+  modelName: process.env.MODEL_EXTRACTION,
+  apiKey: process.env.OPENAI_API_KEY,
   configuration: {
     baseURL: "https://openrouter.ai/api/v1",
   },
-  temperature: 0,
+  reasoning: {
+    effort: "high",
+    summary: "detailed",
+  },
+  modelKwargs: {
+    response_format: { type: "json_object" },
+  },
+  temperature: 0.7,
+  maxRetries: 0,
 })

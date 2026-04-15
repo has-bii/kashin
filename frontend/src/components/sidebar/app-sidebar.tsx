@@ -17,6 +17,7 @@ import {
   CreditCardIcon,
   LayersIcon,
   LayoutDashboardIcon,
+  MailIcon,
   PieChartIcon,
   RepeatIcon,
   Settings2Icon,
@@ -53,6 +54,11 @@ const data = {
       title: "Anggaran",
       url: "/dashboard/budget",
       icon: <PieChartIcon />,
+    },
+    {
+      title: "Email Automation",
+      url: "/dashboard/email-automation",
+      icon: <MailIcon />,
     },
     {
       title: "Berulang",
