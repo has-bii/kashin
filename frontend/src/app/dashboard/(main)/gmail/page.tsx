@@ -7,10 +7,12 @@ import {
   MainPageTitle,
 } from "@/components/sidebar/main-page"
 import { SiteHeader } from "@/components/sidebar/site-header"
+import { MessagesListSkeleton } from "@/features/gmail/components/messages-list-skeleton"
 import dynamic from "next/dynamic"
 
 const MessagesList = dynamic(() => import("@/features/gmail/components/messages-list"), {
   ssr: false,
+  loading: () => <MessagesListSkeleton />,
 })
 
 export default function EmailAutomationPage() {
