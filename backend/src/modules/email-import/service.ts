@@ -11,7 +11,7 @@ export abstract class EmailImportService {
   static async importEmails(userId: string, after: string, before: string) {
     // Check if email import is processed
     const activeImport = await prisma.emailImport.findFirst({
-      where: { userId, status: { in: ["gathering", "processing", "processing", "analyzing"] } },
+      where: { userId, status: { in: ["gathering", "processing", "analyzing"] } },
     })
     if (activeImport) {
       throw status(409, "An import is already in progress")
@@ -134,7 +134,7 @@ export abstract class EmailImportService {
               }
             : undefined,
         failedEmails:
-          status === "skipped"
+          status === "failed"
             ? {
                 increment: 1,
               }
@@ -173,14 +173,14 @@ export abstract class EmailImportService {
         select: { id: true },
       })
 
-      await Promise.all([
+      await Promise.all(
         emailLogIds.map((acc) =>
           INNGEST_FUNCTION_EVENTS.processEmail.sendEvent({
             emailImportId,
             emailLogId: acc.id.toString(),
           }),
         ),
-      ])
+      )
     }
   }
 
