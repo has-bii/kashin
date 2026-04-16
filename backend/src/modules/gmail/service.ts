@@ -1,4 +1,5 @@
 import { auth } from "../../lib/auth"
+import { logger } from "../../lib/logger"
 import { getMessagesQuery } from "./query"
 import { InternalServerError, status } from "elysia"
 import { gmail_v1, google } from "googleapis"
@@ -101,7 +102,7 @@ export abstract class GmailService {
       return messageIds
     } catch (error) {
       // Logging the actual error object helps with debugging 401 vs 429 errors
-      console.error("Gmail API Error:", error)
+      logger.child({ module: "gmail" }).error({ err: error }, "Gmail API error")
       throw new InternalServerError("Failed to fetch emails from Gmail")
     }
   }
@@ -146,7 +147,7 @@ export abstract class GmailService {
       })
       return response.data
     } catch (error) {
-      console.error("Failed to setup Gmail watch:", error)
+      logger.child({ module: "gmail" }).error({ err: error }, "Failed to setup Gmail watch")
       return status(500)
     }
   }
