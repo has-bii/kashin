@@ -1,5 +1,6 @@
 import { status } from "elysia"
 import { OAuth2Client } from "google-auth-library"
+import { logger } from "../../lib/logger"
 import { prisma } from "../../lib/prisma"
 import { qstash } from "../../lib/qstash"
 
@@ -45,7 +46,7 @@ export abstract class WebhookService {
 
       return status(200, { received: true })
     } catch (error) {
-      console.error("Webhook Error: ", error)
+      logger.child({ module: "webhook" }).error({ err: error }, "Webhook error")
       return status(500)
     }
   }
