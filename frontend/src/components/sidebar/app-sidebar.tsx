@@ -56,14 +56,14 @@ const data = {
       icon: <PieChartIcon />,
     },
     {
-      title: "Email Automation",
-      url: "/dashboard/email-automation",
-      icon: <MailIcon />,
-    },
-    {
       title: "Berulang",
       url: "/dashboard/recurring-transactions",
       icon: <RepeatIcon />,
+    },
+    {
+      title: "Email",
+      url: "/dashboard/email",
+      icon: <MailIcon />,
     },
   ],
   navSecondary: [
