@@ -40,9 +40,8 @@ const features = [
 export function LandingFeatures() {
   return (
     <section
-      className="bg-background"
+      className="bg-background px-4 py-16 sm:px-6 md:py-24"
       style={{
-        padding: "100px 24px",
         backgroundImage: `
           linear-gradient(color-mix(in oklch, var(--border) 50%, transparent) 1px, transparent 1px),
           linear-gradient(90deg, color-mix(in oklch, var(--border) 50%, transparent) 1px, transparent 1px)
@@ -50,45 +49,27 @@ export function LandingFeatures() {
         backgroundSize: "64px 64px",
       }}
     >
-      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+      <div className="mx-auto max-w-6xl">
         {/* Section header */}
-        <div style={{ marginBottom: 64 }}>
+        <div className="mb-12 md:mb-16">
           <p
-            className="text-primary"
-            style={{
-              fontFamily: "var(--font-geist-sans)",
-              fontSize: 11,
-              fontWeight: 600,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              marginBottom: 14,
-            }}
+            className="text-primary mb-3 uppercase tracking-[0.12em]"
+            style={{ fontFamily: "var(--font-geist-sans)", fontSize: 11, fontWeight: 600 }}
           >
             Features
           </p>
           <h2
-            className="text-foreground"
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "clamp(36px, 4vw, 52px)",
-              fontWeight: 300,
-              lineHeight: 1.15,
-            }}
+            className="text-foreground text-[clamp(30px,4vw,52px)] leading-[1.15]"
+            style={{ fontFamily: "var(--font-display)", fontWeight: 300 }}
           >
             Everything your finances need.
           </h2>
         </div>
 
         {/* Feature grid */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: 1,
-          }}
-        >
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-px sm:overflow-hidden sm:rounded-xl lg:grid-cols-3">
           {features.map((feature, i) => (
-            <FeatureCard key={i} {...feature} index={i} />
+            <FeatureCard key={i} {...feature} />
           ))}
         </div>
       </div>
@@ -100,44 +81,22 @@ function FeatureCard({
   icon,
   title,
   description,
-  index,
 }: {
   icon: string
   title: string
   description: string
-  index: number
 }) {
-  const isTopRow = index < 3
-  const isBottomRow = index >= 3
-  const isLeftCol = index % 3 === 0
-  const isRightCol = index % 3 === 2
-
-  const borderRadius = `${isTopRow && isLeftCol ? 12 : 0}px ${isTopRow && isRightCol ? 12 : 0}px ${isBottomRow && isRightCol ? 12 : 0}px ${isBottomRow && isLeftCol ? 12 : 0}px`
-
   return (
     <div
-      className="bg-card border-border transition-colors hover:bg-muted"
-      style={{
-        padding: "36px 32px",
-        border: "1px solid var(--border)",
-        borderRadius,
-        cursor: "default",
-      }}
+      className="border-border bg-card cursor-default border p-6 transition-colors hover:bg-muted sm:p-8 md:p-9 rounded-xl sm:rounded-none"
     >
       {/* Icon */}
       <div
+        className="mb-5 flex size-11 items-center justify-center rounded-[10px] text-xl"
         style={{
-          width: 44,
-          height: 44,
           background: "color-mix(in oklch, var(--primary) 12%, transparent)",
           border: "1px solid color-mix(in oklch, var(--primary) 25%, transparent)",
-          borderRadius: 10,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: 20,
           color: "var(--primary)",
-          marginBottom: 20,
         }}
       >
         {icon}
@@ -145,26 +104,16 @@ function FeatureCard({
 
       {/* Title */}
       <h3
-        className="text-foreground"
-        style={{
-          fontFamily: "var(--font-display)",
-          fontSize: 22,
-          fontWeight: 500,
-          marginBottom: 10,
-          lineHeight: 1.2,
-        }}
+        className="text-foreground mb-2.5 text-lg leading-[1.2] sm:text-xl md:text-[22px]"
+        style={{ fontFamily: "var(--font-display)", fontWeight: 500 }}
       >
         {title}
       </h3>
 
       {/* Description */}
       <p
-        className="text-muted-foreground"
-        style={{
-          fontFamily: "var(--font-geist-sans)",
-          fontSize: 14,
-          lineHeight: 1.7,
-        }}
+        className="text-muted-foreground leading-[1.7]"
+        style={{ fontFamily: "var(--font-geist-sans)", fontSize: 14 }}
       >
         {description}
       </p>

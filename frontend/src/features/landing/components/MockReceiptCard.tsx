@@ -7,98 +7,54 @@ export function MockReceiptCard() {
       }}
     >
       <div
-        className="bg-card border-border"
+        className="border-border bg-card relative w-72 overflow-hidden rounded-2xl border p-6 lg:w-[340px]"
         style={{
-          width: 340,
-          border: "1px solid var(--border)",
-          borderRadius: 16,
-          padding: "24px",
           boxShadow:
             "0 40px 80px -20px color-mix(in oklch, var(--background) 40%, transparent), 0 0 0 1px color-mix(in oklch, var(--foreground) 5%, transparent), inset 0 1px 0 color-mix(in oklch, var(--foreground) 8%, transparent)",
-          position: "relative",
-          overflow: "hidden",
         }}
       >
         {/* Scan line animation */}
         <div
+          className="pointer-events-none absolute left-0 right-0 h-0.5"
           style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            height: 2,
             background:
               "linear-gradient(90deg, transparent, color-mix(in oklch, var(--primary) 60%, transparent), transparent)",
             animation: "landing-scan-line 3s ease-in-out infinite",
-            pointerEvents: "none",
           }}
         />
 
         {/* Card header */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 18,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div
-              className="bg-primary flex items-center justify-center"
-              style={{ width: 22, height: 22, borderRadius: 5 }}
-            >
+        <div className="mb-[18px] flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="bg-primary flex size-[22px] items-center justify-center rounded-[5px]">
               <span
                 className="text-primary-foreground"
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontSize: 13,
-                  fontWeight: 700,
-                }}
+                style={{ fontFamily: "var(--font-display)", fontSize: 13, fontWeight: 700 }}
               >
                 K
               </span>
             </div>
             <span
-              className="text-foreground"
-              style={{
-                fontFamily: "var(--font-geist-sans)",
-                fontSize: 13,
-                fontWeight: 500,
-                letterSpacing: "0.02em",
-              }}
+              className="text-foreground tracking-[0.02em]"
+              style={{ fontFamily: "var(--font-geist-sans)", fontSize: 13, fontWeight: 500 }}
             >
               KASHIN
             </span>
           </div>
           <div
+            className="flex items-center gap-[5px] rounded-full px-[10px] py-[3px]"
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 5,
               background: "color-mix(in oklch, var(--primary) 15%, transparent)",
               border: "1px solid color-mix(in oklch, var(--primary) 30%, transparent)",
-              borderRadius: 20,
-              padding: "3px 10px",
             }}
           >
             <div
-              style={{
-                width: 5,
-                height: 5,
-                borderRadius: "50%",
-                background: "var(--primary)",
-                animation: "landing-pulse-dot 1.5s ease-in-out infinite",
-              }}
+              className="size-[5px] rounded-full bg-primary"
+              style={{ animation: "landing-pulse-dot 1.5s ease-in-out infinite" }}
             />
             <span
-              className="text-primary"
-              style={{
-                fontFamily: "var(--font-geist-sans)",
-                fontSize: 10,
-                fontWeight: 600,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-              }}
+              className="text-primary uppercase tracking-[0.08em]"
+              style={{ fontFamily: "var(--font-geist-sans)", fontSize: 10, fontWeight: 600 }}
             >
               AI Extracted
             </span>
@@ -107,155 +63,85 @@ export function MockReceiptCard() {
 
         {/* Email source */}
         <div
-          className="bg-muted border-border"
-          style={{
-            border: "1px solid var(--border)",
-            borderRadius: 8,
-            padding: "10px 14px",
-            marginBottom: 20,
-          }}
+          className="border-border bg-muted mb-5 rounded-lg border p-[10px_14px]"
         >
           <p
-            className="text-muted-foreground"
-            style={{
-              fontFamily: "var(--font-geist-sans)",
-              fontSize: 10,
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-              marginBottom: 4,
-            }}
+            className="text-muted-foreground mb-1 uppercase tracking-[0.06em]"
+            style={{ fontFamily: "var(--font-geist-sans)", fontSize: 10 }}
           >
             Email source
           </p>
           <p
             className="text-primary"
-            style={{
-              fontFamily: "var(--font-geist-mono)",
-              fontSize: 12,
-            }}
+            style={{ fontFamily: "var(--font-geist-mono)", fontSize: 12 }}
           >
             auto-confirm@amazon.com
           </p>
           <p
-            className="text-muted-foreground"
-            style={{
-              fontFamily: "var(--font-geist-sans)",
-              fontSize: 11,
-              marginTop: 2,
-            }}
+            className="text-muted-foreground mt-0.5"
+            style={{ fontFamily: "var(--font-geist-sans)", fontSize: 11 }}
           >
-            "Your Amazon.com order has shipped"
+            &quot;Your Amazon.com order has shipped&quot;
           </p>
         </div>
 
         {/* Transaction details */}
-        <div style={{ marginBottom: 20 }}>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: "12px 8px",
-            }}
-          >
+        <div className="mb-5">
+          <div className="grid grid-cols-2 gap-x-2 gap-y-3">
             <div>
               <p
-                className="text-muted-foreground"
-                style={{
-                  fontFamily: "var(--font-geist-sans)",
-                  fontSize: 10,
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                  marginBottom: 3,
-                }}
+                className="text-muted-foreground mb-[3px] uppercase tracking-[0.06em]"
+                style={{ fontFamily: "var(--font-geist-sans)", fontSize: 10 }}
               >
                 Merchant
               </p>
               <p
                 className="text-foreground"
-                style={{
-                  fontFamily: "var(--font-geist-sans)",
-                  fontSize: 14,
-                  fontWeight: 500,
-                }}
+                style={{ fontFamily: "var(--font-geist-sans)", fontSize: 14, fontWeight: 500 }}
               >
                 Amazon.com
               </p>
             </div>
             <div>
               <p
-                className="text-muted-foreground"
-                style={{
-                  fontFamily: "var(--font-geist-sans)",
-                  fontSize: 10,
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                  marginBottom: 3,
-                }}
+                className="text-muted-foreground mb-[3px] uppercase tracking-[0.06em]"
+                style={{ fontFamily: "var(--font-geist-sans)", fontSize: 10 }}
               >
                 Amount
               </p>
               <p
                 className="text-foreground"
-                style={{
-                  fontFamily: "var(--font-geist-mono)",
-                  fontSize: 18,
-                  fontWeight: 600,
-                }}
+                style={{ fontFamily: "var(--font-geist-mono)", fontSize: 18, fontWeight: 600 }}
               >
                 $94.99
               </p>
             </div>
             <div>
               <p
-                className="text-muted-foreground"
-                style={{
-                  fontFamily: "var(--font-geist-sans)",
-                  fontSize: 10,
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                  marginBottom: 3,
-                }}
+                className="text-muted-foreground mb-[3px] uppercase tracking-[0.06em]"
+                style={{ fontFamily: "var(--font-geist-sans)", fontSize: 10 }}
               >
                 Date
               </p>
               <p
                 className="text-foreground"
-                style={{
-                  fontFamily: "var(--font-geist-sans)",
-                  fontSize: 13,
-                }}
+                style={{ fontFamily: "var(--font-geist-sans)", fontSize: 13 }}
               >
                 Apr 14, 2026
               </p>
             </div>
             <div>
               <p
-                className="text-muted-foreground"
-                style={{
-                  fontFamily: "var(--font-geist-sans)",
-                  fontSize: 10,
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                  marginBottom: 3,
-                }}
+                className="text-muted-foreground mb-[3px] uppercase tracking-[0.06em]"
+                style={{ fontFamily: "var(--font-geist-sans)", fontSize: 10 }}
               >
                 Category
               </p>
-              <div
-                className="bg-muted border-border inline-flex items-center gap-1"
-                style={{
-                  border: "1px solid var(--border)",
-                  borderRadius: 6,
-                  padding: "2px 8px",
-                }}
-              >
-                <span style={{ fontSize: 11 }}>🛍</span>
+              <div className="border-border bg-muted inline-flex items-center gap-1 rounded-md border px-2 py-[2px]">
+                <span className="text-[11px]">🛍</span>
                 <span
                   className="text-muted-foreground"
-                  style={{
-                    fontFamily: "var(--font-geist-sans)",
-                    fontSize: 11,
-                  }}
+                  style={{ fontFamily: "var(--font-geist-sans)", fontSize: 11 }}
                 >
                   Shopping
                 </span>
@@ -265,33 +151,16 @@ export function MockReceiptCard() {
         </div>
 
         {/* Action buttons */}
-        <div style={{ display: "flex", gap: 8 }}>
+        <div className="flex gap-2">
           <button
-            className="bg-primary text-primary-foreground cursor-pointer"
-            style={{
-              flex: 1,
-              border: "none",
-              borderRadius: 8,
-              padding: "9px 0",
-              fontFamily: "var(--font-geist-sans)",
-              fontSize: 12,
-              fontWeight: 600,
-              letterSpacing: "0.02em",
-            }}
+            className="bg-primary text-primary-foreground cursor-pointer flex-1 rounded-lg border-none py-[9px] tracking-[0.02em]"
+            style={{ fontFamily: "var(--font-geist-sans)", fontSize: 12, fontWeight: 600 }}
           >
             ✓ Confirm
           </button>
           <button
-            className="bg-muted text-muted-foreground border-border cursor-pointer"
-            style={{
-              flex: 1,
-              border: "1px solid var(--border)",
-              borderRadius: 8,
-              padding: "9px 0",
-              fontFamily: "var(--font-geist-sans)",
-              fontSize: 12,
-              fontWeight: 500,
-            }}
+            className="bg-muted text-muted-foreground border-border cursor-pointer flex-1 rounded-lg border py-[9px]"
+            style={{ fontFamily: "var(--font-geist-sans)", fontSize: 12, fontWeight: 500 }}
           >
             ✕ Reject
           </button>

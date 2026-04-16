@@ -4,84 +4,47 @@ import { MockReceiptCard } from "./MockReceiptCard"
 export function LandingHero() {
   return (
     <section
-      className="bg-background"
+      className="bg-background relative flex min-h-dvh items-center overflow-hidden pt-[60px]"
       style={{
-        minHeight: "100dvh",
         backgroundImage: `
           linear-gradient(color-mix(in oklch, var(--border) 50%, transparent) 1px, transparent 1px),
           linear-gradient(90deg, color-mix(in oklch, var(--border) 50%, transparent) 1px, transparent 1px)
         `,
         backgroundSize: "64px 64px",
-        display: "flex",
-        alignItems: "center",
-        position: "relative",
-        overflow: "hidden",
-        paddingTop: 60,
       }}
     >
       {/* Radial ambient glow */}
       <div
+        className="pointer-events-none absolute w-[400px] h-[400px] lg:w-[600px] lg:h-[600px]"
         style={{
-          position: "absolute",
           top: "20%",
           right: "10%",
-          width: 600,
-          height: 600,
           background:
             "radial-gradient(circle, color-mix(in oklch, var(--primary) 8%, transparent) 0%, transparent 70%)",
-          pointerEvents: "none",
         }}
       />
       <div
+        className="pointer-events-none absolute w-[300px] h-[300px] sm:w-[400px] sm:h-[400px]"
         style={{
-          position: "absolute",
           bottom: "10%",
           left: "-5%",
-          width: 400,
-          height: 400,
           background:
             "radial-gradient(circle, color-mix(in oklch, var(--primary) 5%, transparent) 0%, transparent 70%)",
-          pointerEvents: "none",
         }}
       />
 
-      <div
-        className="w-full px-6"
-        style={{
-          maxWidth: 1200,
-          margin: "0 auto",
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 64,
-          alignItems: "center",
-        }}
-      >
+      <div className="mx-auto grid w-full max-w-6xl grid-cols-1 items-center gap-8 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-2 lg:gap-16">
         {/* Left: Text content */}
         <div>
           {/* Eyebrow */}
           <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              marginBottom: 28,
-              animation: "landing-fade-up 0.6s ease-out both",
-              animationDelay: "0.1s",
-            }}
+            className="mb-7 inline-flex items-center gap-2"
+            style={{ animation: "landing-fade-up 0.6s ease-out both", animationDelay: "0.1s" }}
           >
-            <div
-              className="bg-primary"
-              style={{ height: 1, width: 28 }}
-            />
+            <div className="bg-primary h-px w-7" />
             <span
-              className="text-primary"
-              style={{
-                fontFamily: "var(--font-geist-sans)",
-                fontSize: 11,
-                fontWeight: 600,
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-              }}
+              className="text-primary uppercase tracking-[0.12em]"
+              style={{ fontFamily: "var(--font-geist-sans)", fontSize: 11, fontWeight: 600 }}
             >
               AI-Powered Expense Tracking
             </span>
@@ -89,37 +52,19 @@ export function LandingHero() {
 
           {/* Headline */}
           <h1
-            className="text-foreground"
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "clamp(52px, 6vw, 80px)",
-              fontWeight: 300,
-              lineHeight: 1.05,
-              marginBottom: 28,
-              animation: "landing-fade-up 0.6s ease-out both",
-              animationDelay: "0.2s",
-            }}
+            className="text-foreground mb-7 text-[clamp(40px,6vw,80px)] leading-[1.05]"
+            style={{ fontFamily: "var(--font-display)", fontWeight: 300, animation: "landing-fade-up 0.6s ease-out both", animationDelay: "0.2s" }}
           >
             Your finances,
             <br />
-            <em
-              className="text-primary"
-              style={{ fontStyle: "italic" }}
-            >
-              finally
-            </em>{" "}
-            understood.
+            <em className="text-primary italic">finally</em> understood.
           </h1>
 
           {/* Subtext */}
           <p
-            className="text-muted-foreground"
+            className="text-muted-foreground mb-10 max-w-[440px] text-base leading-[1.7] sm:text-[17px]"
             style={{
               fontFamily: "var(--font-geist-sans)",
-              fontSize: 17,
-              lineHeight: 1.7,
-              marginBottom: 40,
-              maxWidth: 440,
               animation: "landing-fade-up 0.6s ease-out both",
               animationDelay: "0.35s",
             }}
@@ -131,44 +76,22 @@ export function LandingHero() {
           {/* CTAs */}
           <div
             className="flex flex-wrap items-center gap-4"
-            style={{
-              animation: "landing-fade-up 0.6s ease-out both",
-              animationDelay: "0.5s",
-            }}
+            style={{ animation: "landing-fade-up 0.6s ease-out both", animationDelay: "0.5s" }}
           >
             <Link href="/auth/register">
               <button
-                className="bg-primary text-primary-foreground cursor-pointer transition-[filter,transform] hover:brightness-110 hover:-translate-y-px"
-                style={{
-                  border: "none",
-                  padding: "14px 28px",
-                  fontFamily: "var(--font-geist-sans)",
-                  fontSize: 15,
-                  fontWeight: 600,
-                  borderRadius: 10,
-                  letterSpacing: "0.01em",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                }}
+                className="bg-primary text-primary-foreground flex cursor-pointer items-center gap-2 rounded-[10px] border-none px-7 py-3.5 text-sm font-semibold tracking-[0.01em] transition-[filter,transform] hover:brightness-110 hover:-translate-y-px sm:text-[15px] sm:px-8"
+                style={{ fontFamily: "var(--font-geist-sans)" }}
               >
                 Get started free
-                <span style={{ fontSize: 18, lineHeight: 1 }}>→</span>
+                <span className="text-lg leading-none">→</span>
               </button>
             </Link>
 
             <Link href="/auth/login">
               <button
-                className="text-muted-foreground border-border cursor-pointer transition-[border-color,color] hover:border-foreground/25 hover:text-foreground"
-                style={{
-                  background: "transparent",
-                  border: "1px solid var(--border)",
-                  padding: "14px 28px",
-                  fontFamily: "var(--font-geist-sans)",
-                  fontSize: 15,
-                  fontWeight: 400,
-                  borderRadius: 10,
-                }}
+                className="text-muted-foreground border-border cursor-pointer rounded-[10px] border bg-transparent px-7 py-3.5 text-sm font-normal transition-[border-color,color] hover:border-foreground/25 hover:text-foreground sm:text-[15px] sm:px-8"
+                style={{ fontFamily: "var(--font-geist-sans)" }}
               >
                 Sign in
               </button>
@@ -177,68 +100,35 @@ export function LandingHero() {
 
           {/* Micro-stat chip */}
           <div
-            style={{
-              marginTop: 48,
-              display: "flex",
-              alignItems: "center",
-              animation: "landing-fade-up 0.6s ease-out both",
-              animationDelay: "0.65s",
-            }}
+            className="mt-10 sm:mt-12"
+            style={{ display: "flex", alignItems: "center", animation: "landing-fade-up 0.6s ease-out both", animationDelay: "0.65s" }}
           >
-            <div
-              className="bg-card border-border flex items-center gap-4"
-              style={{
-                border: "1px solid var(--border)",
-                borderRadius: 10,
-                padding: "10px 18px",
-              }}
-            >
+            <div className="border-border bg-card flex items-center gap-4 rounded-[10px] border px-[18px] py-[10px]">
               <div>
                 <p
-                  className="text-foreground"
-                  style={{
-                    fontFamily: "var(--font-geist-mono)",
-                    fontSize: 20,
-                    fontWeight: 600,
-                    lineHeight: 1,
-                  }}
+                  className="text-foreground leading-none"
+                  style={{ fontFamily: "var(--font-geist-mono)", fontSize: 20, fontWeight: 600 }}
                 >
                   0
                 </p>
                 <p
-                  className="text-muted-foreground"
-                  style={{
-                    fontFamily: "var(--font-geist-sans)",
-                    fontSize: 11,
-                    marginTop: 2,
-                  }}
+                  className="text-muted-foreground mt-0.5"
+                  style={{ fontFamily: "var(--font-geist-sans)", fontSize: 11 }}
                 >
                   Manual entries
                 </p>
               </div>
-              <div
-                className="bg-border"
-                style={{ width: 1, height: 32 }}
-              />
+              <div className="bg-border h-8 w-px" />
               <div>
                 <p
-                  className="text-primary"
-                  style={{
-                    fontFamily: "var(--font-geist-mono)",
-                    fontSize: 20,
-                    fontWeight: 600,
-                    lineHeight: 1,
-                  }}
+                  className="text-primary leading-none"
+                  style={{ fontFamily: "var(--font-geist-mono)", fontSize: 20, fontWeight: 600 }}
                 >
                   100%
                 </p>
                 <p
-                  className="text-muted-foreground"
-                  style={{
-                    fontFamily: "var(--font-geist-sans)",
-                    fontSize: 11,
-                    marginTop: 2,
-                  }}
+                  className="text-muted-foreground mt-0.5"
+                  style={{ fontFamily: "var(--font-geist-sans)", fontSize: 11 }}
                 >
                   Automated
                 </p>
@@ -249,13 +139,8 @@ export function LandingHero() {
 
         {/* Right: Receipt card */}
         <div
-          className="hidden lg:flex"
-          style={{
-            justifyContent: "center",
-            alignItems: "center",
-            animation: "landing-fade-up 0.6s ease-out both",
-            animationDelay: "0.4s",
-          }}
+          className="hidden lg:flex items-center justify-center"
+          style={{ animation: "landing-fade-up 0.6s ease-out both", animationDelay: "0.4s" }}
         >
           <MockReceiptCard />
         </div>

@@ -24,134 +24,64 @@ const steps = [
 
 export function LandingHowItWorks() {
   return (
-    <section
-      className="bg-card border-y border-border"
-      style={{ padding: "100px 24px" }}
-    >
-      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+    <section className="bg-card border-y border-border px-4 py-16 sm:px-6 md:py-24">
+      <div className="mx-auto max-w-6xl">
         {/* Section header */}
-        <div style={{ marginBottom: 64 }}>
+        <div className="mb-12 md:mb-16">
           <p
-            className="text-primary"
-            style={{
-              fontFamily: "var(--font-geist-sans)",
-              fontSize: 11,
-              fontWeight: 600,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              marginBottom: 14,
-            }}
+            className="text-primary mb-3 uppercase tracking-[0.12em]"
+            style={{ fontFamily: "var(--font-geist-sans)", fontSize: 11, fontWeight: 600 }}
           >
             How it works
           </p>
           <h2
-            className="text-foreground"
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "clamp(36px, 4vw, 52px)",
-              fontWeight: 300,
-              lineHeight: 1.15,
-            }}
+            className="text-foreground text-[clamp(30px,4vw,52px)] leading-[1.15]"
+            style={{ fontFamily: "var(--font-display)", fontWeight: 300 }}
           >
             From inbox to insight,{" "}
-            <em className="text-primary" style={{ fontStyle: "italic" }}>
-              automatically.
-            </em>
+            <em className="text-primary italic">automatically.</em>
           </h2>
         </div>
 
         {/* Steps */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: 2,
-          }}
-        >
+        <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
           {steps.map((step, i) => (
             <div
               key={step.number}
-              className="bg-background border-border"
-              style={{
-                position: "relative",
-                padding: "36px 32px",
-                border: "1px solid var(--border)",
-                borderRadius:
-                  i === 0 ? "12px 0 0 12px" : i === 2 ? "0 12px 12px 0" : "0",
-              }}
+              className="border-border bg-background relative border p-6 sm:p-8 md:p-9 first:rounded-xl md:first:rounded-l-xl md:first:rounded-r-none last:rounded-xl md:last:rounded-r-xl md:last:rounded-l-none max-md:not-first:not-last:rounded-none"
             >
               {/* Step number */}
               <div
-                className="text-primary"
-                style={{
-                  fontFamily: "var(--font-geist-mono)",
-                  fontSize: 11,
-                  fontWeight: 600,
-                  letterSpacing: "0.1em",
-                  marginBottom: 20,
-                }}
+                className="text-primary mb-5 tracking-[0.1em]"
+                style={{ fontFamily: "var(--font-geist-mono)", fontSize: 11, fontWeight: 600 }}
               >
                 {step.number}
               </div>
 
               {/* Icon */}
-              <div
-                className="text-foreground"
-                style={{
-                  fontSize: 28,
-                  marginBottom: 16,
-                  lineHeight: 1,
-                }}
-              >
+              <div className="text-foreground mb-4 text-[28px] leading-none">
                 {step.icon}
               </div>
 
               {/* Title */}
               <h3
-                className="text-foreground"
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontSize: 26,
-                  fontWeight: 400,
-                  marginBottom: 12,
-                  lineHeight: 1.2,
-                }}
+                className="text-foreground mb-3 text-xl leading-[1.2] sm:text-2xl md:text-[26px]"
+                style={{ fontFamily: "var(--font-display)", fontWeight: 400 }}
               >
                 {step.title}
               </h3>
 
               {/* Description */}
               <p
-                className="text-muted-foreground"
-                style={{
-                  fontFamily: "var(--font-geist-sans)",
-                  fontSize: 14,
-                  lineHeight: 1.7,
-                }}
+                className="text-muted-foreground leading-[1.7]"
+                style={{ fontFamily: "var(--font-geist-sans)", fontSize: 14 }}
               >
                 {step.description}
               </p>
 
-              {/* Connector arrow */}
+              {/* Connector arrow — hidden on mobile */}
               {i < 2 && (
-                <div
-                  className="bg-primary text-primary-foreground"
-                  style={{
-                    position: "absolute",
-                    right: -14,
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    zIndex: 1,
-                    width: 26,
-                    height: 26,
-                    borderRadius: "50%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 11,
-                    fontWeight: 700,
-                  }}
-                >
+                <div className="bg-primary text-primary-foreground absolute right-[-14px] top-1/2 z-1 hidden size-[26px] -translate-y-1/2 items-center justify-center rounded-full text-[11px] font-bold md:flex">
                   →
                 </div>
               )}
