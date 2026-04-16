@@ -1,3 +1,4 @@
+import { BadRequest } from "../../global/error"
 import { auth } from "../../lib/auth"
 import { logger } from "../../lib/logger"
 import { getMessagesQuery } from "./query"
@@ -9,12 +10,14 @@ type GetMessagesQuery = (typeof getMessagesQuery)["static"]
 export abstract class GmailService {
   /* ------------------------------ API Endpoints ----------------------------- */
   static async getMessages(userId: string, query: GetMessagesQuery) {
-    const { accessToken } = await auth.api.getAccessToken({
-      body: {
-        userId,
-        providerId: "google",
-      },
-    })
+    const accessToken = await auth.api
+      .getAccessToken({
+        body: { userId, providerId: "google" },
+      })
+      .then((res) => res.accessToken)
+      .catch(() => null)
+
+    if (!accessToken) throw new BadRequest("Your account hasn't linked to Google account")
 
     const gmail = this.createGmailClient(accessToken)
 

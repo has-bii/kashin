@@ -1,5 +1,6 @@
 "use client"
 
+import { QueryErrorBoundary } from "@/components/query-error-boundary"
 import {
   MainPage,
   MainPageDescripton,
@@ -26,7 +27,9 @@ export default function EmailAutomationPage() {
             <MainPageDescripton></MainPageDescripton>
           </div>
         </MainPageHeader>
-        <MessagesList />
+        <QueryErrorBoundary>
+          <MessagesList />
+        </QueryErrorBoundary>
       </MainPage>
     </>
   )
