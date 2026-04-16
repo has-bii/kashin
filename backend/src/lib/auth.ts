@@ -1,5 +1,5 @@
 import { prisma } from "./prisma"
-import { logger } from "./logger"
+import { sendVerificationOtp, sendWelcomeEmail, sendPasswordResetEmail } from "./email"
 import { passkey } from "@better-auth/passkey"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { betterAuth } from "better-auth/minimal"
@@ -15,6 +15,10 @@ export const auth = betterAuth({
     enabled: true,
     autoSignIn: false,
     requireEmailVerification: true,
+    // eslint-disable-next-line @typescript-eslint/require-await
+    sendResetPassword: async ({ user, url }) => {
+      void sendPasswordResetEmail(user.email, url)
+    },
   },
   emailVerification: {
     sendOnSignUp: true,
@@ -53,6 +57,7 @@ export const auth = betterAuth({
               filterEmailsByBank: false,
             },
           })
+          void sendWelcomeEmail(user.email, user.name)
         },
       },
     },
@@ -67,7 +72,7 @@ export const auth = betterAuth({
       overrideDefaultEmailVerification: true,
       // eslint-disable-next-line @typescript-eslint/require-await
       sendVerificationOTP: async ({ email, otp, type }) => {
-        logger.info({ email, otp, type }, "OTP generated")
+        void sendVerificationOtp(email, otp, type)
       },
     }),
     passkey({

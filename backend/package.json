@@ -29,6 +29,7 @@
     "pino": "^10.3.1",
     "postal-mime": "^2.7.4",
     "prismabox": "^1.1.26",
+    "resend": "^6.12.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
