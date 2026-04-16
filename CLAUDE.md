@@ -97,7 +97,7 @@ Backend skills in `.claude/skills/backend/` (endpoint, middleware, database, val
 
 ## Context Navigation (Graphify)
 
-**Skill:** Use `.claude/skills/explore/SKILL.md` whenever exploring the codebase — it implements the full 3-layer query workflow with context-mode tools.
+**Skill:** Use `.claude/skills/codebase-explore/SKILL.md` whenever exploring the codebase — it implements the full 3-layer query workflow with context-mode tools.
 
 ### 3-Layer Query Rule
 1. **First:** query `graphify-out/graph.json`

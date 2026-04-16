@@ -40,12 +40,12 @@ const features = [
 export function LandingFeatures() {
   return (
     <section
+      className="bg-background"
       style={{
-        backgroundColor: "oklch(0.09 0.008 240)",
         padding: "100px 24px",
         backgroundImage: `
-          linear-gradient(oklch(1 0 0 / 0.025) 1px, transparent 1px),
-          linear-gradient(90deg, oklch(1 0 0 / 0.025) 1px, transparent 1px)
+          linear-gradient(color-mix(in oklch, var(--border) 50%, transparent) 1px, transparent 1px),
+          linear-gradient(90deg, color-mix(in oklch, var(--border) 50%, transparent) 1px, transparent 1px)
         `,
         backgroundSize: "64px 64px",
       }}
@@ -54,11 +54,11 @@ export function LandingFeatures() {
         {/* Section header */}
         <div style={{ marginBottom: 64 }}>
           <p
+            className="text-primary"
             style={{
               fontFamily: "var(--font-geist-sans)",
               fontSize: 11,
               fontWeight: 600,
-              color: "oklch(0.527 0.154 150.069)",
               letterSpacing: "0.12em",
               textTransform: "uppercase",
               marginBottom: 14,
@@ -67,11 +67,11 @@ export function LandingFeatures() {
             Features
           </p>
           <h2
+            className="text-foreground"
             style={{
               fontFamily: "var(--font-display)",
               fontSize: "clamp(36px, 4vw, 52px)",
               fontWeight: 300,
-              color: "oklch(0.97 0.012 80)",
               lineHeight: 1.15,
             }}
           >
@@ -116,19 +116,12 @@ function FeatureCard({
 
   return (
     <div
+      className="bg-card border-border transition-colors hover:bg-muted"
       style={{
         padding: "36px 32px",
-        background: "oklch(0.13 0.013 240)",
-        border: "1px solid oklch(1 0 0 / 0.07)",
+        border: "1px solid var(--border)",
         borderRadius,
-        transition: "background 0.2s",
         cursor: "default",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.background = "oklch(0.155 0.018 240)"
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = "oklch(0.13 0.013 240)"
       }}
     >
       {/* Icon */}
@@ -136,14 +129,14 @@ function FeatureCard({
         style={{
           width: 44,
           height: 44,
-          background: "oklch(0.527 0.154 150.069 / 0.12)",
-          border: "1px solid oklch(0.527 0.154 150.069 / 0.25)",
+          background: "color-mix(in oklch, var(--primary) 12%, transparent)",
+          border: "1px solid color-mix(in oklch, var(--primary) 25%, transparent)",
           borderRadius: 10,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           fontSize: 20,
-          color: "oklch(0.85 0.08 150)",
+          color: "var(--primary)",
           marginBottom: 20,
         }}
       >
@@ -152,11 +145,11 @@ function FeatureCard({
 
       {/* Title */}
       <h3
+        className="text-foreground"
         style={{
           fontFamily: "var(--font-display)",
           fontSize: 22,
           fontWeight: 500,
-          color: "oklch(0.97 0.012 80)",
           marginBottom: 10,
           lineHeight: 1.2,
         }}
@@ -166,11 +159,11 @@ function FeatureCard({
 
       {/* Description */}
       <p
+        className="text-muted-foreground"
         style={{
           fontFamily: "var(--font-geist-sans)",
           fontSize: 14,
           lineHeight: 1.7,
-          color: "oklch(0.55 0.018 80)",
         }}
       >
         {description}

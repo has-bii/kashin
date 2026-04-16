@@ -7,15 +7,14 @@ export function MockReceiptCard() {
       }}
     >
       <div
+        className="bg-card border-border"
         style={{
           width: 340,
-          background:
-            "linear-gradient(145deg, oklch(0.16 0.018 240), oklch(0.13 0.012 240))",
-          border: "1px solid oklch(1 0 0 / 0.1)",
+          border: "1px solid var(--border)",
           borderRadius: 16,
           padding: "24px",
           boxShadow:
-            "0 40px 80px -20px oklch(0 0 0 / 0.6), 0 0 0 1px oklch(1 0 0 / 0.05), inset 0 1px 0 oklch(1 0 0 / 0.08)",
+            "0 40px 80px -20px color-mix(in oklch, var(--background) 40%, transparent), 0 0 0 1px color-mix(in oklch, var(--foreground) 5%, transparent), inset 0 1px 0 color-mix(in oklch, var(--foreground) 8%, transparent)",
           position: "relative",
           overflow: "hidden",
         }}
@@ -28,7 +27,7 @@ export function MockReceiptCard() {
             right: 0,
             height: 2,
             background:
-              "linear-gradient(90deg, transparent, oklch(0.527 0.154 150.069 / 0.6), transparent)",
+              "linear-gradient(90deg, transparent, color-mix(in oklch, var(--primary) 60%, transparent), transparent)",
             animation: "landing-scan-line 3s ease-in-out infinite",
             pointerEvents: "none",
           }}
@@ -45,33 +44,26 @@ export function MockReceiptCard() {
         >
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <div
-              style={{
-                width: 22,
-                height: 22,
-                background: "oklch(0.527 0.154 150.069)",
-                borderRadius: 5,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
+              className="bg-primary flex items-center justify-center"
+              style={{ width: 22, height: 22, borderRadius: 5 }}
             >
               <span
+                className="text-primary-foreground"
                 style={{
                   fontFamily: "var(--font-display)",
                   fontSize: 13,
                   fontWeight: 700,
-                  color: "oklch(0.09 0.008 240)",
                 }}
               >
                 K
               </span>
             </div>
             <span
+              className="text-foreground"
               style={{
                 fontFamily: "var(--font-geist-sans)",
                 fontSize: 13,
                 fontWeight: 500,
-                color: "oklch(0.97 0.012 80)",
                 letterSpacing: "0.02em",
               }}
             >
@@ -83,8 +75,8 @@ export function MockReceiptCard() {
               display: "flex",
               alignItems: "center",
               gap: 5,
-              background: "oklch(0.527 0.154 150.069 / 0.15)",
-              border: "1px solid oklch(0.527 0.154 150.069 / 0.3)",
+              background: "color-mix(in oklch, var(--primary) 15%, transparent)",
+              border: "1px solid color-mix(in oklch, var(--primary) 30%, transparent)",
               borderRadius: 20,
               padding: "3px 10px",
             }}
@@ -94,16 +86,16 @@ export function MockReceiptCard() {
                 width: 5,
                 height: 5,
                 borderRadius: "50%",
-                background: "oklch(0.527 0.154 150.069)",
+                background: "var(--primary)",
                 animation: "landing-pulse-dot 1.5s ease-in-out infinite",
               }}
             />
             <span
+              className="text-primary"
               style={{
                 fontFamily: "var(--font-geist-sans)",
                 fontSize: 10,
                 fontWeight: 600,
-                color: "oklch(0.527 0.154 150.069)",
                 letterSpacing: "0.08em",
                 textTransform: "uppercase",
               }}
@@ -115,19 +107,19 @@ export function MockReceiptCard() {
 
         {/* Email source */}
         <div
+          className="bg-muted border-border"
           style={{
-            background: "oklch(0.11 0.01 240 / 0.8)",
-            border: "1px solid oklch(1 0 0 / 0.07)",
+            border: "1px solid var(--border)",
             borderRadius: 8,
             padding: "10px 14px",
             marginBottom: 20,
           }}
         >
           <p
+            className="text-muted-foreground"
             style={{
               fontFamily: "var(--font-geist-sans)",
               fontSize: 10,
-              color: "oklch(0.6 0.02 80)",
               letterSpacing: "0.06em",
               textTransform: "uppercase",
               marginBottom: 4,
@@ -136,19 +128,19 @@ export function MockReceiptCard() {
             Email source
           </p>
           <p
+            className="text-primary"
             style={{
               fontFamily: "var(--font-geist-mono)",
               fontSize: 12,
-              color: "oklch(0.75 0.04 200)",
             }}
           >
             auto-confirm@amazon.com
           </p>
           <p
+            className="text-muted-foreground"
             style={{
               fontFamily: "var(--font-geist-sans)",
               fontSize: 11,
-              color: "oklch(0.55 0.015 80)",
               marginTop: 2,
             }}
           >
@@ -167,10 +159,10 @@ export function MockReceiptCard() {
           >
             <div>
               <p
+                className="text-muted-foreground"
                 style={{
                   fontFamily: "var(--font-geist-sans)",
                   fontSize: 10,
-                  color: "oklch(0.5 0.015 80)",
                   letterSpacing: "0.06em",
                   textTransform: "uppercase",
                   marginBottom: 3,
@@ -179,11 +171,11 @@ export function MockReceiptCard() {
                 Merchant
               </p>
               <p
+                className="text-foreground"
                 style={{
                   fontFamily: "var(--font-geist-sans)",
                   fontSize: 14,
                   fontWeight: 500,
-                  color: "oklch(0.97 0.012 80)",
                 }}
               >
                 Amazon.com
@@ -191,10 +183,10 @@ export function MockReceiptCard() {
             </div>
             <div>
               <p
+                className="text-muted-foreground"
                 style={{
                   fontFamily: "var(--font-geist-sans)",
                   fontSize: 10,
-                  color: "oklch(0.5 0.015 80)",
                   letterSpacing: "0.06em",
                   textTransform: "uppercase",
                   marginBottom: 3,
@@ -203,11 +195,11 @@ export function MockReceiptCard() {
                 Amount
               </p>
               <p
+                className="text-foreground"
                 style={{
                   fontFamily: "var(--font-geist-mono)",
                   fontSize: 18,
                   fontWeight: 600,
-                  color: "oklch(0.97 0.012 80)",
                 }}
               >
                 $94.99
@@ -215,10 +207,10 @@ export function MockReceiptCard() {
             </div>
             <div>
               <p
+                className="text-muted-foreground"
                 style={{
                   fontFamily: "var(--font-geist-sans)",
                   fontSize: 10,
-                  color: "oklch(0.5 0.015 80)",
                   letterSpacing: "0.06em",
                   textTransform: "uppercase",
                   marginBottom: 3,
@@ -227,10 +219,10 @@ export function MockReceiptCard() {
                 Date
               </p>
               <p
+                className="text-foreground"
                 style={{
                   fontFamily: "var(--font-geist-sans)",
                   fontSize: 13,
-                  color: "oklch(0.8 0.02 80)",
                 }}
               >
                 Apr 14, 2026
@@ -238,10 +230,10 @@ export function MockReceiptCard() {
             </div>
             <div>
               <p
+                className="text-muted-foreground"
                 style={{
                   fontFamily: "var(--font-geist-sans)",
                   fontSize: 10,
-                  color: "oklch(0.5 0.015 80)",
                   letterSpacing: "0.06em",
                   textTransform: "uppercase",
                   marginBottom: 3,
@@ -250,22 +242,19 @@ export function MockReceiptCard() {
                 Category
               </p>
               <div
+                className="bg-muted border-border inline-flex items-center gap-1"
                 style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 4,
-                  background: "oklch(0.2 0.015 240)",
-                  border: "1px solid oklch(1 0 0 / 0.08)",
+                  border: "1px solid var(--border)",
                   borderRadius: 6,
                   padding: "2px 8px",
                 }}
               >
                 <span style={{ fontSize: 11 }}>🛍</span>
                 <span
+                  className="text-muted-foreground"
                   style={{
                     fontFamily: "var(--font-geist-sans)",
                     fontSize: 11,
-                    color: "oklch(0.75 0.02 80)",
                   }}
                 >
                   Shopping
@@ -278,34 +267,30 @@ export function MockReceiptCard() {
         {/* Action buttons */}
         <div style={{ display: "flex", gap: 8 }}>
           <button
+            className="bg-primary text-primary-foreground cursor-pointer"
             style={{
               flex: 1,
-              background: "oklch(0.527 0.154 150.069)",
               border: "none",
               borderRadius: 8,
               padding: "9px 0",
               fontFamily: "var(--font-geist-sans)",
               fontSize: 12,
               fontWeight: 600,
-              color: "oklch(0.09 0.008 240)",
-              cursor: "pointer",
               letterSpacing: "0.02em",
             }}
           >
             ✓ Confirm
           </button>
           <button
+            className="bg-muted text-muted-foreground border-border cursor-pointer"
             style={{
               flex: 1,
-              background: "oklch(0.18 0.015 240)",
-              border: "1px solid oklch(1 0 0 / 0.08)",
+              border: "1px solid var(--border)",
               borderRadius: 8,
               padding: "9px 0",
               fontFamily: "var(--font-geist-sans)",
               fontSize: 12,
               fontWeight: 500,
-              color: "oklch(0.55 0.015 80)",
-              cursor: "pointer",
             }}
           >
             ✕ Reject
