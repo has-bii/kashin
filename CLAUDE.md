@@ -1,71 +1,100 @@
-# Project Intelligence
+# CLAUDE.md
 
-## Project Type
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-Backend + Frontend in one repo
+## Project Overview
+
+**Kashin** — Personal expense & income tracker with AI-powered email receipt extraction. Monorepo with separate backend and frontend.
 
 - `backend/` — Elysia + Bun API (TypeScript)
 - `frontend/` — Next.js 16 App Router (React 19, TypeScript)
 
-## Project Rules (READ BEFORE ANY TASK)
+## Development Commands
 
-Before writing any code, read the relevant docs in `.claude/docs/`:
+### Backend (Bun)
 
-| Doc                    | When to Read                                   |
-| ---------------------- | ---------------------------------------------- |
-| `conventions.md`       | ALWAYS — before writing any code               |
-| `tech-stack.md`        | When choosing how to implement something       |
-| `project-structure.md` | When creating new files                        |
-| `dependencies.md`      | When importing libraries or creating utils     |
-| `env-and-config.md`    | When working with config, secrets, or env vars |
+```bash
+cd backend
+bun run dev          # Start dev server (port 3030, watch mode)
+bun run lint         # ESLint
+bun test             # Run tests with Bun test runner
+bunx prisma generate # Regenerate Prisma client + Prismabox schemas
+bunx prisma migrate dev  # Create and apply migration
+bunx prisma studio   # DB GUI browser
+bunx prisma db seed  # Seed database
+```
 
-## Skills — Backend
+### Frontend (pnpm)
 
-Before implementing backend features, read the relevant skill in `.claude/skills/backend/`:
+```bash
+cd frontend
+pnpm dev             # Start dev server (port 3000)
+pnpm build           # Production build
+pnpm lint            # ESLint
+pnpm test            # Vitest (single run)
+```
 
-| Skill               | When to Read                                         |
-| ------------------- | ---------------------------------------------------- |
-| `endpoint.md`       | Creating new API routes or controllers               |
-| `middleware.md`     | Adding auth, logging, or other cross-cutting plugins |
-| `database.md`       | Writing Prisma queries, transactions, relations      |
-| `validation.md`     | Defining body/query schemas (TypeBox + Prismabox)    |
-| `error-handling.md` | Throwing or handling errors in services              |
-| `response.md`       | Returning API responses (shape + status codes)       |
-| `auth.md`           | Protecting routes, accessing current user            |
-| `testing.md`        | Writing backend tests with Bun test                  |
+## Architecture
 
-## Skills — Frontend
+### Backend Module Pattern
 
-Before implementing frontend features, read the relevant skill in `.claude/skills/frontend/`:
+Each domain lives in `backend/src/modules/{domain}/` with exactly 3 files:
+- `index.ts` — Elysia controller (routes, auth guards, body/query validation)
+- `query.ts` — Zod query param schemas
+- `service.ts` — Business logic + Prisma calls (exported as `{Domain}Service` class)
 
-| Skill             | When to Read                                  |
-| ----------------- | --------------------------------------------- |
-| `component.md`    | Creating any React component                  |
-| `query-api.md`    | Fetching data from the API (GET)              |
-| `mutation.md`     | Deleting or non-form mutations                |
-| `form.md`         | Building create/edit forms with TanStack Form |
-| `routing.md`      | Adding new pages or routes                    |
-| `url-state.md`    | Filters, tabs, pagination via URL (nuqs)      |
-| `lazy-loading.md` | Code splitting with dynamic()                 |
+Register controllers in `backend/src/index.ts`. Auth macros in `backend/src/macros/`. Shared libs in `backend/src/lib/` (prisma, auth, llm, qstash, html-to-text).
+
+### Frontend Feature Pattern
+
+Domain code lives in `frontend/src/features/{domain}/` with subfolders:
+- `components/` — React components
+- `hooks/` — Custom hooks (queries, mutations, form logic)
+- `api/` — Query/mutation definitions
+- `validations/` — Zod schemas for forms
+- `types/` — Domain types
+
+Pages in `frontend/src/app/` consume these features. Shared components in `frontend/src/components/`. UI primitives from shadcn in `components/ui/`. `@/` maps to `frontend/src/`.
+
+### Key Pipelines
+
+**Email → AI → Transaction:** Gmail API fetches emails → Inngest background jobs process them → LangChain LLM extracts transaction data → stored as AiExtraction → user confirms/rejects → becomes Transaction.
+
+**Integrations:** Better Auth (session-based auth), Inngest (background jobs), Upstash QStash (HTTP scheduling), LangChain + Google GenAI/OpenAI (LLM extraction), Google APIs (Gmail OAuth).
+
+### Database
+
+PostgreSQL via Prisma 7. Schema at `backend/prisma/schema.prisma`. Generated client at `backend/src/generated/prisma/`. Prismabox generates Elysia TypeBox schemas from Prisma models at `backend/src/generated/prismabox/`. Both are auto-generated — never edit directly.
+
+PK strategy: UUID v7 for user-facing tables, BigInt auto-increment for internal tables (EmailLog).
+
+## Project Rules
+
+Before writing code, read the relevant doc in `.claude/docs/`:
+
+| Doc | When |
+|---|---|
+| `conventions.md` | ALWAYS — naming, exports, formatting rules |
+| `tech-stack.md` | Choosing libraries or approaches |
+| `project-structure.md` | Creating new files |
+| `dependencies.md` | Importing libraries or creating utils |
+| `env-and-config.md` | Config, secrets, env vars |
+
+Backend skills in `.claude/skills/backend/` (endpoint, middleware, database, validation, error-handling, response, auth, testing). Frontend skills in `.claude/skills/frontend/` (component, query-api, mutation, form, routing, url-state, lazy-loading).
 
 ## Hard Rules
 
-- NEVER install new dependencies without asking the user first
+- NEVER install new dependencies without asking first
 - NEVER create files outside the defined project structure
-- ALWAYS follow naming conventions from `conventions.md` — no exceptions
-- ALWAYS use the specified libraries from `dependencies.md` — no substitutions
-- ALWAYS check `project-structure.md` before creating a new file
-- NEVER add `React.memo`, `useMemo`, or `useCallback` — React Compiler handles optimization
+- ALWAYS follow naming conventions from `conventions.md`
+- ALWAYS use specified libraries from `dependencies.md` — no substitutions
+- NEVER add `React.memo`, `useMemo`, or `useCallback` — React Compiler handles this
 - NEVER add `staleTime`/`gcTime` per-query — set globally on QueryClient
-- Frontend package manager: `pnpm` only — never `npm install`
-- Backend package manager: `bun` only — never `npm install`
+- Frontend: `pnpm` only. Backend: `bun` only. Never `npm install`.
+- Backend: named exports only — no default exports. Frontend: default export for pages (framework requirement), named for components.
+- Use internal utilities: `import { api } from "@/lib/api"`, `import { prisma } from "./lib/prisma"`, `import { auth } from "./lib/auth"` — never raw imports.
 - When unsure, ASK — don't guess
 
 ## graphify
 
-This project has a graphify knowledge graph at graphify-out/.
-
-Rules:
-- Before answering architecture or codebase questions, read graphify-out/GRAPH_REPORT.md for god nodes and community structure
-- If graphify-out/wiki/index.md exists, navigate it instead of reading raw files
-- After modifying code files in this session, run `graphify update .` to keep the graph current (AST-only, no API cost)
+Knowledge graph at `graphify-out/`. Before answering architecture questions, read `graphify-out/GRAPH_REPORT.md`. After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
