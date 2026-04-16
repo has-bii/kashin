@@ -68,3 +68,6 @@ backend/.bun/
 **/coverage/
 **/playwright-report/
 **/test-results/
+
+# Docs
+docs/
