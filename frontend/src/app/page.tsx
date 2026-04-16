@@ -1,22 +1,31 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
+import { LandingCta } from "@/features/landing/components/LandingCta"
+import { LandingFeatures } from "@/features/landing/components/LandingFeatures"
+import { LandingHero } from "@/features/landing/components/LandingHero"
+import { LandingHowItWorks } from "@/features/landing/components/LandingHowItWorks"
+import { LandingNav } from "@/features/landing/components/LandingNav"
 import { authClient } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 
 export default function Home() {
-  const { data } = authClient.useSession()
+  const { data: session } = authClient.useSession()
   const router = useRouter()
 
-  const logoutHandler = async () => {
-    await authClient.signOut()
-    router.push("/auth/login")
-  }
+  useEffect(() => {
+    if (session) {
+      router.replace("/dashboard")
+    }
+  }, [session, router])
 
   return (
-    <div className="flex min-h-dvh w-screen flex-col items-center justify-center gap-2">
-      <h1>Hello, {data?.user.name ?? "Loading..."}</h1>
-      <Button onClick={logoutHandler}>Logout</Button>
+    <div style={{ backgroundColor: "oklch(0.09 0.008 240)", minHeight: "100dvh" }}>
+      <LandingNav />
+      <LandingHero />
+      <LandingHowItWorks />
+      <LandingFeatures />
+      <LandingCta />
     </div>
   )
 }
