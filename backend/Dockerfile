@@ -1,27 +1,37 @@
-FROM oven/bun:1-alpine AS builder
-WORKDIR /app
+FROM oven/bun:1-alpine AS base
+WORKDIR /usr/src/app
 
+# install dependencies into temp directory
+# this will cache them and speed up future builds
+FROM base AS install
+RUN mkdir -p /temp/dev
+COPY package.json bun.lock /temp/dev/
+RUN cd /temp/dev && bun install --frozen-lockfile
+
+# install with --production (exclude devDependencies)
+RUN mkdir -p /temp/prod
+COPY package.json bun.lock /temp/prod/
+RUN cd /temp/prod && bun install --frozen-lockfile --production
+
+# copy node_modules from temp directory
+# then copy all (non-ignored) project files into the image
+FROM base AS prerelease
+COPY --from=install /temp/dev/node_modules node_modules
 COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile
-
 COPY prisma ./prisma
-RUN bunx prisma generate
-
-COPY src ./src
 COPY tsconfig.json prisma.config.ts ./
-
-# ─────────────────────────────────────────
-FROM oven/bun:1-alpine AS runner
-WORKDIR /app
-
+COPY src ./src
 ENV NODE_ENV=production
+RUN DATABASE_URL="postgresql://postgres:postgres@localhost:5432/postgres" bunx --bun prisma generate
 
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/src ./src
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/package.json /app/bun.lock ./
-COPY --from=builder /app/tsconfig.json /app/prisma.config.ts ./
+# copy production dependencies and source code into final image
+FROM base AS release
+ENV NODE_ENV=production
+COPY --from=install /temp/dev/node_modules node_modules
+COPY --from=prerelease /usr/src/app/src ./src
+COPY --from=prerelease /usr/src/app/prisma ./prisma
+COPY package.json bun.lock tsconfig.json prisma.config.ts ./
 
-EXPOSE 3030
-
+USER bun
+EXPOSE 3030/tcp
 CMD ["sh", "-c", "bunx prisma migrate deploy && bun run src/index.ts"]
