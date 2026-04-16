@@ -8,23 +8,23 @@ import {
 } from "@/components/sidebar/main-page"
 import { SiteHeader } from "@/components/sidebar/site-header"
 import dynamic from "next/dynamic"
-import { Suspense } from "react"
+
+const MessagesList = dynamic(() => import("@/features/gmail/components/messages-list"), {
+  ssr: false,
+})
 
 export default function EmailAutomationPage() {
   return (
     <>
-      <SiteHeader label="Email" />
-      <MainPage>
+      <SiteHeader label="Gmail Inbox" />
+      <MainPage className="@container/main">
         <MainPageHeader>
           <div className="space-y-2">
-            <MainPageTitle>Email Automation</MainPageTitle>
+            <MainPageTitle>Gmail Inbox</MainPageTitle>
             <MainPageDescripton></MainPageDescripton>
           </div>
         </MainPageHeader>
-        {/* 
-        <Suspense fallback={<EmailAutomationSkeleton />}>
-          <EmailAutomationPanel />
-        </Suspense> */}
+        <MessagesList />
       </MainPage>
     </>
   )

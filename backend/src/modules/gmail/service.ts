@@ -1,7 +1,63 @@
+import { auth } from "../../lib/auth"
+import { getMessagesQuery } from "./query"
 import { InternalServerError, status } from "elysia"
 import { gmail_v1, google } from "googleapis"
 
+type GetMessagesQuery = (typeof getMessagesQuery)["static"]
+
 export abstract class GmailService {
+  /* ------------------------------ API Endpoints ----------------------------- */
+  static async getMessages(userId: string, query: GetMessagesQuery) {
+    const { accessToken } = await auth.api.getAccessToken({
+      body: {
+        userId,
+        providerId: "google",
+      },
+    })
+
+    const gmail = this.createGmailClient(accessToken)
+
+    let q = "category:primary"
+
+    if (query.before) {
+      q += ` before:${Math.floor(new Date(query.before).getTime() / 1000)}`
+    }
+
+    if (query.after) {
+      q += ` after:${Math.floor(new Date(query.after).getTime() / 1000)}`
+    }
+
+    const response = await gmail.users.messages.list({
+      userId: "me",
+      q,
+      maxResults: 50,
+      pageToken: query.pageToken,
+    })
+
+    const pageToken = response.data.nextPageToken || undefined
+
+    if (!response.data.messages) throw new InternalServerError("Failed to get email from Gmail")
+
+    const listMessagesIds = response.data.messages.filter((message) => !!message.id)
+
+    const responses = await Promise.all(
+      listMessagesIds.map((message) => {
+        return gmail.users.messages.get({
+          id: message.id!,
+          userId: "me",
+          format: "metadata",
+        })
+      }),
+    )
+
+    const messages = responses.map((message) => ({
+      id: message.data.id,
+      ...this.parseEmailMetadata(message.data),
+    }))
+
+    return { messages, pageToken }
+  }
+
   /* ---------------------------- Public Functions ---------------------------- */
   static createGmailClient(accessToken: string) {
     const auth = new google.auth.OAuth2()
@@ -61,6 +117,15 @@ export abstract class GmailService {
   }
 
   /* ---------------------------- Private functions --------------------------- */
+  private static parseEmailMetadata(email: gmail_v1.Schema$Message) {
+    const subject = email.payload?.headers?.find((acc) => acc.name === "Subject")?.value || null
+    const from = email.payload?.headers?.find((acc) => acc.name === "From")?.value || null
+    const date = email.payload?.headers?.find((acc) => acc.name === "Date")?.value || null
+    const snippet = email.snippet || null
+
+    return { subject, from, date, snippet }
+  }
+
   private static async setupGmailWatch(accessToken: string, refreshToken: string) {
     const auth = new google.auth.OAuth2()
     auth.setCredentials({

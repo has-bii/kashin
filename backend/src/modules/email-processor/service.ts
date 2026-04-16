@@ -1,4 +1,3 @@
-import { Prisma } from "../../generated/prisma/client"
 import { agent } from "./agent"
 import { generateHumanMessage } from "./human-message"
 import { gmail_v1 } from "googleapis"
@@ -39,6 +38,7 @@ export abstract class EmailProcessorService {
     const response = await agent.invoke({ messages: [humanMessage] }, { context: { userId } })
 
     const tokenUsage = response.messages.reduce<number>((acc, msg) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const meta = msg.response_metadata as any
 
       if (meta.estimatedTokenUsage && meta.estimatedTokenUsage.totalTokens) {

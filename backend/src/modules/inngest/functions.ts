@@ -54,7 +54,7 @@ export const fetchEmail = inngest.createFunction(
           },
         })
         return accessToken
-      } catch (error) {
+      } catch {
         await EmailImportService.updateEmailImportProcessing(emailImportId, "failed")
         throw new Error("Failed to get google credentials ")
       }
@@ -68,7 +68,7 @@ export const fetchEmail = inngest.createFunction(
         if (!data.raw) throw new Error("Fetched raw email but empty")
 
         return data
-      } catch (error) {
+      } catch {
         await EmailImportService.updateEmailImportProcessing(emailImportId, "failed")
         throw new Error("Failed to fetch email")
       }
@@ -80,7 +80,7 @@ export const fetchEmail = inngest.createFunction(
         const data = await EmailProcessorService.parseEmail(emailData)
 
         return data
-      } catch (error) {
+      } catch {
         await EmailImportService.updateEmailImportProcessing(emailImportId, "failed")
         throw new Error("Failed to parse email")
       }
@@ -169,7 +169,7 @@ export const processEmail = inngest.createFunction(
           }),
           EmailImportService.updateEmailImportAnalyzing(emailImportId, "failed"),
         ])
-        throw new Error("Failed to process email: ")
+        throw new Error("Failed to process email: ", { cause: error })
       }
     })
 

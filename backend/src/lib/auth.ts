@@ -64,7 +64,8 @@ export const auth = betterAuth({
         verifyCurrentEmail: true,
       },
       overrideDefaultEmailVerification: true,
-      async sendVerificationOTP({ email, otp, type }) {
+      // eslint-disable-next-line @typescript-eslint/require-await
+      sendVerificationOTP: async ({ email, otp, type }) => {
         console.log(`[OTP] ${email}: ${otp} (${type})`)
       },
     }),

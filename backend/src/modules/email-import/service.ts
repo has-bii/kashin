@@ -1,8 +1,6 @@
 import { auth } from "../../lib/auth"
 import { prisma } from "../../lib/prisma"
-import { EmailProcessorService } from "../email-processor/service"
 import { GmailService } from "../gmail/service"
-import { inngest } from "../inngest/client"
 import { INNGEST_FUNCTION_EVENTS } from "../inngest/functions"
 import { status } from "elysia"
 

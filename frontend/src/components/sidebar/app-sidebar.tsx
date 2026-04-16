@@ -61,8 +61,8 @@ const data = {
       icon: <RepeatIcon />,
     },
     {
-      title: "Email",
-      url: "/dashboard/email",
+      title: "Gmail",
+      url: "/dashboard/gmail",
       icon: <MailIcon />,
     },
   ],

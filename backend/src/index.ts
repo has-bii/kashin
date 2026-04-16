@@ -6,6 +6,7 @@ import { categoryController } from "./modules/category"
 import { dashboardController } from "./modules/dashboard"
 import { emailImportController } from "./modules/email-import"
 import { emailLogController } from "./modules/email-log"
+import { gmailController } from "./modules/gmail"
 import { inngestHandler } from "./modules/inngest"
 import { recurringTransactionController } from "./modules/recurring-transaction"
 import { transactionController } from "./modules/transaction"
@@ -52,6 +53,7 @@ const app = new Elysia({ prefix: "/api" })
   .use(bankController)
   .use(bankAccountController)
   .use(recurringTransactionController)
+  .use(gmailController)
   .use(emailLogController)
   .use(emailImportController)
   .use(userSettingsController)
