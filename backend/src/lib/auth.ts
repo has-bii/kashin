@@ -1,4 +1,5 @@
 import { prisma } from "./prisma"
+import { logger } from "./logger"
 import { passkey } from "@better-auth/passkey"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { betterAuth } from "better-auth/minimal"
@@ -66,7 +67,7 @@ export const auth = betterAuth({
       overrideDefaultEmailVerification: true,
       // eslint-disable-next-line @typescript-eslint/require-await
       sendVerificationOTP: async ({ email, otp, type }) => {
-        console.log(`[OTP] ${email}: ${otp} (${type})`)
+        logger.info({ email, otp, type }, "OTP generated")
       },
     }),
     passkey({
