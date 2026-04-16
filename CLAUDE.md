@@ -61,22 +61,18 @@ Before implementing frontend features, read the relevant skill in `.claude/skill
 - Backend package manager: `bun` only — never `npm install`
 - When unsure, ASK — don't guess
 
-## Context Navigation (Graphify + Obsidian)
+## Context Navigation (Graphify)
 
 ### 3-Layer Query Rule
 1. **First:** query `graphify-out/graph.json` or `graphify-out/wiki/index.md` to understand code structure and connections
-2. **Second:** query `docs/logs/` for decisions, progress, and session context
+2. **Second:** query the Obsidian vault for decisions, progress, and project context
 3. **Third:** only read raw code files when editing or when the first two layers don't have the answer
 
-### When to Update
-- After modifying code: `graphify . --update` (only processes modified files)
+### When to rebuild the graph
+- After structural changes (new modules, major refactors)
+- Command: `graphify . --update` (only processes modified files)
 - The graph is persistent — NO need to rebuild every session
 
 ### Do NOT
 - Don't manually modify files inside `graphify-out/`
 - Don't re-read the entire codebase if the graph already has the information
-
-### Session Workflow
-- **Start of session:** read the latest file in `docs/logs/` for context
-- **End of session:** summarize what was built into `docs/logs/YYYY-MM-DD.md`
-- **Architecture questions:** read `graphify-out/GRAPH_REPORT.md` for god nodes and community structure
