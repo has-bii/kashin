@@ -1,8 +1,8 @@
 .worktrees/
 docs/
-graphify-out/cache/
 architecture/
 data/
 features/
 logs/
 pipeline/
+graphify-out/

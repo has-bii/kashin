@@ -1,8 +1,70 @@
-# .graphifyignore
+# Dependencies
+**/node_modules/
+**/bun.lockb
+**/package-lock.json
+**/yarn.lock
+**/pnpm-lock.yaml
 
-frontend/node_modules/
-backend/src/generated/
-backend/node_modules/
+# Build output
+**/dist/
+**/build/
+**/.next/
+**/out/
+**/.turbo/
+**/.vercel/
+
+# Bun / Node
+**/.bun/
+**/coverage/
+**/.nyc_output/
+
+# Next.js specific
 frontend/.next/
-frontend/.vscode/
-\*.generated.py
+frontend/next-env.d.ts
+frontend/public/
+frontend/.swc/
+
+# Elysia / backend artifacts
+backend/dist/
+backend/.bun/
+
+# Env & secrets
+**/.env
+**/.env.*
+!**/.env.example
+
+# Tooling & config noise (not code)
+**/.prettierrc*
+**/.prettierignore
+**/.eslintrc*
+**/.eslintignore
+**/eslint.config.*
+**/prettier.config.*
+**/.editorconfig
+**/tsconfig*.json
+**/tsconfig.tsbuildinfo
+**/postcss.config.*
+**/tailwind.config.*
+**/next.config.*
+**/bunfig.toml
+
+# IDE / OS
+**/.vscode/
+**/.idea/
+**/.DS_Store
+**/Thumbs.db
+
+# Git
+.git/
+**/.gitignore
+**/.gitattributes
+
+# Logs & caches
+**/*.log
+**/.cache/
+**/.parcel-cache/
+
+# Tests output
+**/coverage/
+**/playwright-report/
+**/test-results/
