@@ -15,8 +15,25 @@ import { webhookController } from "./modules/webhook"
 import cors from "@elysiajs/cors"
 import { Elysia } from "elysia"
 import { rateLimit } from "elysia-rate-limit"
+import { logger } from "./lib/logger"
+
+const requestStore = new WeakMap<Request, { startTime: number }>()
 
 const app = new Elysia({ prefix: "/api" })
+  .onRequest(({ request }) => {
+    requestStore.set(request, { startTime: performance.now() })
+  })
+  .onAfterResponse(({ request, set }) => {
+    const path = new URL(request.url).pathname
+    if (path === "/api/health") return
+
+    const entry = requestStore.get(request)
+    logger.info({
+      req: { method: request.method, path },
+      res: { statusCode: set.status },
+      responseTime: entry ? `${Math.round(performance.now() - entry.startTime)}ms` : "unknown",
+    }, "request completed")
+  })
   .onError(({ code, error, set }) => {
     if (code === "VALIDATION") {
       set.status = 400
@@ -26,7 +43,7 @@ const app = new Elysia({ prefix: "/api" })
       set.status = error.status
       return { error: error.message, code: code }
     }
-    console.error("[Unhandled Error]", error)
+    logger.error({ err: error, code }, "Unhandled error")
     set.status = 500
     return { error: "Terjadi kesalahan pada server", code: "INTERNAL_ERROR" }
   })
@@ -60,4 +77,4 @@ const app = new Elysia({ prefix: "/api" })
   .use(webhookController)
   .listen(Number(process.env.PORT || 3030))
 
-console.log(`🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`)
+logger.info({ port: app.server?.port }, "Elysia is running")
