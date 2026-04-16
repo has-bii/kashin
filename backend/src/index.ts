@@ -1,3 +1,4 @@
+import { logger } from "./lib/logger"
 import { betterAuthView } from "./modules/auth"
 import { bankController } from "./modules/bank"
 import { bankAccountController } from "./modules/bank-account"
@@ -7,6 +8,7 @@ import { dashboardController } from "./modules/dashboard"
 import { emailImportController } from "./modules/email-import"
 import { emailLogController } from "./modules/email-log"
 import { gmailController } from "./modules/gmail"
+import { healthController } from "./modules/health"
 import { inngestHandler } from "./modules/inngest"
 import { recurringTransactionController } from "./modules/recurring-transaction"
 import { transactionController } from "./modules/transaction"
@@ -15,7 +17,6 @@ import { webhookController } from "./modules/webhook"
 import cors from "@elysiajs/cors"
 import { Elysia } from "elysia"
 import { rateLimit } from "elysia-rate-limit"
-import { logger } from "./lib/logger"
 
 const requestStore = new WeakMap<Request, { startTime: number }>()
 
@@ -28,11 +29,14 @@ const app = new Elysia({ prefix: "/api" })
     if (path === "/api/health") return
 
     const entry = requestStore.get(request)
-    logger.info({
-      req: { method: request.method, path },
-      res: { statusCode: set.status },
-      responseTime: entry ? `${Math.round(performance.now() - entry.startTime)}ms` : "unknown",
-    }, "request completed")
+    logger.info(
+      {
+        req: { method: request.method, path },
+        res: { statusCode: set.status },
+        responseTime: entry ? `${Math.round(performance.now() - entry.startTime)}ms` : "unknown",
+      },
+      "request completed",
+    )
   })
   .onError(({ code, error, set }) => {
     if (code === "VALIDATION") {
@@ -61,6 +65,7 @@ const app = new Elysia({ prefix: "/api" })
       max: 100,
     }),
   )
+  .use(healthController)
   .all("/auth/*", betterAuthView)
   .all("/inngest", ({ request }) => inngestHandler(request))
   .use(categoryController)

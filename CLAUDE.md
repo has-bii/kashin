@@ -95,6 +95,20 @@ Backend skills in `.claude/skills/backend/` (endpoint, middleware, database, val
 - Use internal utilities: `import { api } from "@/lib/api"`, `import { prisma } from "./lib/prisma"`, `import { auth } from "./lib/auth"` — never raw imports.
 - When unsure, ASK — don't guess
 
-## graphify
+## Context Navigation (Graphify)
 
-Knowledge graph at `graphify-out/`. Before answering architecture questions, read `graphify-out/GRAPH_REPORT.md`. After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
+### 3-Layer Query Rule
+1. **First:** query `graphify-out/graph.json` or `graphify-out/wiki/index.md`
+   to understand code structure and connections
+2. **Second:** query the Obsidian vault for decisions, progress, and project context
+3. **Third:** only read raw code files when editing
+   or when the first two layers don't have the answer
+
+### When to rebuild the graph
+- After structural changes (new modules, major refactors)
+- Command: `graphify . --update` (only processes modified files)
+- The graph is persistent — NO need to rebuild every session
+
+### Do NOT
+- Don't manually modify files inside `graphify-out/`
+- Don't re-read the entire codebase if the graph already has the information
