@@ -171,7 +171,7 @@ export abstract class GmailService {
       return messageIds
     } catch (error) {
       // Logging the actual error object helps with debugging 401 vs 429 errors
-      logger.child({ module: "gmail" }).error({ err: error }, "Gmail API error")
+      logger.error({ err: error }, "Gmail API error")
       throw new InternalServerError("Failed to fetch emails from Gmail")
     }
   }
@@ -216,7 +216,7 @@ export abstract class GmailService {
       })
       return response.data
     } catch (error) {
-      logger.child({ module: "gmail" }).error({ err: error }, "Failed to setup Gmail watch")
+      logger.error({ err: error }, "Failed to setup Gmail watch")
       return status(500)
     }
   }

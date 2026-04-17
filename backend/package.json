@@ -1,6 +1,7 @@
 {
   "name": "backend",
   "version": "1.0.50",
+  "type": "module",
   "scripts": {
     "dev": "bun run --watch src/index.ts",
     "lint": "eslint ./src --ext .ts"

@@ -18,7 +18,7 @@ import { rateLimit } from "elysia-rate-limit"
 
 const requestStore = new WeakMap<Request, { startTime: number }>()
 
-const app = new Elysia({ prefix: "/api" })
+export default new Elysia({ prefix: "/api" })
   .onRequest(({ request }) => {
     requestStore.set(request, { startTime: performance.now() })
   })
@@ -76,6 +76,3 @@ const app = new Elysia({ prefix: "/api" })
   .use(gmailController)
   .use(userSettingsController)
   .use(webhookController)
-  .listen(Number(process.env.PORT || 3030))
-
-logger.info({ port: app.server?.port }, "Elysia is running")
