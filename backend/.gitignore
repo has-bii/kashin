@@ -41,3 +41,10 @@ yarn-error.log*
 package-lock.json
 **/*.bun
 /src/generated
+
+# Graphify
+graphify-out/
+.graphifyignore
+
+# Agent
+.claude/
