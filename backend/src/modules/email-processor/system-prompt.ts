@@ -42,7 +42,7 @@ You will be provided an email. Like sender address (from), subject, email with t
 
 ## Notes:
 Once you get the transaction details. You can set notes like below:
-'Belanja di Alfamart', 'Dana dicairkan dari bibit ke bank BCA', or 'Gaji dari kantor ... telah masuk'
+'Shopping at Alfamart', 'Funds withdrawn from Bibit to BCA bank', or 'Salary from company ... has been received'
 
 ## DATA CONSTRAINTS:
 - 'bankAccountId': MUST be a UUID from 'getBankAccounts' (e.g., "019d87e7...").

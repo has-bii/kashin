@@ -47,7 +47,7 @@ export const app = new Elysia({ prefix: "/api" })
     }
     logger.error({ err: error, code }, "Unhandled error")
     set.status = 500
-    return { error: "Terjadi kesalahan pada server", code: "INTERNAL_ERROR" }
+    return { error: "An internal server error occurred", code: "INTERNAL_ERROR" }
   })
   .use(
     cors({
