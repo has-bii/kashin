@@ -1,5 +1,5 @@
+import { sendPasswordResetEmail, sendVerificationOtp, sendWelcomeEmail } from "./email"
 import { prisma } from "./prisma"
-import { sendVerificationOtp, sendWelcomeEmail, sendPasswordResetEmail } from "./email"
 import { passkey } from "@better-auth/passkey"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { betterAuth } from "better-auth/minimal"
@@ -8,6 +8,7 @@ import { emailOTP } from "better-auth/plugins"
 export const auth = betterAuth({
   appName: "Kashin",
   baseURL: process.env.BETTER_AUTH_URL,
+  secret: process.env.BETTER_AUTH_SECRET,
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
@@ -46,6 +47,10 @@ export const auth = betterAuth({
       generateId: false,
     },
     cookiePrefix: process.env.COOKIE_PREFIX,
+    crossSubDomainCookies: {
+      enabled: true,
+      domain: process.env.DOMAIN,
+    },
   },
   databaseHooks: {
     user: {

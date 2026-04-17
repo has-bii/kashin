@@ -14,7 +14,6 @@ export const webhookController = new Elysia({ prefix: "/webhook" })
   })
   .post("/recurring-transaction", async ({ request, headers, status }) => {
     const rawBody = await request.text()
-
     const isValid = await receiver
       .verify({
         signature: headers["upstash-signature"] ?? "",

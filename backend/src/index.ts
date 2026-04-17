@@ -57,6 +57,7 @@ const app = new Elysia({ prefix: "/api" })
       allowedHeaders: ["Content-Type", "Authorization"],
     }),
   )
+  .all("/inngest", ({ request }) => inngestHandler(request))
   .use(
     rateLimit({
       duration: 60000,
@@ -65,7 +66,6 @@ const app = new Elysia({ prefix: "/api" })
   )
   .use(healthController)
   .all("/auth/*", betterAuthView)
-  .all("/inngest", ({ request }) => inngestHandler(request))
   .use(categoryController)
   .use(transactionController)
   .use(dashboardController)
