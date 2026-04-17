@@ -1,7 +1,8 @@
 import pino from "pino"
+import { ENV } from "../config/env"
 
 export const logger = pino({
-  level: process.env.LOG_LEVEL ?? (process.env.NODE_ENV === "production" ? "info" : "debug"),
+  level: ENV.LOG.level,
   redact: [
     "req.headers.authorization",
     "*.password",
@@ -10,7 +11,7 @@ export const logger = pino({
     "*.secret",
     "*.credentials",
   ],
-  ...(process.env.NODE_ENV !== "production"
+  ...(ENV.LOG.nodeEnv !== "production"
     ? {
         transport: {
           target: "pino-pretty",

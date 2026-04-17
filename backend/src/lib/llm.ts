@@ -1,13 +1,14 @@
 import { ChatOpenAI } from "@langchain/openai"
+import { ENV } from "../config/env"
 
 export const model = new ChatOpenAI({
-  modelName: process.env.MODEL_EXTRACTION,
-  apiKey: process.env.OPENAI_API_KEY,
+  modelName: ENV.LLM.model,
+  apiKey: ENV.LLM.openAiApiKey,
   configuration: {
-    baseURL: process.env.LLM_BASE_URL,
+    baseURL: ENV.LLM.baseUrl,
     defaultHeaders: {
-      "HTTP-Referer": process.env.LLM_HTTP_REFERER,
-      "X-Title": process.env.LLM_X_TITLE,
+      "HTTP-Referer": ENV.LLM.httpReferer,
+      "X-Title": ENV.LLM.xTitle,
     },
   },
   reasoning: {

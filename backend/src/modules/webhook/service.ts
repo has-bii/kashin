@@ -3,10 +3,11 @@ import { prisma } from "../../lib/prisma"
 import { qstash } from "../../lib/qstash"
 import { status } from "elysia"
 import { OAuth2Client } from "google-auth-library"
+import { ENV } from "../../config/env"
 
 export abstract class WebhookService {
   private static client = new OAuth2Client()
-  private static SERVICE_ACCOUNT_CREDENTIALS = JSON.parse(process.env.SERVICE_ACCOUNT_CREDENTIAL!)
+  private static SERVICE_ACCOUNT_CREDENTIALS = JSON.parse(ENV.GOOGLE.serviceAccountCredential)
   private static SERVICE_ACCOUNT_EMAIL = this.SERVICE_ACCOUNT_CREDENTIALS.client_email
 
   static async handleGmailWebhook(token: string, request: Request) {
@@ -40,7 +41,7 @@ export abstract class WebhookService {
 
       // Queue to QStash for async processing
       await qstash.publishJSON({
-        url: `${process.env.BACKEND_URL}/api/webhook/process-email`,
+        url: `${ENV.SERVER.backendUrl}/api/webhook/process-email`,
         body: { userId: userAccount.userId, historyId },
       })
 

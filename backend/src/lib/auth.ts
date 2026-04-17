@@ -4,11 +4,12 @@ import { passkey } from "@better-auth/passkey"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { betterAuth } from "better-auth/minimal"
 import { emailOTP } from "better-auth/plugins"
+import { ENV } from "../config/env"
 
 export const auth = betterAuth({
   appName: "Kashin",
-  baseURL: process.env.BETTER_AUTH_URL,
-  secret: process.env.BETTER_AUTH_SECRET,
+  baseURL: ENV.AUTH.betterAuthUrl,
+  secret: ENV.AUTH.betterAuthSecret,
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
@@ -29,8 +30,8 @@ export const auth = betterAuth({
     google: {
       prompt: "select_account consent",
       accessType: "offline",
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      clientId: ENV.AUTH.googleClientId,
+      clientSecret: ENV.AUTH.googleClientSecret,
     },
   },
   account: {
@@ -46,10 +47,10 @@ export const auth = betterAuth({
     database: {
       generateId: false,
     },
-    cookiePrefix: process.env.COOKIE_PREFIX,
+    cookiePrefix: ENV.AUTH.cookiePrefix,
     crossSubDomainCookies: {
       enabled: true,
-      domain: process.env.DOMAIN,
+      domain: ENV.AUTH.domain,
     },
   },
   databaseHooks: {
@@ -67,7 +68,7 @@ export const auth = betterAuth({
       },
     },
   },
-  trustedOrigins: [process.env.FRONTEND_URL!],
+  trustedOrigins: [ENV.AUTH.frontendUrl],
   plugins: [
     emailOTP({
       changeEmail: {
@@ -84,14 +85,14 @@ export const auth = betterAuth({
       registration: {
         requireSession: true,
       },
-      rpID: new URL(process.env.FRONTEND_URL!).hostname,
+      rpID: new URL(ENV.AUTH.frontendUrl).hostname,
       rpName: "Kashin",
       authenticatorSelection: {
         userVerification: "required",
         residentKey: "required",
       },
       advanced: {
-        webAuthnChallengeCookie: `${process.env.COOKIE_PREFIX}_pk_challenge`,
+        webAuthnChallengeCookie: `${ENV.AUTH.cookiePrefix}_pk_challenge`,
       },
     }),
   ],

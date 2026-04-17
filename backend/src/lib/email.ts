@@ -1,9 +1,10 @@
 import { logger } from "./logger"
 import { Resend } from "resend"
+import { ENV } from "../config/env"
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+const resend = new Resend(ENV.EMAIL.resendApiKey)
 
-const FROM = process.env.EMAIL_FROM ?? "Kashin <noreply@kashin.app>"
+const FROM = ENV.EMAIL.from
 
 async function send({
   to,

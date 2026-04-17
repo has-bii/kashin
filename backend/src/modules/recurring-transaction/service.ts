@@ -3,6 +3,7 @@ import { prisma } from "../../lib/prisma"
 import { qstash } from "../../lib/qstash"
 import type { CreateInput, GetAllQuery, UpdateInput } from "./dto"
 import { status } from "elysia"
+import { ENV } from "../../config/env"
 
 const categoryInclude = {
   category: { select: { id: true, name: true, type: true, icon: true, color: true } },
@@ -162,7 +163,7 @@ export abstract class RecurringTransactionService {
   }
 
   static async scheduleNext(id: string, runAt: Date): Promise<void> {
-    const url = `${process.env.BETTER_AUTH_URL}/api/webhook/recurring-transaction`
+    const url = `${ENV.AUTH.betterAuthUrl}/api/webhook/recurring-transaction`
     await qstash.publishJSON({
       url,
       body: { recurringTransactionId: id, scheduledFor: runAt.toISOString() },

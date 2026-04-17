@@ -1,3 +1,4 @@
 import { Inngest } from "inngest"
+import { ENV } from "../../config/env"
 
-export const inngest = new Inngest({ id: process.env.INNGEST_ID || "kashin-dev" })
+export const inngest = new Inngest({ id: ENV.INNGEST.id })

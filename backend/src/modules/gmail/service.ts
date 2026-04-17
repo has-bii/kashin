@@ -6,6 +6,7 @@ import { INNGEST_FUNCTION_EVENTS } from "../inngest/functions"
 import { InternalServerError, status } from "elysia"
 import { gmail_v1, google } from "googleapis"
 import type { GetMessagesQuery, ImportMessagesBody } from "./dto"
+import { ENV } from "../../config/env"
 
 export abstract class GmailService {
   static async getMessages(userId: string, query: GetMessagesQuery) {
@@ -149,7 +150,7 @@ export abstract class GmailService {
       const response = await gmail.users.watch({
         userId: "me",
         requestBody: {
-          topicName: process.env.TOPIC_NAME,
+          topicName: ENV.GOOGLE.topicName,
           labelIds: ["INBOX"],
           labelFilterBehavior: "INCLUDE",
         },

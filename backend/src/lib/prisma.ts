@@ -1,11 +1,6 @@
 import { PrismaClient } from "../generated/prisma/client"
 import { PrismaPg } from "@prisma/adapter-pg"
+import { ENV } from "../config/env"
 
-const databaseUrl = process.env.DATABASE_URL
-
-if (!databaseUrl) {
-  throw new Error("Database_URL is not set")
-}
-
-const adapter = new PrismaPg({ connectionString: databaseUrl })
+const adapter = new PrismaPg({ connectionString: ENV.DATABASE.url })
 export const prisma = new PrismaClient({ adapter })

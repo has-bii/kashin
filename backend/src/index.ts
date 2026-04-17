@@ -15,6 +15,7 @@ import { webhookController } from "./modules/webhook"
 import cors from "@elysiajs/cors"
 import { Elysia } from "elysia"
 import { rateLimit } from "elysia-rate-limit"
+import { ENV } from "./config/env"
 
 const requestStore = new WeakMap<Request, { startTime: number }>()
 
@@ -51,7 +52,7 @@ export const app = new Elysia({ prefix: "/api" })
   })
   .use(
     cors({
-      origin: process.env.FRONTEND_URL,
+      origin: ENV.AUTH.frontendUrl,
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
       credentials: true,
       allowedHeaders: ["Content-Type", "Authorization"],

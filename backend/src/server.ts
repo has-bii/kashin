@@ -1,6 +1,7 @@
 import app from "."
 import { logger } from "./lib/logger"
+import { ENV } from "./config/env"
 
-app.listen(process.env.PORT || 3030, ({ port, hostname }) => {
+app.listen(ENV.SERVER.port, ({ port, hostname }) => {
   logger.info(`🦊 Elysia is running at ${hostname}:${port}`)
 })
