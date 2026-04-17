@@ -6,11 +6,11 @@ export const responseFormat = z.object({
   data: z
     .object({
       merchant: z.string().nullable().describe("The name of the merchant or vendor or person"),
-      amount: z.number().describe("The numeric value of the transaction"),
-      currency: z.string().describe("3-letter currency code. E.g. IDR"),
+      amount: z.number().nullable().describe("The numeric value of the transaction"),
+      currency: z.string().nullable().describe("3-letter currency code. E.g. IDR"),
       bankAccountId: z.string().nullable().describe("id from getBankAccounts tool"),
       categoryId: z.string().nullable().describe("id from getCategories tool"),
-      date: z.string().nullable().describe("ISO formatted date of the transaction"),
+      date: z.iso.datetime().nullable().describe("ISO formatted date of the transaction"),
       type: z.enum(["expense", "income"]).nullable().describe("The type of transaction"),
       notes: z
         .string()

@@ -80,34 +80,4 @@ Groceries: Alfamart, Indomaret, Family Mart, Lawson.
 Food: Starbucks, Kopi Kenangan, Tomoro, Fore, Cafe, Coffee.
 Utilities: PLN, Indihome, Biznet, Internet Provider.
 Investment: Bibit, Ajaib, Stockbit.
-
-
-## RESPONSE RULE:
-ONLY response in JSON format. Follow the examples.
-
-## EXAMPLES:
-If it's a transaction:
-   {
-      "isTransaction": true,
-      "message": "Here's the extracted transaction details",
-      "data": {
-         "merchant": "Alfamart",
-         "amount": 25000,
-         "currency": "IDR",
-         "bankAccountId": "019d912f-442e-766f-a0e1-09ce43175bc8",
-         "categoryId": "019d9130-032e-76b4-aee8-915cb5148c30",
-         "date": "2023-10-25T14:30:00Z",
-         "type": "expense",
-         "notes": "Payment to Alfamart",
-         "confidence": 0.9,
-         "suggestedCategory": null
-      }
-   }
-
-If it's not a transaction:
-   {
-      "isTransaction": null,
-      "message" "It's not a transaction. It's a notification from LinkedIn",
-      "data": null
-   }
 `
