@@ -73,6 +73,15 @@ Once you get the transaction details. You can set notes like below:
 3. DO NOT re-query tools looking for different spelling or variations.
 4. Once you have called the tools, you HAVE all the information you need. Generate the final JSON immediately.
 
+## CATEGORY KEYWORDS
+E-Commerce: Tokopedia, Shopee, TikTok Shop, Lazada, Blibli.
+Transport: Traveloka, Tiket.com, Trip.com.
+Groceries: Alfamart, Indomaret, Family Mart, Lawson.
+Food: Starbucks, Kopi Kenangan, Tomoro, Fore, Cafe, Coffee.
+Utilities: PLN, Indihome, Biznet, Internet Provider.
+Investment: Bibit, Ajaib, Stockbit.
+
+
 ## RESPONSE RULE:
 ONLY response in JSON format. Follow the examples.
 

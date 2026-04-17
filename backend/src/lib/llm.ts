@@ -13,6 +13,6 @@ export const model = new ChatOpenAI({
   modelKwargs: {
     response_format: { type: "json_object" },
   },
-  temperature: 1,
+  temperature: 0.7,
   maxRetries: 0,
 })
