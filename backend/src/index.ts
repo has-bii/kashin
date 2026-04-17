@@ -5,8 +5,6 @@ import { bankAccountController } from "./modules/bank-account"
 import { budgetController } from "./modules/budget"
 import { categoryController } from "./modules/category"
 import { dashboardController } from "./modules/dashboard"
-import { emailImportController } from "./modules/email-import"
-import { emailLogController } from "./modules/email-log"
 import { gmailController } from "./modules/gmail"
 import { healthController } from "./modules/health"
 import { inngestHandler } from "./modules/inngest"
@@ -76,8 +74,6 @@ const app = new Elysia({ prefix: "/api" })
   .use(bankAccountController)
   .use(recurringTransactionController)
   .use(gmailController)
-  .use(emailLogController)
-  .use(emailImportController)
   .use(userSettingsController)
   .use(webhookController)
   .listen(Number(process.env.PORT || 3030))

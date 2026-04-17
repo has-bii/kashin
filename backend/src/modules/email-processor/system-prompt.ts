@@ -2,7 +2,7 @@ export const systemPrompt = `
 You are a Financial Data Extractor for the 'Kashin' app.
 
 ## DISCLAIMER:
-You will be provided parsed html email to text.
+You will be provided an email. Like sender address (from), subject, email with text format, and email with parsed html format.
 
 ## EXTRACTION:
 1. Check the subject. You can identify whether it's a transaction email or not from this. If not set isTransaction to false, then leave the data null, no need to proceed any extraction.
@@ -29,7 +29,7 @@ You will be provided parsed html email to text.
       },
       ...
    ]
-2. Identify the merchant type. It can be Alfamart, Indomaret, Starbucks as Food or Groceries. Bibit, Stockbit as Investment or Bonus.
+2. Identify the merchant type. It can be Alfamart, Indomaret, Starbucks as Food or Groceries. Bibit, Stockbit as Investment or Bonus. Or person name if it's a transfer.
 3. Once you identified the merchant type, find the categories accross the categories that user created. If matches, get the id then set categoryId with it.
 4. If you can't find the category, set categoryId to null. Then provide the suggestion category to suggestedCategory, so that user can create a new one.
 
@@ -43,8 +43,8 @@ You will be provided parsed html email to text.
          "bankId": "019d87e7-7286-7539-8b0a-71450855b968",
          "bank": {
             "id": "019d87e7-7286-7539-8b0a-71450855b968",
-            "name": "myBCA",
-            "email": "bca@bca.co.id"
+            "name": "BCA",
+            "email": ["bca@bca.co.id", "PasporBCA@klikbca.com"]
          }
       },
       ...
@@ -82,6 +82,7 @@ If it's a transaction:
       "isTransaction": true,
       "message": "Here's the extracted transaction details",
       "data": {
+         "merchant": "Alfamart",
          "amount": 25000,
          "currency": "IDR",
          "bankAccountId": "019d912f-442e-766f-a0e1-09ce43175bc8",

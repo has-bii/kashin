@@ -1,11 +1,14 @@
 import { BadRequest } from "../../global/error"
 import { auth } from "../../lib/auth"
 import { logger } from "../../lib/logger"
-import { getMessagesQuery } from "./query"
+import { prisma } from "../../lib/prisma"
+import { INNGEST_FUNCTION_EVENTS } from "../inngest/functions"
+import { getMessagesQuery, importMessagesBody } from "./query"
 import { InternalServerError, status } from "elysia"
 import { gmail_v1, google } from "googleapis"
 
 type GetMessagesQuery = (typeof getMessagesQuery)["static"]
+type ImportMessagesBody = (typeof importMessagesBody)["static"]
 
 export abstract class GmailService {
   /* ------------------------------ API Endpoints ----------------------------- */
@@ -60,6 +63,69 @@ export abstract class GmailService {
     }))
 
     return { messages, pageToken }
+  }
+
+  static async importMessages(userId: string, body: ImportMessagesBody) {
+    // Check if gmailMessageIds is empty and > 50
+    if (body.messageIds.length <= 0 || body.messageIds.length > 50)
+      throw new BadRequest("Email is required and must be less than 50")
+
+    // Get Google access token
+    const accessToken = await auth.api
+      .getAccessToken({
+        body: { userId, providerId: "google" },
+      })
+      .then((res) => res.accessToken)
+      .catch(() => null)
+    if (!accessToken) throw new BadRequest("Your account hasn't linked to Google account")
+
+    // Check if any pending, pr
+    const existing = await prisma.aiExtraction.findMany({
+      where: { userId, status: { in: ["pending", "processing"] } },
+      select: {
+        id: true,
+      },
+    })
+
+    if (existing.length > 0)
+      throw new BadRequest(
+        "The system is still processing the previous import yet. Wait until finish",
+      )
+
+    let imported = 0
+
+    await prisma.$transaction(async (tx) => {
+      // Insert gmailMessageIds
+      const data = await tx.aiExtraction.createManyAndReturn({
+        skipDuplicates: true,
+        data: body.messageIds.map((gmailMessageId) => ({
+          userId,
+          gmailMessageId,
+          status: "pending",
+        })),
+        select: {
+          id: true,
+          userId: true,
+        },
+      })
+
+      // Sending event
+      await Promise.all(
+        data.map(({ id, userId }) =>
+          INNGEST_FUNCTION_EVENTS.processEmail.sendEvent({
+            aiExtractionId: id,
+            userId,
+          }),
+        ),
+      )
+
+      imported = data.length
+    })
+
+    return {
+      pendingImportEmail: imported,
+      skippedImportEmail: body.messageIds.length - imported,
+    }
   }
 
   /* ---------------------------- Public Functions ---------------------------- */

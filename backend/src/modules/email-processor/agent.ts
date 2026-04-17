@@ -9,7 +9,7 @@ export const agent = createAgent({
   model,
   tools,
   systemPrompt,
-  responseFormat: providerStrategy(responseFormat),
   contextSchema,
+  responseFormat: providerStrategy(responseFormat),
   middleware: [handleToolErrors],
 })

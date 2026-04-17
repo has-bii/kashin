@@ -5,3 +5,7 @@ export const getMessagesQuery = t.Object({
   before: t.Optional(t.String({ format: "date-time" })),
   after: t.Optional(t.String({ format: "date-time" })),
 })
+
+export const importMessagesBody = t.Object({
+  messageIds: t.Array(t.String(), { minItems: 1, maxItems: 50 }),
+})

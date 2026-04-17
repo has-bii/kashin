@@ -1,5 +1,6 @@
 import { agent } from "./agent"
 import { generateHumanMessage } from "./human-message"
+import { isValid } from "date-fns"
 import { gmail_v1 } from "googleapis"
 import { convert } from "html-to-text"
 import PostalMime from "postal-mime"
@@ -8,7 +9,8 @@ interface ProcessEmailArgs {
   userId: string
   subject: string
   fromAddress: string
-  body: string
+  text?: string
+  html?: string
 }
 
 export abstract class EmailProcessorService {
@@ -18,17 +20,22 @@ export abstract class EmailProcessorService {
 
     const parsed = await PostalMime.parse(rawEmail)
 
-    let body: string | undefined | null = parsed.text
-
-    if (parsed.html) {
-      body = this.convertHtmlToText(parsed.html).trim()
-    }
+    const emailFrom =
+      parsed.headers.find((acc) => acc.key === "from")?.value ||
+      `${parsed.from?.name} <${parsed.from?.address}>`.trim()
+    const emailReceivedAt = !parsed.date
+      ? undefined
+      : isValid(new Date(parsed.date))
+        ? new Date(parsed.date)
+        : undefined
+    const emailHtml = parsed.html ? this.convertHtmlToText(parsed.html).trim() : undefined
 
     return {
-      fromAddress: parsed.from?.address || parsed.from?.name,
-      subject: parsed.subject,
-      body,
-      receivedAt: new Date(Number(messageData.internalDate)),
+      emailFrom,
+      emailSubject: parsed.subject,
+      emailText: parsed.text,
+      emailHtml,
+      emailReceivedAt,
     }
   }
 
@@ -41,8 +48,8 @@ export abstract class EmailProcessorService {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const meta = msg.response_metadata as any
 
-      if (meta.estimatedTokenUsage && meta.estimatedTokenUsage.totalTokens) {
-        return (acc + meta.estimatedTokenUsage.totalTokens) as number
+      if (typeof meta?.estimatedTokenUsage?.totalTokens === "number") {
+        return acc + meta.estimatedTokenUsage.totalTokens
       }
       return acc
     }, 0)

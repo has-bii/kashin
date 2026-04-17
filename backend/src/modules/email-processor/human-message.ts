@@ -3,18 +3,22 @@ import { HumanMessage } from "@langchain/core/messages"
 interface Args {
   fromAddress: string
   subject: string
-  body: string
+  text?: string
+  html?: string
 }
 
-export function generateHumanMessage({ subject, fromAddress, body }: Args) {
+export function generateHumanMessage({ subject, fromAddress, text, html }: Args) {
   const promptText = `Extract transaction details from the following email:
 
 <email>
   <from>${fromAddress}</from>
   <subject>${subject}</subject>
-  <body>
-${body}
-  </body>
+  <email-text>
+    ${text || "empty"}
+  </email-text>
+  <email-parsed-html>
+    ${html || "empty"}
+  </email-parsed-html>
 </email>`
 
   return new HumanMessage({ content: promptText })

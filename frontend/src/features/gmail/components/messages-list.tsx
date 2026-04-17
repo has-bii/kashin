@@ -1,4 +1,5 @@
 import { getMessagesQueryOptions } from "../api"
+import { useImportMessages } from "../hooks/use-import-messages"
 import { useMessagesFilters } from "../hooks/use-messages-filters"
 import { MessageDateFilters } from "./message-date-filters"
 import { MessageTable } from "./message-table"
@@ -7,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useState } from "react"
+import { toast } from "sonner"
 
 export default function MessagesList() {
   const { filters, setFilters } = useMessagesFilters()
@@ -71,6 +73,18 @@ export default function MessagesList() {
     })
   }
 
+  /* ------------------------- Import Messages States ------------------------- */
+  const { mutate, isPending } = useImportMessages()
+
+  const handleImport = () => {
+    if (selectedIds.length <= 0) {
+      toast.error("Atleast select one email")
+      return
+    }
+
+    mutate(selectedIds, { onSuccess: () => setSelectedIds([]) })
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-end gap-4">
@@ -81,7 +95,9 @@ export default function MessagesList() {
         {selectedIds.length > 0 && (
           <div className="inline-flex items-center gap-2">
             <Badge variant="outline">{selectedIds.length} Selected</Badge>
-            <Button className="">Import Selected</Button>
+            <Button className="" onClick={handleImport} disabled={isPending}>
+              {isPending ? "Importing..." : "Import Selected"}
+            </Button>
           </div>
         )}
 

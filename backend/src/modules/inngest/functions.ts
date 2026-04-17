@@ -1,24 +1,12 @@
 import { auth } from "../../lib/auth"
-import { AiExtractionService } from "../ai-extraction/service"
-import { EmailImportService } from "../email-import/service"
-import { EmailLogService } from "../email-log/service"
+import { prisma } from "../../lib/prisma"
 import { EmailProcessorService } from "../email-processor/service"
 import { GmailService } from "../gmail/service"
 import { inngest } from "./client"
 
-type FetchEmailEventData = { userId: string; messageId: string; emailImportId: string }
-type ProcessEmailEventData = { emailLogId: string; emailImportId: string }
+type ProcessEmailEventData = { aiExtractionId: string; userId: string }
 
 export const INNGEST_FUNCTION_EVENTS = {
-  fetchEmail: {
-    key: "email/fetch.email",
-    sendEvent: async (data: FetchEmailEventData) => {
-      return inngest.send({
-        name: "email/fetch.email",
-        data,
-      })
-    },
-  },
   processEmail: {
     key: "email/process.email",
     sendEvent: async (data: ProcessEmailEventData) => {
@@ -30,182 +18,203 @@ export const INNGEST_FUNCTION_EVENTS = {
   },
 }
 
-export const fetchEmail = inngest.createFunction(
+export const processEmail = inngest.createFunction(
   {
-    id: "fetch-email",
+    id: "process-email",
     concurrency: {
       key: "event.data.userId",
       limit: 1,
     },
     triggers: {
-      event: INNGEST_FUNCTION_EVENTS.fetchEmail.key,
-    },
-  },
-  async ({ event, step }) => {
-    const { userId, messageId, emailImportId } = event.data as FetchEmailEventData
-
-    // Get gmail accessToken
-    const credentials = await step.run("get-access-and-refresh-token", async () => {
-      try {
-        const { accessToken } = await auth.api.getAccessToken({
-          body: {
-            providerId: "google",
-            userId,
-          },
-        })
-        return accessToken
-      } catch {
-        await EmailImportService.updateEmailImportProcessing(emailImportId, "failed")
-        throw new Error("Failed to get google credentials ")
-      }
-    })
-
-    // Get email
-    const emailData = await step.run("fetch-email", async () => {
-      try {
-        const { data } = await GmailService.fetchEmailByMessageId(credentials, messageId)
-
-        if (!data.raw) throw new Error("Fetched raw email but empty")
-
-        return data
-      } catch {
-        await EmailImportService.updateEmailImportProcessing(emailImportId, "failed")
-        throw new Error("Failed to fetch email")
-      }
-    })
-
-    // Parse email
-    const parseEmail = await step.run("parse-email", async () => {
-      try {
-        const data = await EmailProcessorService.parseEmail(emailData)
-
-        return data
-      } catch {
-        await EmailImportService.updateEmailImportProcessing(emailImportId, "failed")
-        throw new Error("Failed to parse email")
-      }
-    })
-
-    // Update to the database & Send inngest email/process.email
-    await step.run("update-database", async () => {
-      await Promise.all([
-        EmailLogService.insert({
-          user: {
-            connect: {
-              id: userId,
-            },
-          },
-          gmailMessageId: messageId,
-          subject: parseEmail.subject,
-          fromAddress: parseEmail.fromAddress || "Unknown",
-          rawBody: parseEmail.body,
-          receivedAt: parseEmail.receivedAt,
-          status: "received",
-        }),
-        EmailImportService.updateEmailImportProcessing(emailImportId, "received"),
-      ])
-    })
-
-    return { message: "ok" }
-  },
-)
-
-export const processEmail = inngest.createFunction(
-  {
-    id: "process-email",
-    concurrency: {
-      key: "event.data.emailLogId",
-      limit: 1,
-    },
-    triggers: {
       event: INNGEST_FUNCTION_EVENTS.processEmail.key,
     },
+    retries: 0,
   },
   async ({ event, step }) => {
-    const { emailLogId, emailImportId } = event.data as ProcessEmailEventData
+    const { userId, aiExtractionId } = event.data as ProcessEmailEventData
 
-    // Get email
-    const email = await step.run("get-email", async () => {
+    // Check if exists
+    const record = await step.run("check-exist", async () => {
       try {
-        const data = await EmailLogService.findByid(emailLogId)
+        const data = await prisma.aiExtraction.findUnique({
+          where: { id: aiExtractionId },
+          select: { id: true, gmailMessageId: true },
+        })
 
         if (!data) throw new ReferenceError("Email not found")
 
-        if (!data.rawBody) throw new ReferenceError("Email body is empty")
-
-        if (!data.subject) throw new ReferenceError("Email subject is empty")
-
         return data
       } catch (error) {
-        await Promise.all([
-          EmailImportService.updateEmailImportAnalyzing(emailImportId, "failed"),
-          EmailLogService.update(emailLogId, {
+        await prisma.aiExtraction.update({
+          where: { id: aiExtractionId },
+          data: {
             status: "failed",
-            errorMessage: error instanceof ReferenceError ? error.message : "Unknown error",
-          }),
-        ])
+            finishedAt: new Date(),
+            errorMessage:
+              error instanceof ReferenceError ? error.message : "Failed to check if email exists",
+          },
+          select: null,
+        })
         throw error
       }
     })
 
-    // Process Email
-    const { result, tokenUsage } = await step.run("process-email", async () => {
+    // Fetching Email
+    const rawEmail = await step.run("fetching-email", async () => {
       try {
-        await EmailLogService.update(emailLogId, {
-          status: "analyzing",
+        // Update status
+        await prisma.aiExtraction.update({
+          where: { id: aiExtractionId },
+          data: { status: "processing", processedAt: new Date() },
+          select: null,
         })
 
+        // Check Google Account
+        const accessToken = await auth.api
+          .getAccessToken({
+            body: { userId, providerId: "google" },
+          })
+          .then((res) => res.accessToken)
+          .catch(() => null)
+
+        if (!accessToken) throw new ReferenceError("Your account hasn't linked to Google account")
+
+        // Fetching Email
+        const { data } = await GmailService.fetchEmailByMessageId(
+          accessToken,
+          record.gmailMessageId,
+        )
+
+        return data
+      } catch (error) {
+        await prisma.aiExtraction.update({
+          where: { id: aiExtractionId },
+          data: {
+            status: "failed",
+            finishedAt: new Date(),
+            errorMessage:
+              error instanceof ReferenceError ? error.message : "Failed to getting email",
+          },
+          select: null,
+        })
+        throw new Error("Failed to process email: ", { cause: error })
+      }
+    })
+
+    // Parsing Email
+    const parsedEmail = await step.run("parsing-email", async () => {
+      try {
+        const data = await EmailProcessorService.parseEmail(rawEmail)
+
+        // Update record
+        await prisma.aiExtraction.update({
+          where: { id: aiExtractionId },
+          data: {
+            emailFrom: data.emailFrom,
+            emailSubject: data.emailSubject,
+            emailReceivedAt: data.emailReceivedAt,
+            emailText: data.emailText,
+            emailHtml: data.emailHtml,
+          },
+          select: null,
+        })
+
+        // Check email body
+        if (!data.emailText && !data.emailHtml) {
+          throw new ReferenceError("Failed to parse email body")
+        }
+
+        // Check email subject
+        if (!data.emailSubject) {
+          throw new ReferenceError("Failed to parse email subject")
+        }
+
+        return data
+      } catch (error) {
+        await prisma.aiExtraction.update({
+          where: { id: aiExtractionId },
+          data: {
+            status: "failed",
+            finishedAt: new Date(),
+            errorMessage:
+              error instanceof ReferenceError ? error.message : "Failed to getting email",
+          },
+          select: null,
+        })
+        throw new Error("Failed to process email: ", { cause: error })
+      }
+    })
+
+    // Process
+    const { result, tokenUsage } = await step.run("analyze-email", async () => {
+      try {
         return await EmailProcessorService.processEmail({
-          userId: email.userId,
-          subject: email.subject!,
-          fromAddress: email.fromAddress,
-          body: email.rawBody!,
+          userId,
+          fromAddress: parsedEmail.emailFrom,
+          subject: parsedEmail.emailSubject!,
+          text: parsedEmail.emailText,
+          html: parsedEmail.emailHtml,
         })
       } catch (error) {
-        await Promise.all([
-          EmailLogService.update(emailLogId, {
+        await prisma.aiExtraction.update({
+          where: { id: aiExtractionId },
+          data: {
             status: "failed",
-            errorMessage: error instanceof Error ? error.message : "Unknown error",
-          }),
-          EmailImportService.updateEmailImportAnalyzing(emailImportId, "failed"),
-        ])
-        throw new Error("Failed to process email: ", { cause: error })
+            finishedAt: new Date(),
+            errorMessage: error instanceof Error ? error.message : "Failed to analyze email",
+          },
+          select: null,
+        })
+        throw new Error("Failed to analyze email: ", { cause: error })
       }
     })
 
     // Update to the database
     await step.run("update-database", async () => {
-      await Promise.all([
-        EmailImportService.updateEmailImportAnalyzing(emailImportId, "processed"),
-        EmailLogService.update(emailLogId, {
-          status: "completed",
-        }),
-        AiExtractionService.insert({
-          user: {
-            connect: {
-              id: email.userId,
-            },
-          },
-          emailLog: {
-            connect: {
-              id: BigInt(emailLogId),
-            },
-          },
-          status: result.isTransaction ? "pending" : "rejected",
-          extractedType: result.data?.type,
-          extractedAmount: result.data?.amount,
-          extractedCurrency: result.data?.currency,
-          extractedDate: result.data?.date,
-          extractedNotes: result.data?.notes,
-          extractedCategory: result.data?.categoryId
-            ? { connect: { id: result.data.categoryId } }
-            : undefined,
-          confidenceScore: result.data?.confidence,
-          notes: result.message,
-          suggestedCategory: result.data?.suggestedCategory,
-          tokenUsage,
-        }),
+      // Check if category and bankAccount exist
+      const [category, bankAccount] = await Promise.all([
+        result.data?.categoryId
+          ? prisma.category.findUnique({
+              where: { id: result.data.categoryId },
+              select: { id: true },
+            })
+          : null,
+        result.data?.bankAccountId
+          ? prisma.bankAccount.findUnique({
+              where: { id: result.data.bankAccountId },
+              select: { id: true },
+            })
+          : null,
       ])
+
+      await prisma.aiExtraction.update({
+        where: { id: aiExtractionId },
+        select: null,
+        data: {
+          tokenUsage,
+          finishedAt: new Date(),
+          aiResponse: JSON.stringify(result),
+          ...(result.isTransaction && result.data
+            ? {
+                status: "waitingApproval",
+                extractedType: result.data?.type,
+                extractedMerchant: result.data?.merchant,
+                extractedAmount: result.data?.amount,
+                extractedBankAccountId: bankAccount?.id,
+                extractedCategoryId: category?.id,
+                extractedCurrency: result.data.currency,
+                extractedDate: result.data.date,
+                confidenceScore: result.data.confidence,
+                suggestedCategory: result.data.suggestedCategory,
+                note: result.data.notes,
+              }
+            : {
+                rejectedAt: new Date(),
+                status: "rejected",
+                note: result.message,
+              }),
+        },
+      })
     })
 
     return { message: "ok" }
