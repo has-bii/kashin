@@ -11,3 +11,10 @@ LICENSE
 .editorconfig
 .idea
 coverage*
+src/generated
+graphify-out/
+docs/
+dist/
+*.log
+server
+server.js
