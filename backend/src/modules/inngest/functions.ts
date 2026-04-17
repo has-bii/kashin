@@ -150,10 +150,12 @@ export const processEmail = inngest.createFunction(
       try {
         return await EmailProcessorService.processEmail({
           userId,
+          aiExtractionId,
           fromAddress: parsedEmail.emailFrom,
           subject: parsedEmail.emailSubject!,
           text: parsedEmail.emailText,
           html: parsedEmail.emailHtml,
+          date: parsedEmail.emailReceivedAt,
         })
       } catch (error) {
         await prisma.aiExtraction.update({

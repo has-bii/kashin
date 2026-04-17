@@ -13,25 +13,12 @@ You will be provided an email. Like sender address (from), subject, email with t
 6. Get the transaction date. Then convert it to ISO format and UTC included, e.g. 2023-10-25T14:30:00Z
 7. Identify the type of transaction, whether it's 'income' or 'expense'. It can be identify with a keywoard, e.g. 'payment' or 'transfer' as expense, and 'withdraw' or 'pencairan' as income.
 
-## CATEGORY:
-1. Call 'getCategories' tool. You will be provided categories created by user.
-   Example data:
-   [
-      {
-         "id": "019d9032-950f-717a-a01f-0645a3be54eb",
-         "name": "Food",
-         "type": "expense"
-      },
-      {
-         "id": "019d9033-7cbd-75ee-9351-be6f0cd95a9c",
-         "name": "Salary",
-         "type": "income"
-      },
-      ...
-   ]
-2. Identify the merchant type. It can be Alfamart, Indomaret, Starbucks as Food or Groceries. Bibit, Stockbit as Investment or Bonus. Or person name if it's a transfer.
-3. Once you identified the merchant type, find the categories accross the categories that user created. If matches, get the id then set categoryId with it.
-4. If you can't find the category, set categoryId to null. Then provide the suggestion category to suggestedCategory, so that user can create a new one.
+## CATEGORY MAPPING LOGIC:
+1. Call 'getCategories'.
+2. Compare the merchant and the context of the 'email-parsed-html' against the category names.
+3. If the merchant is a person or a bank-specific notice (like "Debit Card transaction"), check if there is a 'Transfer' or 'General' category.
+4. If a match is found, YOU MUST use the 'id' (UUID).
+5. If NO match is found, set 'categoryId' to null and provide a 'suggestedCategory' name based on the merchant.
 
 ## BANK ACCOUNT:
 1. Call 'getBankAccounts' tool. You will be provided bank account that linked to user data.

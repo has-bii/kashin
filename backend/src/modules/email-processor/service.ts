@@ -1,16 +1,13 @@
 import { agent } from "./agent"
-import { generateHumanMessage } from "./human-message"
+import { GenerateHumanMessage, generateHumanMessage } from "./human-message"
 import { isValid } from "date-fns"
 import { gmail_v1 } from "googleapis"
 import { convert } from "html-to-text"
 import PostalMime from "postal-mime"
 
-interface ProcessEmailArgs {
+interface ProcessEmail extends GenerateHumanMessage {
   userId: string
-  subject: string
-  fromAddress: string
-  text?: string
-  html?: string
+  aiExtractionId?: string
 }
 
 export abstract class EmailProcessorService {
@@ -39,10 +36,18 @@ export abstract class EmailProcessorService {
     }
   }
 
-  static async processEmail({ userId, ...email }: ProcessEmailArgs) {
+  static async processEmail({ userId, aiExtractionId, ...email }: ProcessEmail) {
     const humanMessage = generateHumanMessage(email)
 
-    const response = await agent.invoke({ messages: [humanMessage] }, { context: { userId } })
+    const response = await agent.invoke(
+      { messages: [humanMessage] },
+      {
+        context: { userId },
+        runName: "process-email",
+        tags: ["email-processor"],
+        metadata: { userId, aiExtractionId },
+      },
+    )
 
     const tokenUsage = response.messages.reduce<number>((acc, msg) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
