@@ -33,5 +33,5 @@ COPY --from=prerelease /usr/src/app/prisma ./prisma
 COPY package.json bun.lock tsconfig.json prisma.config.ts ./
 
 USER bun
-EXPOSE 3030/tcp
+EXPOSE 3030
 CMD ["sh", "-c", "bunx prisma migrate deploy && bun run src/index.ts"]
