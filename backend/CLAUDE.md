@@ -7,11 +7,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 bun run dev        # start dev server with hot reload
 bun run lint       # ESLint on ./src
-bunx prisma generate   # regenerate Prisma client after schema changes
-bunx prisma migrate dev  # run migrations in development
+bunx --bun prisma generate   # regenerate Prisma client after schema changes
+bunx --bun prisma migrate dev  # run migrations in development
 ```
 
 No test suite is configured. Type-check with `bunx tsc --noEmit`.
+
+Default dev port is **3030** (override with `PORT` env var).
 
 ## Architecture
 
@@ -23,6 +25,11 @@ Every feature lives in `src/modules/<name>/` with three files:
 - `index.ts` — Elysia controller (routes, input validation via `t.*` schemas)
 - `service.ts` — business logic + Zod/Elysia body/query schemas
 - `query.ts` — reusable query parameter schemas (when needed)
+
+Exceptions:
+- `ai-extraction/` — only `service.ts` (no HTTP controller; called internally)
+- `email-processor/` — extended structure: `agent.ts`, `context-schema.ts`, `human-message.ts`, `response-format.ts`, `system-prompt.ts`, `tools.ts`, `service.ts`
+- `webhook/` — receives inbound webhooks (e.g. QStash callbacks)
 
 ### Authentication
 
@@ -38,13 +45,33 @@ Key domain models: `User`, `Category`, `Transaction`, `RecurringTransaction`, `B
 
 Inngest handles async work (`src/modules/inngest/`). Functions are defined in `functions.ts`, the client in `client.ts`. The handler is mounted at `/api/inngest`. Currently: email processing pipeline triggered by `email/process.email`.
 
+QStash (`src/lib/qstash.ts`) is used for reliable webhook delivery/scheduling — distinct from Inngest. Inbound QStash callbacks hit the `webhook` module.
+
 ### AI / Email processing
 
 `src/modules/email-processor/` contains a LangGraph agent (LangChain + Google Gemini/OpenAI) that parses financial emails and creates `AiExtraction` records. Gmail OAuth integration is in `src/modules/gmail/`.
 
+### Shared lib utilities
+
+`src/lib/` contains singletons used across modules:
+- `prisma.ts` — Prisma client
+- `auth.ts` — better-auth instance
+- `llm.ts` — LLM client (Gemini/OpenAI)
+- `qstash.ts` — QStash client
+- `email.ts` — Resend email client
+- `logger.ts` — pino logger
+
+### Rate limiting
+
+Global rate limit: **100 req/60s** (applied in `src/index.ts`). Routes mounted before the limiter (`/api/health`, `/api/inngest`, `/api/auth/*`) bypass it.
+
+### Error handling
+
+Thrown errors with a `.status` property are returned as `{ error: string, code: string }` with that status. Elysia validation errors become 400. All others become 500. Throw typed errors from `src/global/error.ts`.
+
 ### Key env vars
 
-`DATABASE_URL`, `PORT`, `FRONTEND_URL`, `INNGEST_*`, `BETTER_AUTH_SECRET`, `RESEND_*`, `GOOGLE_*` (OAuth + Gemini), `QSTASH_*`.
+`DATABASE_URL`, `PORT`, `FRONTEND_URL`, `INNGEST_*`, `BETTER_AUTH_SECRET`, `RESEND_*`, `GOOGLE_*` (OAuth + Gemini), `OPENAI_API_KEY`, `QSTASH_*`.
 
 ## Context Navigation (Graphify)
 
