@@ -58,13 +58,13 @@ const app = new Elysia({ prefix: "/api" })
     }),
   )
   .all("/inngest", ({ request }) => inngestHandler(request))
+  .use(healthController)
   .use(
     rateLimit({
       duration: 60000,
       max: 100,
     }),
   )
-  .use(healthController)
   .all("/auth/*", betterAuthView)
   .use(categoryController)
   .use(transactionController)
