@@ -1,8 +1,8 @@
 import { createError } from "../../global/error"
 import { prisma } from "../../lib/prisma"
 import { qstash } from "../../lib/qstash"
+import type { CreateInput, GetAllQuery, UpdateInput } from "./dto"
 import { status } from "elysia"
-import type { CreateInput, UpdateInput, GetAllQuery } from "./dto"
 
 const categoryInclude = {
   category: { select: { id: true, name: true, type: true, icon: true, color: true } },
@@ -25,15 +25,6 @@ function computeNextDueDate(from: Date, frequency: string): Date {
       break
   }
   return d
-}
-
-async function scheduleNext(id: string, runAt: Date): Promise<void> {
-  const url = `${process.env.BETTER_AUTH_URL}/api/webhook/recurring-transaction`
-  await qstash.publishJSON({
-    url,
-    body: { recurringTransactionId: id, scheduledFor: runAt.toISOString() },
-    notBefore: Math.floor(runAt.getTime() / 1000),
-  })
 }
 
 export abstract class RecurringTransactionService {
@@ -76,7 +67,7 @@ export abstract class RecurringTransactionService {
         data: { ...rest, userId, ...(categoryId !== undefined ? { categoryId } : {}) },
         include: categoryInclude,
       })
-      await scheduleNext(item.id, item.nextDueDate)
+      await this.scheduleNext(item.id, item.nextDueDate)
       return item
     })
 
@@ -94,7 +85,7 @@ export abstract class RecurringTransactionService {
     })
 
     if (input.nextDueDate && existing.isActive) {
-      await scheduleNext(id, updated.nextDueDate)
+      await this.scheduleNext(id, updated.nextDueDate)
     }
 
     return updated
@@ -117,7 +108,7 @@ export abstract class RecurringTransactionService {
 
     // Only re-schedule when turning ON (was inactive, now active)
     if (!existing.isActive) {
-      await scheduleNext(id, updated.nextDueDate)
+      await this.scheduleNext(id, updated.nextDueDate)
     }
 
     return updated
@@ -166,7 +157,16 @@ export abstract class RecurringTransactionService {
 
     // Propagate errors — QStash will retry; idempotency guard prevents duplicate DB writes
     if (nextDueDate) {
-      await scheduleNext(recurringTransactionId, nextDueDate)
+      await this.scheduleNext(recurringTransactionId, nextDueDate)
     }
+  }
+
+  static async scheduleNext(id: string, runAt: Date): Promise<void> {
+    const url = `${process.env.BETTER_AUTH_URL}/api/webhook/recurring-transaction`
+    await qstash.publishJSON({
+      url,
+      body: { recurringTransactionId: id, scheduledFor: runAt.toISOString() },
+      notBefore: Math.floor(runAt.getTime() / 1000),
+    })
   }
 }
