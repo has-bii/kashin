@@ -1,30 +1,8 @@
-import {
-  RecurringTransactionPlainInputCreate,
-  RecurringTransactionPlainInputUpdate,
-} from "../../generated/prismabox/RecurringTransaction"
-import { __nullable__ } from "../../generated/prismabox/__nullable__"
+import { createError } from "../../global/error"
 import { prisma } from "../../lib/prisma"
 import { qstash } from "../../lib/qstash"
-import { getAllQuery } from "./query"
-import { NotFoundError, status, t } from "elysia"
-
-export const recurringCreateBody = t.Composite([
-  RecurringTransactionPlainInputCreate,
-  t.Object({
-    categoryId: t.Optional(__nullable__(t.String())),
-  }),
-])
-
-export const recurringUpdateBody = t.Composite([
-  RecurringTransactionPlainInputUpdate,
-  t.Object({
-    categoryId: t.Optional(__nullable__(t.String())),
-  }),
-])
-
-type RecurringCreateInput = (typeof recurringCreateBody)["static"]
-type RecurringUpdateInput = (typeof recurringUpdateBody)["static"]
-type GetAllQuery = (typeof getAllQuery)["static"]
+import { status } from "elysia"
+import type { CreateInput, UpdateInput, GetAllQuery } from "./dto"
 
 const categoryInclude = {
   category: { select: { id: true, name: true, type: true, icon: true, color: true } },
@@ -86,44 +64,35 @@ export abstract class RecurringTransactionService {
       where: { id, userId },
       include: categoryInclude,
     })
-    if (!item) throw new NotFoundError("Transaksi berulang tidak ditemukan")
-    return item
+    if (!item) createError("not_found", "Recurring transaction not found")
+    return item!
   }
 
-  static async create(userId: string, input: RecurringCreateInput) {
+  static async create(userId: string, input: CreateInput) {
     const { categoryId, ...rest } = input
 
     const data = await prisma.$transaction(async (tx) => {
       const item = await tx.recurringTransaction.create({
-        data: {
-          ...rest,
-          userId,
-          ...(categoryId !== undefined ? { categoryId } : {}),
-        },
+        data: { ...rest, userId, ...(categoryId !== undefined ? { categoryId } : {}) },
         include: categoryInclude,
       })
       await scheduleNext(item.id, item.nextDueDate)
-
       return item
     })
 
     return status(201, data)
   }
 
-  static async update(userId: string, id: string, input: RecurringUpdateInput) {
+  static async update(userId: string, id: string, input: UpdateInput) {
     const existing = await RecurringTransactionService.getById(userId, id)
     const { categoryId, ...rest } = input
 
     const updated = await prisma.recurringTransaction.update({
       where: { id },
-      data: {
-        ...rest,
-        ...(categoryId !== undefined ? { categoryId } : {}),
-      },
+      data: { ...rest, ...(categoryId !== undefined ? { categoryId } : {}) },
       include: categoryInclude,
     })
 
-    // Reschedule if nextDueDate changed and the transaction is still active
     if (input.nextDueDate && existing.isActive) {
       await scheduleNext(id, updated.nextDueDate)
     }
@@ -162,7 +131,6 @@ export abstract class RecurringTransactionService {
         where: { id: recurringTransactionId },
       })
 
-      // Silently no-op if not found or paused
       if (!recurring || !recurring.isActive) return
 
       // Idempotency guard — this occurrence was already processed

@@ -1,88 +1,45 @@
-import { TransactionType } from "../../generated/prisma/enums"
-import {
-  CategoryPlainInputCreate,
-  CategoryPlainInputUpdate,
-} from "../../generated/prismabox/Category"
-import { Conflict } from "../../global/error"
+import { createError } from "../../global/error"
 import { prisma } from "../../lib/prisma"
-import { NotFoundError, status } from "elysia"
+import { status } from "elysia"
+import type { CreateInput, UpdateInput, GetAllQuery } from "./dto"
 
 export abstract class CategoryService {
-  static async getAll(userId: string, type?: TransactionType) {
+  static async getAll(userId: string, type?: GetAllQuery["type"]) {
     return prisma.category.findMany({
       where: { userId, ...(type ? { type } : undefined) },
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: { createdAt: "desc" },
     })
   }
 
   static async getById(userId: string, id: string) {
-    return prisma.category.findUnique({
-      where: {
-        id,
-        userId,
-      },
-    })
+    return prisma.category.findUnique({ where: { id, userId } })
   }
 
-  static async create(userId: string, input: (typeof CategoryPlainInputCreate)["static"]) {
-    // Check unique name
+  static async create(userId: string, input: CreateInput) {
     const isExist = await prisma.category.findUnique({
-      where: {
-        name_userId: {
-          name: input.name,
-          userId,
-        },
-      },
+      where: { name_userId: { name: input.name, userId } },
     })
-    if (isExist) throw new Conflict("Kategori dengan nama yang sama sudah ada")
+    if (isExist) createError("conflict", "Category with the same name already exists")
 
-    const data = await prisma.category.create({
-      data: { ...input, userId },
-    })
-
+    const data = await prisma.category.create({ data: { ...input, userId } })
     return status(201, data)
   }
 
-  static async update(
-    userId: string,
-    id: string,
-    input: (typeof CategoryPlainInputUpdate)["static"],
-  ) {
-    // Check unique name
+  static async update(userId: string, id: string, input: UpdateInput) {
     if (input.name) {
       const isExist = await prisma.category.findUnique({
-        where: {
-          name_userId: {
-            name: input.name,
-            userId,
-          },
-          NOT: {
-            id,
-          },
-        },
+        where: { name_userId: { name: input.name, userId }, NOT: { id } },
       })
-
-      if (isExist) throw new Conflict("Kategori dengan nama yang sama sudah ada")
+      if (isExist) createError("conflict", "Category with the same name already exists")
     }
 
-    return prisma.category.update({
-      where: { id, userId },
-      data: input,
-    })
+    return prisma.category.update({ where: { id, userId }, data: input })
   }
 
   static async delete(userId: string, id: string) {
-    // Check if exist
-    const isExist = await prisma.category.findUnique({
-      where: { id, userId },
-    })
+    const isExist = await prisma.category.findUnique({ where: { id, userId } })
+    if (!isExist) createError("not_found", "Category not found")
 
-    if (!isExist) throw new NotFoundError("Kategori tidak ditemukan")
-
-    return prisma.category.delete({
-      where: { id, userId },
-    })
+    return prisma.category.delete({ where: { id, userId } })
   }
 }

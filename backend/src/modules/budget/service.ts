@@ -1,19 +1,8 @@
-import { NotFoundError, status, t } from "elysia"
+import { createError } from "../../global/error"
 import { BudgetPeriod } from "../../generated/prisma/enums"
-import { Conflict } from "../../global/error"
 import { prisma } from "../../lib/prisma"
-
-export const budgetCreateBody = t.Object({
-  categoryId: t.String(),
-  amount: t.Number({ minimum: 0.01 }),
-  period: t.Union([t.Literal("daily"), t.Literal("weekly"), t.Literal("monthly")]),
-  alertThreshold: t.Optional(t.Number({ minimum: 0.01, maximum: 1 })),
-})
-
-export const budgetUpdateBody = t.Partial(budgetCreateBody)
-
-type CreateInput = (typeof budgetCreateBody)["static"]
-type UpdateInput = (typeof budgetUpdateBody)["static"]
+import { status } from "elysia"
+import type { CreateInput, UpdateInput } from "./dto"
 
 function getUtcFromLocal(dateStr: string, time: string, timezone: string): Date {
   const fakeUtc = new Date(`${dateStr}T${time}Z`)
@@ -34,7 +23,7 @@ function getPeriodRange(period: BudgetPeriod, timezone: string): { gte: Date; lt
     startStr = endStr = localDateStr
   } else if (period === "weekly") {
     const d = new Date(`${localDateStr}T12:00:00`)
-    const dow = d.getDay() === 0 ? 7 : d.getDay() // ISO: 1=Mon … 7=Sun
+    const dow = d.getDay() === 0 ? 7 : d.getDay()
     const monday = new Date(d)
     monday.setDate(day - dow + 1)
     const sunday = new Date(monday)
@@ -68,12 +57,7 @@ export abstract class BudgetService {
         const { gte, lte } = getPeriodRange(budget.period, timezone)
 
         const agg = await prisma.transaction.aggregate({
-          where: {
-            userId,
-            categoryId: budget.categoryId,
-            type: "expense",
-            transactionDate: { gte, lte },
-          },
+          where: { userId, categoryId: budget.categoryId, type: "expense", transactionDate: { gte, lte } },
           _sum: { amount: true },
         })
 
@@ -98,7 +82,7 @@ export abstract class BudgetService {
 
   static async create(userId: string, input: CreateInput) {
     const count = await prisma.budget.count({ where: { userId } })
-    if (count >= 10) throw new Conflict("Batas maksimal 10 anggaran telah tercapai")
+    if (count >= 10) createError("conflict", "Maximum budget limit of 10 has been reached")
 
     const duplicate = await prisma.budget.findUnique({
       where: {
@@ -109,7 +93,7 @@ export abstract class BudgetService {
         },
       },
     })
-    if (duplicate) throw new Conflict("Anggaran untuk kategori dan periode ini sudah ada")
+    if (duplicate) createError("conflict", "Budget for this category and period already exists")
 
     const result = await prisma.budget.create({
       data: { ...input, period: input.period as BudgetPeriod, userId },
@@ -121,19 +105,17 @@ export abstract class BudgetService {
 
   static async update(userId: string, id: string, input: UpdateInput) {
     const existing = await prisma.budget.findUnique({ where: { id, userId } })
-    if (!existing) throw new NotFoundError("Anggaran tidak ditemukan")
+    if (!existing) createError("not_found", "Budget not found")
 
-    const newCategoryId = input.categoryId ?? existing.categoryId
-    const newPeriod = (input.period ?? existing.period) as BudgetPeriod
+    const newCategoryId = input.categoryId ?? existing!.categoryId
+    const newPeriod = (input.period ?? existing!.period) as BudgetPeriod
 
     if (input.categoryId || input.period) {
       const duplicate = await prisma.budget.findUnique({
-        where: {
-          userId_categoryId_period: { userId, categoryId: newCategoryId, period: newPeriod },
-        },
+        where: { userId_categoryId_period: { userId, categoryId: newCategoryId, period: newPeriod } },
       })
       if (duplicate && duplicate.id !== id)
-        throw new Conflict("Budget for this category and period already exists")
+        createError("conflict", "Budget for this category and period already exists")
     }
 
     return prisma.budget.update({
@@ -145,7 +127,7 @@ export abstract class BudgetService {
 
   static async delete(userId: string, id: string) {
     const existing = await prisma.budget.findUnique({ where: { id, userId } })
-    if (!existing) throw new NotFoundError("Anggaran tidak ditemukan")
+    if (!existing) createError("not_found", "Budget not found")
 
     return prisma.budget.delete({ where: { id, userId } })
   }

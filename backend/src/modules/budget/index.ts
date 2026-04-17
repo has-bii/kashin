@@ -1,5 +1,6 @@
 import { authMacro } from "../../macros/auth.macro"
-import { BudgetService, budgetCreateBody, budgetUpdateBody } from "./service"
+import { BudgetService } from "./service"
+import { createBody, updateBody } from "./dto"
 import Elysia from "elysia"
 
 export const budgetController = new Elysia({ prefix: "/budget" })
@@ -9,11 +10,11 @@ export const budgetController = new Elysia({ prefix: "/budget" })
   })
   .post("/", async ({ user, body }) => BudgetService.create(user.id, body), {
     auth: true,
-    body: budgetCreateBody,
+    body: createBody,
   })
   .put("/:id", async ({ user, body, params }) => BudgetService.update(user.id, params.id, body), {
     auth: true,
-    body: budgetUpdateBody,
+    body: updateBody,
   })
   .delete("/:id", async ({ user, params }) => BudgetService.delete(user.id, params.id), {
     auth: true,

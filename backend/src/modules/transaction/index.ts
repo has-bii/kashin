@@ -1,6 +1,6 @@
 import { authMacro } from "../../macros/auth.macro"
-import { getAllQuery } from "./query"
-import { TransactionService, transactionCreateBody, transactionUpdateBody } from "./service"
+import { TransactionService } from "./service"
+import { getAllQuery, createBody, updateBody } from "./dto"
 import Elysia, { t } from "elysia"
 
 export const transactionController = new Elysia({ prefix: "/transaction" })
@@ -11,7 +11,7 @@ export const transactionController = new Elysia({ prefix: "/transaction" })
   })
   .post("/", async ({ user, body }) => TransactionService.create(user.id, body), {
     auth: true,
-    body: transactionCreateBody,
+    body: createBody,
   })
   .post(
     "/bulk-delete",
@@ -45,7 +45,7 @@ export const transactionController = new Elysia({ prefix: "/transaction" })
     async ({ user, body, params }) => TransactionService.update(user.id, params.id, body),
     {
       auth: true,
-      body: transactionUpdateBody,
+      body: updateBody,
     },
   )
   .delete("/:id", async ({ user, params }) => TransactionService.delete(user.id, params.id), {

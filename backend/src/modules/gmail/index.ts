@@ -1,6 +1,6 @@
 import { authMacro } from "../../macros/auth.macro"
-import { getMessagesQuery, importMessagesBody } from "./query"
 import { GmailService } from "./service"
+import { getMessagesQuery, importMessagesBody } from "./dto"
 import Elysia from "elysia"
 
 export const gmailController = new Elysia({ prefix: "/gmail" })

@@ -8,3 +8,11 @@ export const getAllQuery = t.Object({
 export const deleteQuery = t.Object({
   deleteTransactions: t.Optional(t.Boolean({ default: false })),
 })
+
+export const createBody = t.Object({
+  bankId: t.String({ format: "uuid" }),
+  initialBalance: t.Number(),
+})
+
+export type CreateInput = (typeof createBody)["static"]
+export type GetAllQuery = (typeof getAllQuery)["static"]

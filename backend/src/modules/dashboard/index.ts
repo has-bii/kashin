@@ -1,6 +1,6 @@
 import { authMacro } from "../../macros/auth.macro"
-import { categoryBreakdownQuery, recentQuery, summaryQuery, trendsQuery } from "./query"
 import { DashboardService } from "./service"
+import { summaryQuery, categoryBreakdownQuery, trendsQuery, recentQuery } from "./dto"
 import Elysia from "elysia"
 
 export const dashboardController = new Elysia({ prefix: "/dashboard" })

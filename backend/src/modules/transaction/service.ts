@@ -1,32 +1,8 @@
 import { Prisma } from "../../generated/prisma/client"
-import {
-  TransactionPlainInputCreate,
-  TransactionPlainInputUpdate,
-} from "../../generated/prismabox/Transaction"
-import { __nullable__ } from "../../generated/prismabox/__nullable__"
+import { createError } from "../../global/error"
 import { prisma } from "../../lib/prisma"
-import { getAllQuery } from "./query"
-import { NotFoundError, status, t } from "elysia"
-
-export const transactionCreateBody = t.Composite([
-  TransactionPlainInputCreate,
-  t.Object({
-    categoryId: t.Optional(__nullable__(t.String())),
-    bankAccountId: t.Optional(__nullable__(t.String())),
-  }),
-])
-
-export const transactionUpdateBody = t.Composite([
-  TransactionPlainInputUpdate,
-  t.Object({
-    categoryId: t.Optional(__nullable__(t.String())),
-    bankAccountId: t.Optional(__nullable__(t.String())),
-  }),
-])
-
-type TransactionCreateInput = (typeof transactionCreateBody)["static"]
-type TransactionUpdateInput = (typeof transactionUpdateBody)["static"]
-type GetAllQuery = (typeof getAllQuery)["static"]
+import { status } from "elysia"
+import type { CreateInput, UpdateInput, GetAllQuery } from "./dto"
 
 const categoryInclude = {
   category: { select: { id: true, name: true, type: true, icon: true, color: true } },
@@ -73,12 +49,12 @@ export abstract class TransactionService {
       include: categoryInclude,
     })
 
-    if (!transaction) throw new NotFoundError("Transaksi tidak ditemukan")
+    if (!transaction) createError("not_found", "Transaction not found")
 
     return transaction
   }
 
-  static async create(userId: string, input: TransactionCreateInput) {
+  static async create(userId: string, input: CreateInput) {
     const { categoryId, bankAccountId, ...rest } = input
 
     return prisma.$transaction(async (tx) => {
@@ -104,9 +80,9 @@ export abstract class TransactionService {
     })
   }
 
-  static async update(userId: string, id: string, input: TransactionUpdateInput) {
+  static async update(userId: string, id: string, input: UpdateInput) {
     const old = await prisma.transaction.findUnique({ where: { id, userId } })
-    if (!old) throw new NotFoundError("Transaksi tidak ditemukan")
+    if (!old) createError("not_found", "Transaction not found")
 
     const { categoryId, bankAccountId, ...rest } = input
 
@@ -121,17 +97,15 @@ export abstract class TransactionService {
         include: categoryInclude,
       })
 
-      // Reverse old balance effect
-      if (old.bankAccountId) {
-        const oldDelta = old.type === "income" ? old.amount : old.amount.negated()
+      if (old!.bankAccountId) {
+        const oldDelta = old!.type === "income" ? old!.amount : old!.amount.negated()
         await tx.bankAccount.update({
-          where: { id: old.bankAccountId, userId },
+          where: { id: old!.bankAccountId, userId },
           data: { balance: { decrement: oldDelta } },
         })
       }
 
-      // Apply new balance effect
-      const newBankAccountId = bankAccountId !== undefined ? bankAccountId : old.bankAccountId
+      const newBankAccountId = bankAccountId !== undefined ? bankAccountId : old!.bankAccountId
       if (newBankAccountId) {
         const newDelta = updated.type === "income" ? updated.amount : updated.amount.negated()
         await tx.bankAccount.update({
@@ -146,15 +120,15 @@ export abstract class TransactionService {
 
   static async delete(userId: string, id: string) {
     const old = await prisma.transaction.findUnique({ where: { id, userId } })
-    if (!old) throw new NotFoundError("Transaksi tidak ditemukan")
+    if (!old) createError("not_found", "Transaction not found")
 
     return prisma.$transaction(async (tx) => {
       await tx.transaction.delete({ where: { id, userId } })
 
-      if (old.bankAccountId) {
-        const delta = old.type === "income" ? old.amount : old.amount.negated()
+      if (old!.bankAccountId) {
+        const delta = old!.type === "income" ? old!.amount : old!.amount.negated()
         await tx.bankAccount.update({
-          where: { id: old.bankAccountId, userId },
+          where: { id: old!.bankAccountId, userId },
           data: { balance: { decrement: delta } },
         })
       }
@@ -216,7 +190,6 @@ export abstract class TransactionService {
     const escapeCell = (value: string | null | undefined): string => {
       if (value == null) return ""
       const str = String(value)
-      // Wrap in quotes if contains comma, quote, or newline
       if (str.includes(",") || str.includes('"') || str.includes("\n")) {
         return `"${str.replace(/"/g, '""')}"`
       }

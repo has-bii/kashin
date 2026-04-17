@@ -1,10 +1,6 @@
-import {
-  CategoryPlainInputCreate,
-  CategoryPlainInputUpdate,
-} from "../../generated/prismabox/Category"
 import { authMacro } from "../../macros/auth.macro"
-import { getAllQuery } from "./query"
 import { CategoryService } from "./service"
+import { getAllQuery, createBody, updateBody } from "./dto"
 import Elysia from "elysia"
 
 export const categoryController = new Elysia({ prefix: "/category" })
@@ -15,11 +11,11 @@ export const categoryController = new Elysia({ prefix: "/category" })
   })
   .post("/", async ({ user, body }) => CategoryService.create(user.id, body), {
     auth: true,
-    body: CategoryPlainInputCreate,
+    body: createBody,
   })
   .put("/:id", async ({ user, body, params }) => CategoryService.update(user.id, params.id, body), {
     auth: true,
-    body: CategoryPlainInputUpdate,
+    body: updateBody,
   })
   .delete("/:id", async ({ user, params }) => CategoryService.delete(user.id, params.id), {
     auth: true,

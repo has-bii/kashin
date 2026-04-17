@@ -1,11 +1,5 @@
-import { t } from "elysia"
 import { prisma } from "../../lib/prisma"
-
-export const userSettingsUpdateBody = t.Object({
-  filterEmailsByBank: t.Boolean(),
-})
-
-type UserSettingsUpdateInput = (typeof userSettingsUpdateBody)["static"]
+import type { UpdateInput } from "./dto"
 
 export abstract class UserSettingsService {
   static async get(userId: string) {
@@ -16,7 +10,7 @@ export abstract class UserSettingsService {
     })
   }
 
-  static async update(userId: string, data: UserSettingsUpdateInput) {
+  static async update(userId: string, data: UpdateInput) {
     return prisma.userSettings.upsert({
       where: { userId },
       update: data,

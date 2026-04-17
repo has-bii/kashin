@@ -1,6 +1,6 @@
 import { authMacro } from "../../macros/auth.macro"
-import { getAllQuery } from "./query"
-import { RecurringTransactionService, recurringCreateBody, recurringUpdateBody } from "./service"
+import { RecurringTransactionService } from "./service"
+import { getAllQuery, createBody, updateBody } from "./dto"
 import Elysia from "elysia"
 
 export const recurringTransactionController = new Elysia({ prefix: "/recurring-transaction" })
@@ -11,7 +11,7 @@ export const recurringTransactionController = new Elysia({ prefix: "/recurring-t
   })
   .post("/", async ({ user, body }) => RecurringTransactionService.create(user.id, body), {
     auth: true,
-    body: recurringCreateBody,
+    body: createBody,
   })
   .get("/:id", async ({ user, params }) => RecurringTransactionService.getById(user.id, params.id), {
     auth: true,
@@ -21,7 +21,7 @@ export const recurringTransactionController = new Elysia({ prefix: "/recurring-t
     async ({ user, params, body }) => RecurringTransactionService.update(user.id, params.id, body),
     {
       auth: true,
-      body: recurringUpdateBody,
+      body: updateBody,
     },
   )
   .delete("/:id", async ({ user, params }) => RecurringTransactionService.delete(user.id, params.id), {

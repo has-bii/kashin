@@ -1,15 +1,7 @@
-import { NotFoundError, status, t } from "elysia"
+import { createError } from "../../global/error"
 import { prisma } from "../../lib/prisma"
-import { Conflict } from "../../global/error"
-import { getAllQuery } from "./query"
-
-export const bankAccountCreateBody = t.Object({
-  bankId: t.String({ format: "uuid" }),
-  initialBalance: t.Number(),
-})
-
-type GetAllQuery = (typeof getAllQuery)["static"]
-type BankAccountCreateInput = (typeof bankAccountCreateBody)["static"]
+import { status } from "elysia"
+import type { CreateInput, GetAllQuery } from "./dto"
 
 export abstract class BankAccountService {
   static async getAll(userId: string, query: GetAllQuery) {
@@ -27,29 +19,28 @@ export abstract class BankAccountService {
       prisma.bankAccount.count({ where: { userId } }),
     ])
 
-    return {
-      data,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
-    }
+    return { data, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } }
   }
 
   static async getById(userId: string, id: string) {
-    const account = await prisma.bankAccount.findUnique({ where: { id, userId }, include: { bank: true } })
-    if (!account) throw new NotFoundError("Rekening bank tidak ditemukan")
-    return account
+    const account = await prisma.bankAccount.findUnique({
+      where: { id, userId },
+      include: { bank: true },
+    })
+    if (!account) createError("not_found", "Bank account not found")
+    return account!
   }
 
-  static async create(userId: string, input: BankAccountCreateInput) {
+  static async create(userId: string, input: CreateInput) {
     const { bankId, initialBalance } = input
     const bank = await prisma.bank.findUnique({ where: { id: bankId } })
-    if (!bank) throw new NotFoundError("Bank tidak ditemukan")
-    const existing = await prisma.bankAccount.findUnique({ where: { userId_bankId: { userId, bankId } } })
-    if (existing) throw new Conflict(`Anda sudah memiliki rekening ${bank.name}`)
+    if (!bank) createError("not_found", "Bank not found")
+
+    const existing = await prisma.bankAccount.findUnique({
+      where: { userId_bankId: { userId, bankId } },
+    })
+    if (existing) createError("conflict", `You already have an account with ${bank!.name}`)
+
     const result = await prisma.bankAccount.create({
       data: { userId, bankId, balance: initialBalance },
       include: { bank: true },
@@ -59,7 +50,7 @@ export abstract class BankAccountService {
 
   static async delete(userId: string, id: string, deleteTransactions: boolean) {
     const isExist = await prisma.bankAccount.findUnique({ where: { id, userId } })
-    if (!isExist) throw new NotFoundError("Rekening bank tidak ditemukan")
+    if (!isExist) createError("not_found", "Bank account not found")
 
     if (deleteTransactions) {
       await prisma.$transaction(async (tx) => {
@@ -73,6 +64,6 @@ export abstract class BankAccountService {
       })
     }
 
-    return { message: "Rekening bank berhasil dihapus" }
+    return { message: "Bank account deleted successfully" }
   }
 }

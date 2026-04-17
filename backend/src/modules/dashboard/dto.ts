@@ -17,3 +17,8 @@ export const trendsQuery = t.Object({
 export const recentQuery = t.Object({
   limit: t.Optional(t.Number({ minimum: 1, maximum: 50, default: 5 })),
 })
+
+export type SummaryQuery = (typeof summaryQuery)["static"]
+export type CategoryBreakdownQuery = (typeof categoryBreakdownQuery)["static"]
+export type TrendsQuery = (typeof trendsQuery)["static"]
+export type RecentQuery = (typeof recentQuery)["static"]

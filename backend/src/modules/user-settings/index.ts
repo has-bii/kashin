@@ -1,5 +1,6 @@
 import { authMacro } from "../../macros/auth.macro"
-import { UserSettingsService, userSettingsUpdateBody } from "./service"
+import { UserSettingsService } from "./service"
+import { updateBody } from "./dto"
 import Elysia from "elysia"
 
 export const userSettingsController = new Elysia({ prefix: "/user-settings" })
@@ -9,5 +10,5 @@ export const userSettingsController = new Elysia({ prefix: "/user-settings" })
   })
   .patch("/", async ({ user, body }) => UserSettingsService.update(user.id, body), {
     auth: true,
-    body: userSettingsUpdateBody,
+    body: updateBody,
   })

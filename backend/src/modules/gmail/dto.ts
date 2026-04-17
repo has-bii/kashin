@@ -9,3 +9,6 @@ export const getMessagesQuery = t.Object({
 export const importMessagesBody = t.Object({
   messageIds: t.Array(t.String(), { minItems: 1, maxItems: 50 }),
 })
+
+export type GetMessagesQuery = (typeof getMessagesQuery)["static"]
+export type ImportMessagesBody = (typeof importMessagesBody)["static"]

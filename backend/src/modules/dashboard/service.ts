@@ -1,12 +1,9 @@
 import { prisma } from "../../lib/prisma"
-import { categoryBreakdownQuery, recentQuery, summaryQuery } from "./query"
+import type { SummaryQuery, CategoryBreakdownQuery } from "./dto"
 
-type SummaryQuery = (typeof summaryQuery)["static"]
-type CategoryBreakdownQuery = (typeof categoryBreakdownQuery)["static"]
-type RecentQuery = (typeof recentQuery)["static"]
-
-// Suppress unused type warnings — used in method signatures below
-void ({} as RecentQuery)
+const categoryInclude = {
+  category: { select: { id: true, name: true, type: true, icon: true, color: true } },
+}
 
 function resolveMonthRange(dateFrom?: string, dateTo?: string) {
   if (dateFrom && dateTo) {
@@ -27,10 +24,6 @@ function buildMonthBuckets(months: number): string[] {
     result.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`)
   }
   return result
-}
-
-const categoryInclude = {
-  category: { select: { id: true, name: true, type: true, icon: true, color: true } },
 }
 
 export abstract class DashboardService {
@@ -59,12 +52,7 @@ export abstract class DashboardService {
 
     const groups = await prisma.transaction.groupBy({
       by: ["categoryId"],
-      where: {
-        userId,
-        type: "expense",
-        transactionDate,
-        categoryId: { not: null },
-      },
+      where: { userId, type: "expense", transactionDate, categoryId: { not: null } },
       _sum: { amount: true },
     })
 
@@ -88,10 +76,7 @@ export abstract class DashboardService {
     const windowEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0)
 
     const transactions = await prisma.transaction.findMany({
-      where: {
-        userId,
-        transactionDate: { gte: windowStart, lte: windowEnd },
-      },
+      where: { userId, transactionDate: { gte: windowStart, lte: windowEnd } },
       select: { type: true, amount: true, transactionDate: true },
     })
 
