@@ -19,6 +19,28 @@ import { ENV } from "./config/env"
 
 const requestStore = new WeakMap<Request, { startTime: number }>()
 
+const getRateLimitKey = (req: Request): string => {
+  const url = new URL(req.url)
+  const ip =
+    req.headers.get("x-forwarded-for")?.split(",")[0].trim() ??
+    req.headers.get("x-real-ip") ??
+    "unknown"
+
+  if (url.pathname.startsWith("/api/auth")) {
+    return `auth:${ip}`
+  }
+
+  const cookie = req.headers.get("cookie") ?? ""
+  const sessionMatch = cookie.match(/[^;]*\.session_token=([^;]+)/)
+  if (sessionMatch) return `user:${sessionMatch[1]}`
+
+  return `ip:${ip}`
+}
+
+const getRateLimitMax = (key: string): number => {
+  return key.startsWith("auth:") ? 10 : 60
+}
+
 export const app = new Elysia({ prefix: "/api" })
   .onRequest(({ request }) => {
     requestStore.set(request, { startTime: performance.now() })
@@ -63,7 +85,13 @@ export const app = new Elysia({ prefix: "/api" })
   .use(
     rateLimit({
       duration: 60000,
-      max: 100,
+      max: getRateLimitMax,
+      generator: getRateLimitKey,
+      countFailedRequest: true,
+      errorResponse: new Response(
+        JSON.stringify({ error: "Too many requests", code: "RATE_LIMITED" }),
+        { status: 429, headers: { "Content-Type": "application/json" } },
+      ),
     }),
   )
   .all("/auth/*", betterAuthView)
