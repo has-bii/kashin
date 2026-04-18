@@ -1,14 +1,21 @@
 import { logger } from "../../lib/logger"
 import { auth } from "../../lib/auth"
 import { prisma } from "../../lib/prisma"
+import { progressBus } from "../../lib/progress-bus"
 import { EmailProcessorService } from "../email-processor/service"
 import { GmailService } from "../gmail/service"
 import { inngest } from "./client"
 
-type ProcessEmailEventData = { aiExtractionId: string; userId: string }
+type ProcessEmailEventData = {
+  aiExtractionId: string
+  userId: string
+  emailImportBatchId: string
+}
 
 async function markFailed(
   aiExtractionId: string,
+  emailImportBatchId: string,
+  userId: string,
   errorMessage: string,
   cause?: unknown,
 ): Promise<never> {
@@ -16,7 +23,30 @@ async function markFailed(
     where: { id: aiExtractionId },
     data: { status: "failed", finishedAt: new Date(), errorMessage },
   })
+  await progressBus.publish({
+    batchId: emailImportBatchId,
+    userId,
+    aiExtractionId,
+    status: "failed",
+    seq: Date.now(),
+  })
+  await checkBatchCompletion(emailImportBatchId)
   throw cause instanceof Error ? cause : new Error(errorMessage, { cause })
+}
+
+async function checkBatchCompletion(emailImportBatchId: string) {
+  const remaining = await prisma.aiExtraction.count({
+    where: {
+      emailImportBatchId,
+      status: { in: ["pending", "processing"] },
+    },
+  })
+  if (remaining === 0) {
+    await prisma.emailImportBatch.update({
+      where: { id: emailImportBatchId },
+      data: { status: "completed", completedAt: new Date() },
+    })
+  }
 }
 
 export const INNGEST_FUNCTION_EVENTS = {
@@ -45,7 +75,7 @@ export const processEmail = inngest.createFunction(
     retries: 2,
   },
   async ({ event, step }) => {
-    const { userId, aiExtractionId } = event.data as ProcessEmailEventData
+    const { userId, aiExtractionId, emailImportBatchId } = event.data as ProcessEmailEventData
 
     logger.info({ userId, aiExtractionId }, "process-email: starting")
 
@@ -55,7 +85,7 @@ export const processEmail = inngest.createFunction(
         where: { id: aiExtractionId },
         select: { id: true, gmailMessageId: true },
       })
-      if (!data) await markFailed(aiExtractionId, "Email not found")
+      if (!data) await markFailed(aiExtractionId, emailImportBatchId, userId, "Email not found")
       return data!
     })
 
@@ -64,6 +94,13 @@ export const processEmail = inngest.createFunction(
       await prisma.aiExtraction.update({
         where: { id: aiExtractionId },
         data: { status: "processing", processedAt: new Date() },
+      })
+      await progressBus.publish({
+        batchId: emailImportBatchId,
+        userId,
+        aiExtractionId,
+        status: "processing",
+        seq: Date.now(),
       })
 
       const accessToken = await auth.api
@@ -74,14 +111,19 @@ export const processEmail = inngest.createFunction(
         .catch(() => null)
 
       if (!accessToken)
-        await markFailed(aiExtractionId, "Your account hasn't linked to Google account")
+        await markFailed(
+          aiExtractionId,
+          emailImportBatchId,
+          userId,
+          "Your account hasn't linked to Google account",
+        )
 
       const { data } = await GmailService.fetchEmailByMessageId(
         accessToken!,
         record.gmailMessageId,
       ).catch(async (error) => {
         logger.error({ userId, aiExtractionId, error }, "process-email: failed to fetch email")
-        await markFailed(aiExtractionId, "Failed to getting email", error)
+        await markFailed(aiExtractionId, emailImportBatchId, userId, "Failed to getting email", error)
         return { data: null as never }
       })
 
@@ -92,7 +134,7 @@ export const processEmail = inngest.createFunction(
     const parsedEmail = await step.run("parsing-email", async () => {
       const data = await EmailProcessorService.parseEmail(rawEmail).catch(async (error) => {
         logger.error({ userId, aiExtractionId, error }, "process-email: failed to parse email")
-        await markFailed(aiExtractionId, "Failed to getting email", error)
+        await markFailed(aiExtractionId, emailImportBatchId, userId, "Failed to getting email", error)
         return null as never
       })
 
@@ -108,10 +150,10 @@ export const processEmail = inngest.createFunction(
       })
 
       if (!data.emailText && !data.emailHtml)
-        await markFailed(aiExtractionId, "Failed to parse email body")
+        await markFailed(aiExtractionId, emailImportBatchId, userId, "Failed to parse email body")
 
       if (!data.emailSubject)
-        await markFailed(aiExtractionId, "Failed to parse email subject")
+        await markFailed(aiExtractionId, emailImportBatchId, userId, "Failed to parse email subject")
 
       return data
     })
@@ -128,7 +170,7 @@ export const processEmail = inngest.createFunction(
         date: parsedEmail.emailReceivedAt,
       }).catch(async (error) => {
         logger.error({ userId, aiExtractionId, error }, "process-email: analyze-email failed")
-        await markFailed(aiExtractionId, "Failed to analyze email", error)
+        await markFailed(aiExtractionId, emailImportBatchId, userId, "Failed to analyze email", error)
         return null as never
       })
     })
@@ -150,13 +192,15 @@ export const processEmail = inngest.createFunction(
           : null,
       ])
 
+      const finalStatus = result.isTransaction && result.data ? "waitingApproval" : "rejected"
+
       await prisma.aiExtraction.update({
         where: { id: aiExtractionId },
         data: {
           tokenUsage,
           finishedAt: new Date(),
           aiResponse: JSON.stringify(result),
-          ...(result.isTransaction && result.data
+          ...(finalStatus === "waitingApproval"
             ? {
                 status: "waitingApproval",
                 extractedType: result.data?.type,
@@ -164,11 +208,11 @@ export const processEmail = inngest.createFunction(
                 extractedAmount: result.data?.amount,
                 extractedBankAccountId: bankAccount?.id,
                 extractedCategoryId: category?.id,
-                extractedCurrency: result.data.currency,
-                extractedDate: result.data.date,
-                confidenceScore: result.data.confidence,
-                suggestedCategory: result.data.suggestedCategory,
-                note: result.data.notes,
+                extractedCurrency: result.data!.currency,
+                extractedDate: result.data!.date,
+                confidenceScore: result.data!.confidence,
+                suggestedCategory: result.data!.suggestedCategory,
+                note: result.data!.notes,
               }
             : {
                 rejectedAt: new Date(),
@@ -177,6 +221,16 @@ export const processEmail = inngest.createFunction(
               }),
         },
       })
+
+      await progressBus.publish({
+        batchId: emailImportBatchId,
+        userId,
+        aiExtractionId,
+        status: finalStatus,
+        seq: Date.now(),
+      })
+
+      await checkBatchCompletion(emailImportBatchId)
     })
 
     logger.info({ userId, aiExtractionId, tokenUsage }, "process-email: completed")

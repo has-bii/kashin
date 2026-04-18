@@ -68,25 +68,39 @@ export abstract class GmailService {
     if (existing.length > 0)
       createError("bad_request", "The system is still processing a previous import. Please wait until it finishes")
 
-    const created = await prisma.$transaction((tx) =>
-      tx.aiExtraction.createManyAndReturn({
+    const { batchId, created } = await prisma.$transaction(async (tx) => {
+      const batch = await tx.emailImportBatch.create({
+        data: { userId, total: body.messageIds.length, status: "running" },
+        select: { id: true },
+      })
+
+      const rows = await tx.aiExtraction.createManyAndReturn({
         skipDuplicates: true,
-        data: body.messageIds.map((gmailMessageId) => ({ userId, gmailMessageId, status: "pending" })),
+        data: body.messageIds.map((gmailMessageId) => ({
+          userId,
+          gmailMessageId,
+          status: "pending",
+          emailImportBatchId: batch.id,
+        })),
         select: { id: true, userId: true },
       })
-    )
+
+      return { batchId: batch.id, created: rows }
+    })
 
     if (created.length > 0) {
       await inngest.send(
-        created.map(({ id, userId }) => ({
+        created.map(({ id, userId: uid }) => ({
           id: `process-email-${id}`,
           name: "email/process.email" as const,
-          data: { aiExtractionId: id, userId },
+          data: { aiExtractionId: id, userId: uid, emailImportBatchId: batchId },
         })),
       )
     }
 
     return {
+      batchId,
+      total: body.messageIds.length,
       pendingImportEmail: created.length,
       skippedImportEmail: body.messageIds.length - created.length,
     }
