@@ -7,35 +7,6 @@ import { GmailService } from "./service"
 import { getMessagesQuery, importMessagesBody } from "./dto"
 import Elysia, { t } from "elysia"
 
-type Counts = {
-  pending: number
-  processing: number
-  waitingApproval: number
-  confirmed: number
-  rejected: number
-  failed: number
-}
-
-async function getBatchCounts(batchId: string): Promise<Counts> {
-  const rows = await prisma.aiExtraction.groupBy({
-    by: ["status"],
-    where: { emailImportBatchId: batchId },
-    _count: true,
-  })
-  const counts: Counts = {
-    pending: 0,
-    processing: 0,
-    waitingApproval: 0,
-    confirmed: 0,
-    rejected: 0,
-    failed: 0,
-  }
-  for (const row of rows) {
-    counts[row.status as keyof Counts] = row._count
-  }
-  return counts
-}
-
 export const gmailController = new Elysia({ prefix: "/gmail" })
   .use(authMacro)
   .get("/", async ({ user, query }) => GmailService.getMessages(user.id, query), {
@@ -69,13 +40,15 @@ export const gmailController = new Elysia({ prefix: "/gmail" })
 
       const stream = new ReadableStream({
         async start(controller) {
-          const counts = await getBatchCounts(batchId)
-          controller.enqueue(
-            sendFrame({ type: "snapshot", batchId, total: batch.total, counts, status: batch.status }),
-          )
+          const remaining = await prisma.aiExtraction.count({
+            where: { emailImportBatchId: batchId, status: { in: ["pending", "processing"] } },
+          })
+          const processed = batch.total - remaining
+          const initialStatus = batch.status === "completed" ? "completed" : "processing"
+
+          controller.enqueue(sendFrame({ status: initialStatus, total: batch.total, processed }))
 
           if (batch.status === "completed") {
-            controller.enqueue(sendFrame({ type: "done", counts }))
             controller.close()
             return
           }
@@ -119,23 +92,11 @@ export const gmailController = new Elysia({ prefix: "/gmail" })
                 }
 
                 const { payload } = item
-                const updatedCounts = await getBatchCounts(batchId)
                 controller.enqueue(
-                  sendFrame({
-                    type: "progress",
-                    aiExtractionId: payload.aiExtractionId,
-                    status: payload.status,
-                    seq: payload.seq,
-                    counts: updatedCounts,
-                  }),
+                  sendFrame({ status: payload.status, total: payload.total, processed: payload.processed }),
                 )
 
-                const updatedBatch = await prisma.emailImportBatch.findUnique({
-                  where: { id: batchId },
-                  select: { status: true },
-                })
-                if (updatedBatch?.status === "completed") {
-                  controller.enqueue(sendFrame({ type: "done", counts: updatedCounts }))
+                if (payload.status === "completed") {
                   controller.close()
                   return
                 }

@@ -1,7 +1,8 @@
-import { getMessagesQueryOptions } from "../api"
+import { getMessagesQueryOptions } from "../api/get-messages"
 import { useImportMessages } from "../hooks/use-import-messages"
 import { useMessagesFilters } from "../hooks/use-messages-filters"
 import { MessageDateFilters } from "./message-date-filters"
+import { MessageImportStatus } from "./message-import-status"
 import { MessageTable } from "./message-table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -73,6 +74,9 @@ export default function MessagesList() {
     })
   }
 
+  /* --------------------------- Import Batch Status -------------------------- */
+  const [batchId, setBatchId] = useState<string | null>(null)
+
   /* ------------------------- Import Messages States ------------------------- */
   const { mutate, isPending } = useImportMessages()
 
@@ -82,11 +86,19 @@ export default function MessagesList() {
       return
     }
 
-    mutate(selectedIds, { onSuccess: () => setSelectedIds([]) })
+    mutate(selectedIds, {
+      onSuccess: (data) => {
+        setBatchId(data.batchId)
+        setSelectedIds([])
+      },
+    })
   }
 
   return (
     <div className="space-y-4">
+      {/* Streaming Progress */}
+      <MessageImportStatus batchId={batchId} close={() => setBatchId(null)} />
+
       <div className="flex items-end gap-4">
         {/* Date Filters */}
         <MessageDateFilters after={filters.after} before={filters.before} apply={applyDateFilter} />

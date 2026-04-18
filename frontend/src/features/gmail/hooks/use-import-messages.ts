@@ -2,10 +2,15 @@ import { api } from "@/lib/api"
 import { useMutation } from "@tanstack/react-query"
 import { toast } from "sonner"
 
-const importMessages = async (messageIds: string[]) => {
-  const { data } = await api.post("/gmail/import", { messageIds })
+interface ImportMessageData {
+  batchId: string
+  total: number
+  pendingImportEmail: number
+  skippedImportEmail: number
+}
 
-  console.log(data)
+const importMessages = async (messageIds: string[]) => {
+  const { data } = await api.post<ImportMessageData>("/gmail/import", { messageIds })
 
   return data
 }

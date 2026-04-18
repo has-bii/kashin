@@ -1,3 +1,4 @@
+import { ENV } from "./config/env"
 import { logger } from "./lib/logger"
 import { betterAuthView } from "./modules/auth"
 import { bankController } from "./modules/bank"
@@ -15,7 +16,6 @@ import { webhookController } from "./modules/webhook"
 import cors from "@elysiajs/cors"
 import { Elysia } from "elysia"
 import { rateLimit } from "elysia-rate-limit"
-import { ENV } from "./config/env"
 
 const requestStore = new WeakMap<Request, { startTime: number }>()
 
@@ -47,7 +47,7 @@ export const app = new Elysia({ prefix: "/api" })
   })
   .onAfterResponse(({ request, set }) => {
     const path = new URL(request.url).pathname
-    if (path === "/api/health") return
+    if (path === "/api/health" || path === "/api/inngest") return
 
     const entry = requestStore.get(request)
     logger.info(

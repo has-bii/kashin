@@ -6,9 +6,9 @@ import { ENV } from "../config/env"
 export type ProgressPayload = {
   batchId: string
   userId: string
-  aiExtractionId: string
-  status: string
-  seq: number
+  status: "processing" | "completed"
+  total: number
+  processed: number
 }
 
 class PgListener extends EventEmitter {
