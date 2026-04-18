@@ -60,6 +60,11 @@ enum AiExtractionStatus {
   failed
 }
 
+enum EmailImportBatchStatus {
+  running
+  completed
+}
+
 // -----------------------------------------------------------
 // Better Auth tables (do not modify)
 // -----------------------------------------------------------
@@ -84,6 +89,7 @@ model User {
   budgets               Budget[]
   bankAccounts          BankAccount[]
   settings              UserSettings?
+  emailImportBatches    EmailImportBatch[]
 
   @@unique([email])
   @@map("users")
@@ -300,9 +306,10 @@ model BankAccount {
 }
 
 model AiExtraction {
-  id              String             @id @default(uuid(7)) @db.Uuid
-  userId          String             @db.Uuid
-  status          AiExtractionStatus @default(pending)
+  id                 String             @id @default(uuid(7)) @db.Uuid
+  userId             String             @db.Uuid
+  emailImportBatchId String?            @db.Uuid
+  status             AiExtractionStatus @default(pending)
   // Email Data
   gmailMessageId  String             @unique @db.VarChar(255)
   emailFrom       String?            @db.VarChar(255)
@@ -337,13 +344,29 @@ model AiExtraction {
   createdAt DateTime @default(now()) @db.Timestamptz
   updatedAt DateTime @updatedAt @db.Timestamptz
 
-  user                 User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  extractedCategory    Category?    @relation(fields: [extractedCategoryId], references: [id], onDelete: SetNull)
+  user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emailImportBatch     EmailImportBatch? @relation(fields: [emailImportBatchId], references: [id], onDelete: SetNull)
+  extractedCategory    Category?         @relation(fields: [extractedCategoryId], references: [id], onDelete: SetNull)
   transaction          Transaction?
-  extractedBankAccount BankAccount? @relation(fields: [extractedBankAccountId], references: [id], onDelete: SetNull)
+  extractedBankAccount BankAccount?      @relation(fields: [extractedBankAccountId], references: [id], onDelete: SetNull)
 
+  @@index([emailImportBatchId])
   @@index([extractedBankAccountId])
   @@index([extractedCategoryId])
   @@index([userId, status])
   @@map("ai_extractions")
+}
+
+model EmailImportBatch {
+  id          String                 @id @default(uuid(7)) @db.Uuid
+  userId      String                 @db.Uuid
+  user        User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  total       Int
+  status      EmailImportBatchStatus @default(running)
+  createdAt   DateTime               @default(now()) @db.Timestamptz
+  completedAt DateTime?              @db.Timestamptz
+  extractions AiExtraction[]
+
+  @@index([userId, createdAt])
+  @@map("email_import_batches")
 }
