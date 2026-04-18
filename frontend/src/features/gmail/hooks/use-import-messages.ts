@@ -5,6 +5,8 @@ import { toast } from "sonner"
 const importMessages = async (messageIds: string[]) => {
   const { data } = await api.post("/gmail/import", { messageIds })
 
+  console.log(data)
+
   return data
 }
 

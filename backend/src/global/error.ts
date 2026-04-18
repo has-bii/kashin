@@ -1,3 +1,5 @@
+import { InternalServerError } from "elysia"
+
 export class BadRequest extends Error {
   status = 400
   constructor(public message: string) {
@@ -33,12 +35,21 @@ export class Conflict extends Error {
   }
 }
 
+export class ServiceUnavailable extends Error {
+  status = 503
+  constructor(public message: string) {
+    super(message)
+  }
+}
+
 const ERROR_MAP = {
   bad_request: BadRequest,
   unauthorized: Unauthorized,
   forbidden: Forbidden,
   not_found: NotFoundError,
   conflict: Conflict,
+  internal_server: InternalServerError,
+  service_unavailable: ServiceUnavailable,
 } as const
 
 type ErrorType = keyof typeof ERROR_MAP

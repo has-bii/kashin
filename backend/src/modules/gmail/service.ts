@@ -1,12 +1,12 @@
+import { ENV } from "../../config/env"
 import { createError } from "../../global/error"
 import { auth } from "../../lib/auth"
 import { logger } from "../../lib/logger"
 import { prisma } from "../../lib/prisma"
 import { inngest } from "../inngest/client"
+import type { GetMessagesQuery, ImportMessagesBody } from "./dto"
 import { InternalServerError, status } from "elysia"
 import { gmail_v1, google } from "googleapis"
-import type { GetMessagesQuery, ImportMessagesBody } from "./dto"
-import { ENV } from "../../config/env"
 
 export abstract class GmailService {
   static async getMessages(userId: string, query: GetMessagesQuery) {
@@ -66,7 +66,10 @@ export abstract class GmailService {
     })
 
     if (existing.length > 0)
-      createError("bad_request", "The system is still processing a previous import. Please wait until it finishes")
+      createError(
+        "bad_request",
+        "The system is still processing a previous import. Please wait until it finishes",
+      )
 
     const { batchId, created } = await prisma.$transaction(async (tx) => {
       const batch = await tx.emailImportBatch.create({
@@ -97,7 +100,6 @@ export abstract class GmailService {
         })),
       )
     }
-
     return {
       batchId,
       total: body.messageIds.length,
