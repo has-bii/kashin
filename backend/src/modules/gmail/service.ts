@@ -2,7 +2,7 @@ import { createError } from "../../global/error"
 import { auth } from "../../lib/auth"
 import { logger } from "../../lib/logger"
 import { prisma } from "../../lib/prisma"
-import { INNGEST_FUNCTION_EVENTS } from "../inngest/functions"
+import { inngest } from "../inngest/client"
 import { InternalServerError, status } from "elysia"
 import { gmail_v1, google } from "googleapis"
 import type { GetMessagesQuery, ImportMessagesBody } from "./dto"
@@ -68,27 +68,27 @@ export abstract class GmailService {
     if (existing.length > 0)
       createError("bad_request", "The system is still processing a previous import. Please wait until it finishes")
 
-    let imported = 0
-
-    await prisma.$transaction(async (tx) => {
-      const data = await tx.aiExtraction.createManyAndReturn({
+    const created = await prisma.$transaction((tx) =>
+      tx.aiExtraction.createManyAndReturn({
         skipDuplicates: true,
         data: body.messageIds.map((gmailMessageId) => ({ userId, gmailMessageId, status: "pending" })),
         select: { id: true, userId: true },
       })
+    )
 
-      await Promise.all(
-        data.map(({ id, userId }) =>
-          INNGEST_FUNCTION_EVENTS.processEmail.sendEvent({ aiExtractionId: id, userId }),
-        ),
+    if (created.length > 0) {
+      await inngest.send(
+        created.map(({ id, userId }) => ({
+          id: `process-email-${id}`,
+          name: "email/process.email" as const,
+          data: { aiExtractionId: id, userId },
+        })),
       )
-
-      imported = data.length
-    })
+    }
 
     return {
-      pendingImportEmail: imported,
-      skippedImportEmail: body.messageIds.length - imported,
+      pendingImportEmail: created.length,
+      skippedImportEmail: body.messageIds.length - created.length,
     }
   }
 

@@ -46,6 +46,7 @@ export abstract class EmailProcessorService {
         runName: "process-email",
         tags: ["email-processor"],
         metadata: { userId, aiExtractionId },
+        signal: AbortSignal.timeout(10_000),
       },
     )
 
