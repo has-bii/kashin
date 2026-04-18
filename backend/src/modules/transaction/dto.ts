@@ -20,6 +20,7 @@ export const createBody = t.Composite([
   t.Object({
     categoryId: t.Optional(__nullable__(t.String())),
     bankAccountId: t.Optional(__nullable__(t.String())),
+    aiExtractionId: t.Optional(__nullable__(t.String())),
   }),
 ])
 

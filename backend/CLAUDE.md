@@ -27,7 +27,7 @@ Every feature lives in `src/modules/<name>/` with three files:
 - `query.ts` — reusable query parameter schemas (when needed)
 
 Exceptions:
-- `ai-extraction/` — only `service.ts` (no HTTP controller; called internally)
+- `ai-extraction/` — `index.ts` (controller), `service.ts`, `dto.ts` (no agent files)
 - `email-processor/` — extended structure: `agent.ts`, `context-schema.ts`, `human-message.ts`, `response-format.ts`, `system-prompt.ts`, `tools.ts`, `service.ts`
 - `webhook/` — receives inbound webhooks (e.g. QStash callbacks)
 
@@ -60,6 +60,12 @@ QStash (`src/lib/qstash.ts`) is used for reliable webhook delivery/scheduling �
 - `qstash.ts` — QStash client
 - `email.ts` — Resend email client
 - `logger.ts` — pino logger
+- `pg-listener.ts` — Postgres LISTEN/NOTIFY client (for SSE push)
+- `progress-bus.ts` — in-process event bus bridging pg-listener to SSE streams
+
+### SSE Progress Streaming
+
+Import progress events flow: Postgres LISTEN/NOTIFY → `pg-listener.ts` → `progress-bus.ts` → SSE response. The `ai-extraction` module exposes an SSE endpoint; clients receive `processed`/`total` counters. No WebSockets.
 
 ### Rate limiting
 

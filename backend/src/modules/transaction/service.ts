@@ -55,7 +55,7 @@ export abstract class TransactionService {
   }
 
   static async create(userId: string, input: CreateInput) {
-    const { categoryId, bankAccountId, ...rest } = input
+    const { categoryId, bankAccountId, aiExtractionId, ...rest } = input
 
     return prisma.$transaction(async (tx) => {
       const result = await tx.transaction.create({
@@ -64,6 +64,7 @@ export abstract class TransactionService {
           userId,
           ...(categoryId !== undefined ? { categoryId } : {}),
           ...(bankAccountId !== undefined ? { bankAccountId } : {}),
+          ...(aiExtractionId !== undefined ? { aiExtractionId } : {}),
         },
         include: categoryInclude,
       })
