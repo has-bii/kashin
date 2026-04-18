@@ -2,7 +2,7 @@ import { useBatchImportStatus } from "../hooks/use-batch-import-status"
 import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Loader } from "lucide-react"
-import React, { useEffect } from "react"
+import { useEffect } from "react"
 import { toast } from "sonner"
 
 type Props = {
