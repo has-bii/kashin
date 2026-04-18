@@ -50,3 +50,6 @@ graphify-out/
 .claude/
 .agents/
 skills-lock.json
+
+# Worktrees
+.worktrees/
