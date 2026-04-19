@@ -86,3 +86,10 @@ shadcn/ui components in `src/components/ui/`. Tailwind v4 (PostCSS). Dark mode v
 - **Auth client baseURL** strips `/api` — pass the root URL, not the API prefix
 - **nuqs** is tied to Next.js router — don't replace with raw `useSearchParams`
 - Form validation uses **TanStack Form + Zod** together; keep Zod schemas in `validations/`
+
+## Docs
+
+@docs/overview.md
+@docs/conventions.md
+@docs/directory.md
+@docs/styling.md
