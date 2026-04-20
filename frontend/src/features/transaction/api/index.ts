@@ -1,5 +1,5 @@
 import { PaginatedTransactionResponse, Transaction } from "../types"
-import { TransactionCreateDto } from "../validations/schema"
+import { TransactionDto } from "../validations/schema"
 import { api } from "@/lib/api"
 
 export type GetTransactionsParams = {
@@ -25,7 +25,7 @@ export const getTransactionsApi = async (params: GetTransactionsParams) => {
   return data
 }
 
-export const createTransactionApi = async (input: TransactionCreateDto) => {
+export const createTransactionApi = async (input: TransactionDto) => {
   const { data } = await api.post<Transaction>("/transaction", input)
   return data
 }
@@ -35,7 +35,7 @@ export const updateTransactionApi = async ({
   input,
 }: {
   id: string
-  input: TransactionCreateDto
+  input: TransactionDto
 }) => {
   const { data } = await api.put<Transaction>(`/transaction/${id}`, input)
   return data

@@ -1,19 +1,19 @@
-import { useCreateTransactionMutation, useUpdateTransactionMutation } from "../mutations"
+import { useUpsertTransactionMutation } from "../mutations"
 import { Transaction } from "../types"
-import { TransactionCreateDto, transactionCreateSchema } from "../validations/schema"
+import { transactionSchema } from "../validations/schema"
 import { useForm } from "@tanstack/react-form"
 
-type Args =
-  | { mode: "create"; onSuccess?: () => void }
-  | { mode: "edit"; data: Transaction; onSuccess?: () => void }
+interface UseTransactionForm {
+  prevData?: Transaction | null
+  options?: {
+    onSuccess?: () => void
+    onError?: () => void
+  }
+}
 
-export const useTransactionForm = (args: Args) => {
-  const prevData = args.mode === "edit" ? args.data : null
+export const useTransactionForm = ({ prevData, options }: UseTransactionForm) => {
+  const mutation = useUpsertTransactionMutation(prevData?.id)
   const today = new Date().toISOString()
-
-  const createMutation = useCreateTransactionMutation()
-  const updateMutation = useUpdateTransactionMutation()
-  const mutation = args.mode === "create" ? createMutation : updateMutation
 
   const form = useForm({
     defaultValues: {
@@ -26,18 +26,11 @@ export const useTransactionForm = (args: Args) => {
       notes: prevData?.notes ?? "",
     },
     validators: {
-      onSubmit: transactionCreateSchema,
+      onSubmit: transactionSchema,
     },
-    onSubmit: async ({ value }: { value: TransactionCreateDto }) => {
-      if (args.mode === "create") {
-        await createMutation.mutateAsync(value, { onSuccess: args.onSuccess })
-      } else {
-        await updateMutation.mutateAsync(
-          { id: prevData!.id, input: value },
-          { onSuccess: args.onSuccess },
-        )
-      }
-      form.reset()
+    onSubmit: async ({ value, formApi }) => {
+      await mutation.mutateAsync(value, options)
+      formApi.reset()
     },
   })
 

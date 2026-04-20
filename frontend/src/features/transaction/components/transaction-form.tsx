@@ -27,20 +27,17 @@ import { useQuery } from "@tanstack/react-query"
 import { Loader2, Plus, SaveIcon } from "lucide-react"
 
 const types: Array<{ label: string; value: TransactionType }> = [
-  { label: "Pengeluaran", value: "expense" },
-  { label: "Pemasukan", value: "income" },
+  { label: "Expense", value: "expense" },
+  { label: "Income", value: "income" },
 ]
 
-type Props =
-  | { mode: "create"; onSuccess?: () => void }
-  | { mode: "edit"; data: Transaction; onSuccess?: () => void }
+type Props = {
+  prevData?: Transaction | null
+  onSuccess?: () => void
+}
 
-export function TransactionForm(props: Props) {
-  const { form } = useTransactionForm(
-    props.mode === "create"
-      ? { mode: "create", onSuccess: props.onSuccess }
-      : { mode: "edit", data: props.data, onSuccess: props.onSuccess },
-  )
+export function TransactionForm({ prevData, onSuccess }: Props) {
+  const { form } = useTransactionForm({ prevData, options: { onSuccess } })
 
   return (
     <>
@@ -82,7 +79,7 @@ export function TransactionForm(props: Props) {
               const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
               return (
                 <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Jumlah</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>Amount</FieldLabel>
                   <Input
                     id={field.name}
                     name={field.name}
@@ -96,7 +93,7 @@ export function TransactionForm(props: Props) {
                     }}
                     aria-invalid={isInvalid}
                     autoComplete="off"
-                    placeholder="0.00"
+                    placeholder="e.g. 3000000"
                   />
                   {isInvalid && <FieldError errors={field.state.meta.errors} />}
                 </Field>
@@ -136,12 +133,12 @@ export function TransactionForm(props: Props) {
                     onChangeValue={(input) => field.handleChange(input!)}
                   >
                     <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor={`date-${field.name}`}>Tanggal</FieldLabel>
+                      <FieldLabel htmlFor={`date-${field.name}`}>Date</FieldLabel>
                       <DatetimePickerDate />
                       {isInvalid && <FieldError errors={field.state.meta.errors} />}
                     </Field>
                     <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor={`time-${field.name}`}>Waktu</FieldLabel>
+                      <FieldLabel htmlFor={`time-${field.name}`}>Time</FieldLabel>
                       <DatetimePickerTime />
                     </Field>
                   </DatetimePicker>
@@ -181,7 +178,7 @@ export function TransactionForm(props: Props) {
               const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
               return (
                 <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Keterangan</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>Description</FieldLabel>
                   <Input
                     id={field.name}
                     name={field.name}
@@ -191,7 +188,7 @@ export function TransactionForm(props: Props) {
                     aria-invalid={isInvalid}
                     autoComplete="off"
                     maxLength={255}
-                    placeholder="cth. Belanja bulanan"
+                    placeholder="e.g. Monthly groceries"
                   />
                   {isInvalid && <FieldError errors={field.state.meta.errors} />}
                 </Field>
@@ -206,7 +203,7 @@ export function TransactionForm(props: Props) {
               const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
               return (
                 <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Catatan</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>Notes</FieldLabel>
                   <textarea
                     id={field.name}
                     name={field.name}
@@ -215,7 +212,7 @@ export function TransactionForm(props: Props) {
                     onChange={(e) => field.handleChange(e.target.value)}
                     aria-invalid={isInvalid}
                     rows={3}
-                    placeholder="Catatan tambahan (opsional)..."
+                    placeholder="Additional notes (optional)..."
                     className="bg-input/50 focus-visible:border-ring focus-visible:ring-ring/30 w-full resize-none rounded-2xl border border-transparent px-3 py-2 text-sm transition-[color,box-shadow,background-color] outline-none focus-visible:ring-3 disabled:cursor-not-allowed disabled:opacity-50"
                   />
                   {isInvalid && <FieldError errors={field.state.meta.errors} />}
@@ -236,19 +233,16 @@ export function TransactionForm(props: Props) {
               className="w-full"
               disabled={isSubmitting || !canSubmit}
             >
-              {props.mode === "create" ? (
-                <>Tambah {isSubmitting ? <Loader2 className="animate-spin" /> : <Plus />}</>
+              {!prevData ? (
+                <>Add {isSubmitting ? <Loader2 className="animate-spin" /> : <Plus />}</>
               ) : (
-                <>Simpan {isSubmitting ? <Loader2 className="animate-spin" /> : <SaveIcon />}</>
+                <>Save {isSubmitting ? <Loader2 className="animate-spin" /> : <SaveIcon />}</>
               )}
             </Button>
           )}
         />
 
-        {/* Delete dialog — edit mode only (D-03) */}
-        {props.mode === "edit" && (
-          <TransactionDeleteDialog transactionId={props.data.id} onSuccess={props.onSuccess} />
-        )}
+        {prevData && <TransactionDeleteDialog transactionId={prevData.id} onSuccess={onSuccess} />}
       </ResponsiveDialogFooter>
     </>
   )
@@ -275,13 +269,13 @@ function BankAccountSelectField({
 
   return (
     <Field data-invalid={isInvalid}>
-      <FieldLabel htmlFor={fieldName}>Rekening</FieldLabel>
+      <FieldLabel htmlFor={fieldName}>Account</FieldLabel>
       <Select value={value ?? "__none__"} onValueChange={onChange}>
         <SelectTrigger id={fieldName} aria-invalid={isInvalid} onBlur={onBlur} className="w-full">
-          <SelectValue placeholder="Tanpa rekening" />
+          <SelectValue placeholder="No account" />
         </SelectTrigger>
         <SelectContent position="popper">
-          <SelectItem value="__none__">Tanpa rekening</SelectItem>
+          <SelectItem value="__none__">No account</SelectItem>
           {accounts.map((account) => (
             <SelectItem key={account.id} value={account.id}>
               {account.bank.name}
@@ -316,13 +310,13 @@ function CategorySelectField({
 
   return (
     <Field data-invalid={isInvalid}>
-      <FieldLabel htmlFor={fieldName}>Kategori</FieldLabel>
+      <FieldLabel htmlFor={fieldName}>Category</FieldLabel>
       <Select value={value ?? "__none__"} onValueChange={onChange}>
         <SelectTrigger id={fieldName} aria-invalid={isInvalid} onBlur={onBlur} className="w-full">
-          <SelectValue placeholder="Tanpa kategori" />
+          <SelectValue placeholder="No category" />
         </SelectTrigger>
         <SelectContent position="popper">
-          <SelectItem value="__none__">Tanpa kategori</SelectItem>
+          <SelectItem value="__none__">No category</SelectItem>
           {categories.map((cat) => (
             <SelectItem key={cat.id} value={cat.id}>
               <span>{cat.icon}</span>

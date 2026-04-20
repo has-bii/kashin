@@ -1,7 +1,6 @@
 "use client"
 
 import { QueryErrorBoundary } from "@/components/query-error-boundary"
-import { ResponsiveDialog } from "@/components/responsive-dialog"
 import {
   MainPage,
   MainPageDescripton,
@@ -10,7 +9,6 @@ import {
 } from "@/components/sidebar/main-page"
 import { SiteHeader } from "@/components/sidebar/site-header"
 import { Button } from "@/components/ui/button"
-import { TransactionForm } from "@/features/transaction/components/transaction-form"
 import { TransactionListSkeleton } from "@/features/transaction/components/transaction-list-skeleton"
 import { useTransactionContext } from "@/features/transaction/hooks/use-transaction-context"
 import { TransactionProvider } from "@/features/transaction/provider/transaction.provider"
@@ -32,37 +30,28 @@ const TransactionFilterBar = dynamic(
   },
 )
 
-function TransactionsPageInner() {
-  const { selectedTransaction, dialogOpen, dialogMode, handleAddTransaction, handleDialogClose } =
-    useTransactionContext()
+const TransactionDialogs = dynamic(
+  () => import("@/features/transaction/components/transaction-dialogs"),
+  {
+    ssr: false,
+  },
+)
 
-  const dialogTitle = dialogMode === "create" ? "Tambah Transaksi" : "Ubah Transaksi"
-  const dialogDescription =
-    dialogMode === "create"
-      ? "Catat pengeluaran atau pemasukan baru."
-      : "Perbarui detail transaksi ini."
-
+export default function TransactionsPageInner() {
   return (
-    <>
-      <SiteHeader label="Transaksi" />
+    <TransactionProvider>
+      <SiteHeader label="Transactions" />
       <MainPage>
         <MainPageHeader>
           <div className="space-y-2">
-            <MainPageTitle>Transaksi</MainPageTitle>
+            <MainPageTitle>Transactions</MainPageTitle>
             <MainPageDescripton>
-              Tinjau dan kelola riwayat keuangan Anda. Setiap transaksi adalah langkah nyata menuju
-              kemakmuran finansial jangka panjang.
+              Review and manage your financial history. Every transaction is a real step toward
+              long-term financial wellbeing.
             </MainPageDescripton>
           </div>
 
-          <Button
-            onClick={handleAddTransaction}
-            size="lg"
-            className="fixed right-4 bottom-4 md:relative md:right-0 md:bottom-0"
-          >
-            <PlusIcon className="size-4" />
-            <span className="hidden md:block">Tambah Transaksi</span>
-          </Button>
+          <AddTransactionButton />
         </MainPageHeader>
 
         <QueryErrorBoundary>
@@ -73,31 +62,23 @@ function TransactionsPageInner() {
           <TransactionList />
         </QueryErrorBoundary>
 
-        <ResponsiveDialog
-          title={dialogTitle}
-          description={dialogDescription}
-          open={dialogOpen}
-          onOpenChange={handleDialogClose}
-        >
-          {dialogMode === "create" ? (
-            <TransactionForm mode="create" onSuccess={handleDialogClose} />
-          ) : (
-            <TransactionForm
-              mode="edit"
-              data={selectedTransaction!}
-              onSuccess={handleDialogClose}
-            />
-          )}
-        </ResponsiveDialog>
+        <TransactionDialogs />
       </MainPage>
-    </>
+    </TransactionProvider>
   )
 }
 
-export default function TransactionsPage() {
+function AddTransactionButton() {
+  const { handleAddTransaction } = useTransactionContext()
+
   return (
-    <TransactionProvider>
-      <TransactionsPageInner />
-    </TransactionProvider>
+    <Button
+      onClick={handleAddTransaction}
+      size="lg"
+      className="fixed right-4 bottom-4 md:relative md:right-0 md:bottom-0"
+    >
+      <PlusIcon className="size-4" />
+      <span className="hidden md:block">Add Transaction</span>
+    </Button>
   )
 }

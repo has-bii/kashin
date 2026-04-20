@@ -1,8 +1,5 @@
 "use client"
 
-import { useState } from "react"
-import { Trash2Icon } from "lucide-react"
-
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,6 +11,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
+import { Trash2Icon } from "lucide-react"
+import { useState } from "react"
 
 type TransactionBulkToolbarProps = {
   selectedCount: number
@@ -32,10 +31,8 @@ export function TransactionBulkToolbar({
 
   return (
     <>
-      <div className="flex items-center justify-between rounded-xl border bg-background px-4 py-2.5 shadow-sm">
-        <span className="text-sm font-medium">
-          {selectedCount} transaksi dipilih
-        </span>
+      <div className="bg-background flex items-center justify-between rounded-xl border px-4 py-2.5 shadow-sm">
+        <span className="text-sm font-medium">{selectedCount} transactions selected</span>
         <Button
           variant="destructive"
           size="sm"
@@ -43,20 +40,21 @@ export function TransactionBulkToolbar({
           disabled={isDeleting}
         >
           <Trash2Icon className="size-4" />
-          Hapus yang Dipilih
+          Delete Selected
         </Button>
       </div>
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Hapus {selectedCount} transaksi?</AlertDialogTitle>
+            <AlertDialogTitle>Delete {selectedCount} transactions?</AlertDialogTitle>
             <AlertDialogDescription>
-              Tindakan ini akan menghapus {selectedCount} transaksi secara permanen dan tidak dapat dibatalkan.
+              This will permanently delete {selectedCount} transactions. This action cannot be
+              undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Batal</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               variant="destructive"
               onClick={() => {
@@ -65,7 +63,7 @@ export function TransactionBulkToolbar({
               }}
               disabled={isDeleting}
             >
-              Hapus
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

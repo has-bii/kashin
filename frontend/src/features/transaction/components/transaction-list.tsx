@@ -37,8 +37,8 @@ export default function TransactionList() {
           <EmptyMedia variant="icon">
             <ReceiptIcon />
           </EmptyMedia>
-          <EmptyTitle>Belum ada transaksi</EmptyTitle>
-          <EmptyDescription>Coba sesuaikan filter atau tambah transaksi baru.</EmptyDescription>
+          <EmptyTitle>No transactions yet</EmptyTitle>
+          <EmptyDescription>Try adjusting your filters or add a new transaction.</EmptyDescription>
         </EmptyHeader>
       </Empty>
     )
@@ -72,7 +72,7 @@ export default function TransactionList() {
             {/* Date */}
             <div className="flex items-center gap-4">
               <div className="text-muted-foreground shrink-0 text-sm font-medium uppercase">
-                {isToday(date) ? "Hari Ini" : formatDate(date, "EEEE, MMM d")}
+                {isToday(date) ? "Today" : formatDate(date, "EEEE, MMM d")}
               </div>
               <Separator orientation="horizontal" className="w-auto flex-1" />
             </div>

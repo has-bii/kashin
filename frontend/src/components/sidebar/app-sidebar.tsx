@@ -30,22 +30,22 @@ import * as React from "react"
 const data = {
   navMain: [
     {
-      title: "Beranda",
+      title: "Dashboard",
       url: "/dashboard",
       icon: <LayoutDashboardIcon />,
     },
     {
-      title: "Transaksi",
+      title: "Transactions",
       url: "/dashboard/transactions",
       icon: <ArrowLeftRightIcon />,
     },
     {
-      title: "Rekening Bank",
+      title: "Bank Accounts",
       url: "/dashboard/bank-accounts",
       icon: <CreditCardIcon />,
     },
     {
-      title: "Kategori",
+      title: "Category",
       url: "/dashboard/category",
       icon: <LayersIcon />,
     },
@@ -57,7 +57,7 @@ const data = {
       icon: <PieChartIcon />,
     },
     {
-      title: "Berulang",
+      title: "Recurring Transactions",
       url: "/dashboard/recurring-transactions",
       icon: <RepeatIcon />,
     },

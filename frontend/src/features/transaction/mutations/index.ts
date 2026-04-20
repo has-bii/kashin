@@ -5,34 +5,24 @@ import {
   updateTransactionApi,
 } from "../api"
 import { TRANSACTIONS_QUERY_KEY } from "../query"
-import { TransactionCreateDto } from "../validations/schema"
+import { TransactionDto } from "../validations/schema"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
-export const useCreateTransactionMutation = () => {
+export const useUpsertTransactionMutation = (id?: string) => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (input: TransactionCreateDto) => createTransactionApi(input),
+    mutationFn: (input: TransactionDto) => {
+      if (id) return updateTransactionApi({ id, input })
+      return createTransactionApi(input)
+    },
     onSuccess: () => {
-      toast.success("Transaksi berhasil ditambahkan")
+      toast.success(id ? "Transaction updated" : "Transaction added")
       queryClient.invalidateQueries({ queryKey: [TRANSACTIONS_QUERY_KEY] })
       queryClient.invalidateQueries({ queryKey: ["bank-accounts"] })
     },
-    onError: (e) => toast.error(e.message || "Gagal menambahkan transaksi"),
-  })
-}
-
-export const useUpdateTransactionMutation = () => {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: ({ id, input }: { id: string; input: TransactionCreateDto }) =>
-      updateTransactionApi({ id, input }),
-    onSuccess: () => {
-      toast.success("Transaksi berhasil diperbarui")
-      queryClient.invalidateQueries({ queryKey: [TRANSACTIONS_QUERY_KEY] })
-      queryClient.invalidateQueries({ queryKey: ["bank-accounts"] })
-    },
-    onError: (e) => toast.error(e.message || "Gagal memperbarui transaksi"),
+    onError: (e) =>
+      toast.error(e.message || (id ? "Failed to update transaction" : "Failed to add transaction")),
   })
 }
 
@@ -41,10 +31,10 @@ export const useDeleteTransactionMutation = () => {
   return useMutation({
     mutationFn: (id: string) => deleteTransactionApi(id),
     onSuccess: () => {
-      toast.success("Transaksi berhasil dihapus")
+      toast.success("Transaction deleted")
       queryClient.invalidateQueries({ queryKey: [TRANSACTIONS_QUERY_KEY] })
     },
-    onError: (e) => toast.error(e.message || "Gagal menghapus transaksi"),
+    onError: (e) => toast.error(e.message || "Failed to delete transaction"),
   })
 }
 
@@ -53,9 +43,9 @@ export const useBulkDeleteTransactionsMutation = () => {
   return useMutation({
     mutationFn: (ids: string[]) => bulkDeleteTransactionsApi(ids),
     onSuccess: () => {
-      toast.success("Transaksi terpilih berhasil dihapus")
+      toast.success("Selected transactions deleted")
       queryClient.invalidateQueries({ queryKey: [TRANSACTIONS_QUERY_KEY] })
     },
-    onError: (e) => toast.error(e.message || "Gagal menghapus transaksi terpilih"),
+    onError: (e) => toast.error(e.message || "Failed to delete selected transactions"),
   })
 }
