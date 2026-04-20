@@ -1,6 +1,6 @@
 "use client"
 
-import { useDeleteBankAccount } from "../hooks/use-delete-bank-account"
+import { useDeleteBankAccountMutation } from "../mutations"
 import type { BankAccount } from "../types"
 import { ResponsiveDialogFooter } from "@/components/responsive-dialog"
 import { Button } from "@/components/ui/button"
@@ -15,11 +15,11 @@ type Props = {
 
 export default function BankAccountDelete({ close, data }: Props) {
   const [deleteTransactions, setDeleteTransactions] = useState(false)
-  const deleteMutation = useDeleteBankAccount({ onSuccess: close })
+  const deleteMutation = useDeleteBankAccountMutation()
 
   const handleConfirm = () => {
     if (!data) return
-    deleteMutation.mutate({ id: data.id, deleteTransactions })
+    deleteMutation.mutate({ id: data.id, deleteTransactions }, { onSuccess: close })
   }
 
   return (

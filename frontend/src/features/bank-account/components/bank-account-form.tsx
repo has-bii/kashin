@@ -1,6 +1,7 @@
 "use client"
 
 import { useBankAccountForm } from "../hooks/use-bank-account-form"
+import type { BankAccount } from "../types"
 import { BankPicker, BankPickerSkeleton } from "@/components/bank-picker"
 import { ResponsiveDialogFooter } from "@/components/responsive-dialog"
 import { Button } from "@/components/ui/button"
@@ -16,10 +17,10 @@ import { Input } from "@/components/ui/input"
 import { Loader2, Plus } from "lucide-react"
 import { Suspense } from "react"
 
-type Props = { mode: "create"; onSuccess?: () => void }
+type Props = { prevData?: BankAccount | null; onSuccess?: () => void }
 
-export function BankAccountForm(props: Props) {
-  const { form } = useBankAccountForm(props)
+export function BankAccountForm({ prevData, onSuccess }: Props) {
+  const { form } = useBankAccountForm({ prevData, options: { onSuccess } })
 
   return (
     <>
@@ -39,7 +40,7 @@ export function BankAccountForm(props: Props) {
               const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
               return (
                 <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Saldo Awal</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>Initial Balance</FieldLabel>
                   <Input
                     id={field.name}
                     type="number"
@@ -83,7 +84,8 @@ export function BankAccountForm(props: Props) {
               form="bank-account-form"
               disabled={!canSubmit || !isDirty || isSubmitting}
             >
-              Tambah {isSubmitting ? <Loader2 className="animate-spin" /> : <Plus />}
+              {!prevData ? "Add" : "Save"}{" "}
+              {isSubmitting ? <Loader2 className="animate-spin" /> : <Plus />}
             </Button>
           )}
         />

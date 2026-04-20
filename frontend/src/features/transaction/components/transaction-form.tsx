@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { getBankAccountsQueryOptions } from "@/features/bank-account/api/get-bank-accounts.query"
+import { getBankAccountsQueryOptions } from "@/features/bank-account/query"
 import { getCategoriesQueryOptions } from "@/features/category/query"
 import { TransactionType } from "@/types/enums"
 import { useQuery } from "@tanstack/react-query"

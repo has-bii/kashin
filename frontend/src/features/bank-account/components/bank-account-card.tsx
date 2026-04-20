@@ -1,5 +1,6 @@
 "use client"
 
+import { useBankAccountContext } from "../hooks/use-bank-account-context"
 import type { BankAccount } from "../types"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -15,17 +16,15 @@ import Image from "next/image"
 
 type Props = {
   account: BankAccount
-  onDelete: (account: BankAccount) => void
 }
 
-export const BankAccountCard = ({ account, onDelete }: Props) => {
-  const deleteHandler = () => onDelete(account)
+export const BankAccountCard = ({ account }: Props) => {
+  const { handleDeleteOpen } = useBankAccountContext()
 
   return (
     <Card className="h-42 rounded-3xl py-4 shadow-none">
       <CardHeader>
         <div className="flex items-center gap-4">
-          {/* Image */}
           <Image
             src={account.bank.imageUrl}
             alt={account.bank.imageUrl}
@@ -33,23 +32,19 @@ export const BankAccountCard = ({ account, onDelete }: Props) => {
             height={52}
             className="shrink-0 rounded-xl border"
           />
-
-          {/* Info */}
           <div className="truncate">
             <CardTitle className="font-heading text-xl font-bold">{account.bank.name}</CardTitle>
             <CardDescription className="truncate text-xs">
               {account.bank.isSupportEmail ? "Support auto input by email" : "Manual input only"}
             </CardDescription>
           </div>
-
-          {/* Action */}
           <DropdownMenu>
             <DropdownMenuTrigger className="ml-auto shrink-0 self-start">
               <EllipsisIcon className="size-6" />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuGroup>
-                <DropdownMenuItem variant="destructive" onClick={deleteHandler}>
+                <DropdownMenuItem variant="destructive" onClick={() => handleDeleteOpen(account)}>
                   <Trash2Icon />
                   Delete
                 </DropdownMenuItem>
