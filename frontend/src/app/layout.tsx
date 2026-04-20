@@ -5,9 +5,9 @@ import type { Metadata } from "next"
 import { Cormorant_Garamond, Geist, Geist_Mono, Inter, Roboto } from "next/font/google"
 import { Toaster } from "sonner"
 
-const interHeading = Inter({ subsets: ["latin"], variable: "--font-heading" })
+const interHeading = Inter({subsets:['latin'],variable:'--font-heading'})
 
-const roboto = Roboto({ subsets: ["latin"], variable: "--font-sans" })
+const roboto = Roboto({subsets:['latin'],variable:'--font-sans'})
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

@@ -22,7 +22,7 @@ function SelectTab({
       <div
         data-slot="select-tab"
         className={cn(
-          "bg-input/50 flex w-full items-center gap-1.5 rounded-3xl p-1.5",
+          "bg-input/50 flex w-full items-center gap-1.5 rounded-4xl border p-1.5",
           "transition-all duration-200",
           className,
         )}

@@ -45,7 +45,9 @@ app/
 
 ## `features/` Modules
 
-Each feature is fully self-contained:
+Each feature is fully self-contained. Two layouts depending on complexity:
+
+**Minimal** (simple features — single dialog or read-only):
 
 ```
 features/<name>/
@@ -62,6 +64,29 @@ features/<name>/
     └── schema.ts               # Zod schema + inferred types
 ```
 
+**Extended** (features with multiple dialogs sharing selected-item state):
+
+```
+features/<name>/
+├── api/
+│   └── index.ts                # Raw HTTP functions only
+├── query/
+│   └── index.ts                # QUERY_KEY + getXxxQueryOptions factory
+├── mutations/
+│   └── index.ts                # useMutation hooks (toast + invalidate)
+├── context/
+│   └── <name>.context.ts       # XxxContextType interface + createContext
+├── provider/
+│   └── <name>.provider.tsx     # XxxProvider with useState dialog state
+├── components/
+├── hooks/
+│   └── use-<name>-context.ts   # useContext wrapper + null guard
+├── types/
+│   └── index.ts
+└── validations/
+    └── schema.ts
+```
+
 Current features: `auth`, `bank`, `bank-account`, `budget`, `category`, `dashboard`, `gmail`, `landing`, `recurring-transaction`, `settings`, `transaction`
 
 ## `components/`
@@ -74,22 +99,23 @@ components/
 
 ## `lib/` Singletons
 
-| File | Purpose |
-|------|---------|
-| `api.ts` | Axios instance — `baseURL: NEXT_PUBLIC_API_URL`, `withCredentials: true`, 10s timeout, error normalization interceptor |
-| `auth-client.ts` | Better Auth client — `baseURL` points to API root (no `/api` suffix) |
-| `nuqs-parser.ts` | Type-safe nuqs parser helpers for URL query params |
+| File             | Purpose                                                                                                                |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `api.ts`         | Axios instance — `baseURL: NEXT_PUBLIC_API_URL`, `withCredentials: true`, 10s timeout, error normalization interceptor |
+| `auth-client.ts` | Better Auth client — `baseURL` points to API root (no `/api` suffix)                                                   |
+| `nuqs-parser.ts` | Type-safe nuqs parser helpers for URL query params                                                                     |
 
 ## `constants/`
 
-| File | Contents |
-|------|---------|
-| `indonesia.ts` | `TIMEZONE = "Asia/Jakarta"`, `LOCALE = "id-ID"`, `CURRENCY = "IDR"`, `DECIMAL = 0` |
-| `category-colors.ts` | 8 color pairs (`{ bg: string, fg: string }`) for category color picker |
+| File                 | Contents                                                                           |
+| -------------------- | ---------------------------------------------------------------------------------- |
+| `indonesia.ts`       | `TIMEZONE = "Asia/Jakarta"`, `LOCALE = "id-ID"`, `CURRENCY = "IDR"`, `DECIMAL = 0` |
+| `category-colors.ts` | 8 color pairs (`{ bg: string, fg: string }`) for category color picker             |
 
 ## `providers/`
 
 Wraps the app with:
+
 - TanStack Query client (`QueryClientProvider`)
 - Tooltip provider
 - nuqs adapter for Next.js App Router

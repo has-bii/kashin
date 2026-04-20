@@ -50,12 +50,29 @@ src/
 
 ### Feature module structure
 
-Every feature in `src/features/<name>/` contains:
-- `api/` — TanStack Query queries & mutations
+Two layouts depending on complexity:
+
+**Minimal** (simple features — single dialog or read-only):
+
+- `api/` — raw HTTP functions + queryOptions factories
 - `components/` — feature-specific UI
-- `hooks/` — `useXxxForm`, `useXxxQuery`, etc.
+- `hooks/` — `useXxxForm`, `useXxxMutation`, `useXxxFilter`
 - `types/` — TypeScript interfaces
 - `validations/` — Zod schemas
+
+**Extended** (multi-dialog features with shared selected-item state):
+
+- `api/` — raw HTTP functions only
+- `query/` — `QUERY_KEY` constant + `getXxxQueryOptions(params)` factory
+- `mutations/` — `useMutation` hooks (toast + invalidate here, not in `hooks/`)
+- `context/` — `XxxContextType` interface + `createContext`
+- `provider/` — `XxxProvider` with `useState` for dialog open/selected state
+- `hooks/` — `useXxxContext`, `useXxxForm`, `useXxxFilter`
+- `components/` — feature-specific UI
+- `types/` — TypeScript interfaces
+- `validations/` — Zod schemas
+
+See `@docs/conventions.md` for full patterns.
 
 ### Key lib singletons
 

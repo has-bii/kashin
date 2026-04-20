@@ -1,4 +1,6 @@
+import { useCategoryContext } from "../hooks/use-category-context"
 import { Category } from "../types"
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,31 +10,20 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { CATEGORY_COLORS } from "@/constants/category-colors"
 import { EllipsisIcon, PencilIcon, Trash2Icon } from "lucide-react"
-import { useMemo } from "react"
 
 type Props = {
   data: Category
-  onUpdate?: () => void
-  onDelete?: () => void
 }
 
-export function CategoryCard({ data, onDelete, onUpdate }: Props) {
-  const styles = useMemo(() => {
-    const isExist = CATEGORY_COLORS.find((acc) => acc.background === data.color)
+export function CategoryCard({ data }: Props) {
+  const { handleUpdateCategory, handleDeleteCategory } = useCategoryContext()
 
-    if (!isExist)
-      return {
-        background: CATEGORY_COLORS[0].background,
-        foreground: CATEGORY_COLORS[0].foreground,
-      }
-
-    return isExist
-  }, [data.color])
+  const styles = CATEGORY_COLORS.find((acc) => acc.background === data.color) ?? CATEGORY_COLORS[0]
 
   return (
     <div
-      className="flex aspect-square flex-col overflow-hidden rounded-4xl py-6"
-      style={{ backgroundColor: styles.background }}
+      className="flex aspect-square flex-col overflow-hidden rounded-4xl border py-6"
+      style={{ backgroundColor: styles.background, borderColor: styles.border }}
     >
       <div className="flex items-start justify-between px-6">
         {/* Icon */}
@@ -42,16 +33,18 @@ export function CategoryCard({ data, onDelete, onUpdate }: Props) {
 
         {/* More */}
         <DropdownMenu>
-          <DropdownMenuTrigger className="">
-            <EllipsisIcon className="size-6" />
+          <DropdownMenuTrigger asChild>
+            <Button size="icon" variant="ghost">
+              <EllipsisIcon className="size-6" />
+            </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuGroup>
-              <DropdownMenuItem onClick={onUpdate}>
+              <DropdownMenuItem onClick={() => handleUpdateCategory(data)}>
                 <PencilIcon />
                 Edit
               </DropdownMenuItem>
-              <DropdownMenuItem variant="destructive" onClick={onDelete}>
+              <DropdownMenuItem variant="destructive" onClick={() => handleDeleteCategory(data)}>
                 <Trash2Icon />
                 Delete
               </DropdownMenuItem>

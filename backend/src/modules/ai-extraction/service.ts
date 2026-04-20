@@ -36,7 +36,7 @@ export abstract class AiExtractionService {
           extractedDate: true,
           confidenceScore: true,
           suggestedCategory: true,
-          errorMessage: true,
+          note: true,
           createdAt: true,
           extractedCategory: { select: { id: true, name: true, icon: true, color: true } },
           extractedBankAccount: {
@@ -82,8 +82,7 @@ export abstract class AiExtractionService {
       : record!.extractedDate
     const description =
       body.description !== undefined ? body.description : record!.extractedMerchant
-    const categoryId =
-      body.categoryId !== undefined ? body.categoryId : record!.extractedCategoryId
+    const categoryId = body.categoryId !== undefined ? body.categoryId : record!.extractedCategoryId
     const bankAccountId =
       body.bankAccountId !== undefined ? body.bankAccountId : record!.extractedBankAccountId
     const notes = body.notes !== undefined ? body.notes : record!.note

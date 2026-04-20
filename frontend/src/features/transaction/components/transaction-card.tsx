@@ -17,7 +17,7 @@ export function TransactionCard({ data, onRowClick }: Props) {
   const date = formatDate(transactionDate, isToday(transactionDate) ? "p" : undefined)
 
   return (
-    <Card role="button" className="rounded-3xl py-4 shadow-none" onClick={() => onRowClick?.(data)}>
+    <Card role="button" className="rounded-3xl py-4" onClick={() => onRowClick?.(data)}>
       <CardContent className="flex items-center gap-3 px-4">
         {/* Icon */}
         <div

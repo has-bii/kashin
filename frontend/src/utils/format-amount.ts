@@ -17,9 +17,9 @@ export function formatCurrency(
 ): string {
   const num = typeof amount === "string" ? parseFloat(amount) : amount
   return new Intl.NumberFormat(LOCALE, {
-    ...options,
     style: "currency",
     currency: CURRENCY,
     minimumFractionDigits: DECIMAL,
+    ...options,
   }).format(num)
 }

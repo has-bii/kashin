@@ -10,29 +10,30 @@ import { Input } from "@/components/ui/input"
 import { TransactionType } from "@/types/enums"
 import { Loader2, Plus, SaveIcon } from "lucide-react"
 
-const types: Array<{ label: string; value: TransactionType }> = [
-  { label: "Pengeluaran", value: "expense" },
-  { label: "Pemasukan", value: "income" },
-] as const
+const types: TransactionType[] = ["expense", "income"] as const
 
-type Props = { mode: "create" } | { mode: "update"; data: Category | null }
+interface Props {
+  prevData?: Category | null
+  mode: "create" | "update"
+}
 
 export function CategoryForm(props: Props) {
   const { setOpen } = useResponsiveDialog()
 
   const closeDialog = () => setOpen(false)
 
-  const hookArgs =
-    props.mode === "create"
-      ? { mode: "create" as const, onSuccess: closeDialog }
-      : { mode: "update" as const, prevData: props.data, onSuccess: closeDialog }
-
-  const { form } = useCategoryForm(hookArgs)
+  const { form } = useCategoryForm({
+    prevData: props.prevData,
+    options: {
+      onSuccess: closeDialog,
+    },
+  })
 
   return (
     <>
       <form
         id="category-form"
+        className="mb-4 px-4 md:px-0"
         onSubmit={(e) => {
           e.preventDefault()
           form.handleSubmit()
@@ -51,8 +52,8 @@ export function CategoryForm(props: Props) {
                     onChangeValue={(value) => field.handleChange(value as TransactionType)}
                   >
                     {types.map((type) => (
-                      <SelectTabItem key={type.value} value={type.value}>
-                        {type.label}
+                      <SelectTabItem key={type} value={type} className="capitalize">
+                        {type}
                       </SelectTabItem>
                     ))}
                   </SelectTab>
@@ -69,7 +70,7 @@ export function CategoryForm(props: Props) {
               const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
               return (
                 <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Nama Kategori</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>Category Name</FieldLabel>
                   <Input
                     id={field.name}
                     name={field.name}
@@ -93,7 +94,7 @@ export function CategoryForm(props: Props) {
               const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
               return (
                 <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Pilih Warna</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>Category Color</FieldLabel>
                   <ColorPicker value={field.state.value} onChangeValue={field.handleChange} />
                   {isInvalid && <FieldError errors={field.state.meta.errors} />}
                 </Field>
@@ -108,7 +109,7 @@ export function CategoryForm(props: Props) {
               const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
               return (
                 <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Pilih Ikon</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>Category Icon</FieldLabel>
                   <EmojiPicker value={field.state.value} onChangeValue={field.handleChange} />
                   {isInvalid && <FieldError errors={field.state.meta.errors} />}
                 </Field>
@@ -129,7 +130,7 @@ export function CategoryForm(props: Props) {
                 disabled={isSubmitting}
                 onClick={closeDialog}
               >
-                Batal
+                Cancel
               </Button>
               <Button
                 form="category-form"
@@ -138,9 +139,9 @@ export function CategoryForm(props: Props) {
                 disabled={isSubmitting || !canSubmit || !isDirty}
               >
                 {props.mode === "create" ? (
-                  <>Tambah {isSubmitting ? <Loader2 className="animate-spin" /> : <Plus />}</>
+                  <>Create {isSubmitting ? <Loader2 className="animate-spin" /> : <Plus />}</>
                 ) : (
-                  <>Simpan {isSubmitting ? <Loader2 className="animate-spin" /> : <SaveIcon />}</>
+                  <>Save {isSubmitting ? <Loader2 className="animate-spin" /> : <SaveIcon />}</>
                 )}
               </Button>
             </>

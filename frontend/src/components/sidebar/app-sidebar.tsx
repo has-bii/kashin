@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/sidebar"
 import {
   ArrowLeftRightIcon,
+  BotIcon,
   CreditCardIcon,
   LayersIcon,
   LayoutDashboardIcon,
@@ -64,6 +65,11 @@ const data = {
       title: "Gmail",
       url: "/dashboard/gmail",
       icon: <MailIcon />,
+    },
+    {
+      title: "AI Extraction",
+      url: "/dashboard/ai-extraction",
+      icon: <BotIcon />,
     },
   ],
   navSecondary: [

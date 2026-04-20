@@ -59,7 +59,7 @@ export default function BankAccountsPage() {
 
           <Button
             onClick={handleAddAccount}
-            size="xl"
+            size="lg"
             className="fixed right-4 bottom-4 md:relative md:right-0 md:bottom-0"
           >
             <PlusIcon className="size-4" />

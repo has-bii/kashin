@@ -19,7 +19,7 @@ export function CategoryFilterTab() {
   return (
     <SelectTab className="md:max-w-xs" value={type ? type : "all"} onChangeValue={onChangeValue}>
       {TYPES.map((item) => (
-        <SelectTabItem key={item.label} value={item.value}>
+        <SelectTabItem key={item.value} value={item.value}>
           {item.label}
         </SelectTabItem>
       ))}

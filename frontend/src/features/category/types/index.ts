@@ -10,3 +10,7 @@ export interface Category {
   createdAt: string
   updatedAt: string
 }
+
+export interface GetCategoriesParams {
+  type?: TransactionType | null
+}

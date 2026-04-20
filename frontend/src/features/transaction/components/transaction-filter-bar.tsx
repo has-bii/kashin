@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { getCategoriesQueryOptions } from "@/features/category/api/get-categories.query"
+import { getCategoriesQueryOptions } from "@/features/category/api/get-categories.api"
 import { useTransactionFilters } from "@/features/transaction/hooks/use-transaction-filters"
 import { TransactionType } from "@/types/enums"
 import { formatDate } from "@/utils/format-date"

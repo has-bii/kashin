@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { getBankAccountsQueryOptions } from "@/features/bank-account/api/get-bank-accounts.query"
-import { getCategoriesQueryOptions } from "@/features/category/api/get-categories.query"
+import { getCategoriesQueryOptions } from "@/features/category/api/get-categories.api"
 import { TransactionType } from "@/types/enums"
 import { useQuery } from "@tanstack/react-query"
 import { Loader2, Plus, SaveIcon } from "lucide-react"

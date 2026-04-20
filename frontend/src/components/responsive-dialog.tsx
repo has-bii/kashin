@@ -45,7 +45,7 @@ type ResponsiveDialogProps = {
   onOpenChange?: (open: boolean) => void
 }
 
-function ResponsiveDialog({
+export function ResponsiveDialog({
   title,
   description,
   trigger,
@@ -100,7 +100,7 @@ type ResponsiveDialogFooterProps = {
   className?: string
 }
 
-function ResponsiveDialogFooter({ children, className }: ResponsiveDialogFooterProps) {
+export function ResponsiveDialogFooter({ children, className }: ResponsiveDialogFooterProps) {
   const { isMobile } = useResponsiveDialog()
 
   if (isMobile)
@@ -108,5 +108,3 @@ function ResponsiveDialogFooter({ children, className }: ResponsiveDialogFooterP
 
   return <DialogFooter className={className}>{children}</DialogFooter>
 }
-
-export { ResponsiveDialog, ResponsiveDialogFooter }

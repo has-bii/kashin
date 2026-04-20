@@ -3,7 +3,11 @@
 import { useRecurringTransactionForm } from "../hooks/use-recurring-transaction-form"
 import { RecurringTransaction } from "../types"
 import { RecurringTransactionDeleteDialog } from "./recurring-transaction-delete-dialog"
-import { DatetimePicker, DatetimePickerDate, DatetimePickerTime } from "@/components/datetime-picker"
+import {
+  DatetimePicker,
+  DatetimePickerDate,
+  DatetimePickerTime,
+} from "@/components/datetime-picker"
 import { ResponsiveDialogFooter } from "@/components/responsive-dialog"
 import { SelectTab, SelectTabItem } from "@/components/select-tab"
 import { Button } from "@/components/ui/button"
@@ -16,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { getCategoriesQueryOptions } from "@/features/category/api/get-categories.query"
+import { getCategoriesQueryOptions } from "@/features/category/api/get-categories.api"
 import { TransactionType } from "@/types/enums"
 import { useQuery } from "@tanstack/react-query"
 import { Loader2, Plus, SaveIcon } from "lucide-react"
@@ -117,12 +121,15 @@ export function RecurringTransactionForm(props: Props) {
                   <Select
                     value={field.state.value}
                     onValueChange={(value) =>
-                      field.handleChange(
-                        value as "weekly" | "biweekly" | "monthly" | "yearly",
-                      )
+                      field.handleChange(value as "weekly" | "biweekly" | "monthly" | "yearly")
                     }
                   >
-                    <SelectTrigger id={field.name} aria-invalid={isInvalid} onBlur={field.handleBlur} className="w-full">
+                    <SelectTrigger
+                      id={field.name}
+                      aria-invalid={isInvalid}
+                      onBlur={field.handleBlur}
+                      className="w-full"
+                    >
                       <SelectValue placeholder="Pilih frekuensi" />
                     </SelectTrigger>
                     <SelectContent position="popper">
