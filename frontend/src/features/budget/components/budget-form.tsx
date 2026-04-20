@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { getCategoriesQueryOptions } from "@/features/category/api/get-categories.api"
+import { getCategoriesQueryOptions } from "@/features/category/query"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { Loader2, Plus, SaveIcon } from "lucide-react"
 
