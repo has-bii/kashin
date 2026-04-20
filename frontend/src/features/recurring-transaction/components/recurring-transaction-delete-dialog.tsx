@@ -1,6 +1,6 @@
 "use client"
 
-import { useDeleteRecurringTransaction } from "../hooks/use-delete-recurring-transaction"
+import { useDeleteRecurringTransactionMutation } from "../mutations"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,10 +21,10 @@ type Props = {
 }
 
 export function RecurringTransactionDeleteDialog({ recurringTransactionId, onSuccess }: Props) {
-  const { mutateAsync, isPending } = useDeleteRecurringTransaction({ onSuccess })
+  const { mutateAsync, isPending } = useDeleteRecurringTransactionMutation()
 
   const handleDelete = async () => {
-    await mutateAsync(recurringTransactionId)
+    await mutateAsync(recurringTransactionId, { onSuccess })
   }
 
   return (

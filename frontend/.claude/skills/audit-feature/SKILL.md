@@ -1,159 +1,250 @@
 ---
 name: audit-feature
 description: >
-  Audits a kashin frontend feature (src/features/<name>/) against project
-  conventions and fixes any violations found. Use this skill whenever the user
-  asks to "check", "audit", "review", "validate", or "fix" a feature's
-  structure or code conventions — even if they just say "does X follow
-  conventions?" or "clean up the Y feature". Also trigger when the user says
-  a feature "looks wrong" or "needs to be updated to match the new patterns".
-user-invocable: true
+  Audits a kashin frontend feature (src/features/<name>/) against project conventions and fixes all
+  violations found. Use this skill whenever the user asks to "audit", "check", "fix", "migrate", or
+  "align" a feature to the project pattern. Also invoke when the user says things like "does X follow
+  the pattern?", "clean up the Y feature", "make Z match budget", or "apply the pattern to W".
+  This skill both reports what's wrong AND applies the fixes — it doesn't just describe problems.
 ---
 
 # Audit Feature
 
-Inspect a feature in `src/features/<name>/`, identify convention violations, and fix them.
+Audit `src/features/<name>/` against the canonical extended layout pattern and fix every violation.
+Do NOT just report problems — fix them.
 
-## Step 1: Identify the feature
+## Step 1: Read the feature
 
-If the user didn't name a feature, ask for it. Once you have the name, read the directory:
+Read every file in `src/features/<name>/` and `src/app/dashboard/(main)/<name>/page.tsx`.
+
+## Step 2: Check each rule and fix violations
+
+Work through the checklist below. For each violation, fix it immediately before moving to the next item.
+
+---
+
+### Rule 1 — Extended layout structure
+
+The feature must have all nine directories:
 
 ```
-src/features/<name>/
+api/          mutations/    hooks/
+query/        context/      components/
+provider/     types/        validations/
 ```
 
-List all subdirectories and files. This tells you which layout the feature is using.
+If any are missing and the feature has more than one dialog (create + edit, or create + delete), create the missing directory and implement the missing layer following the conventions in `docs/conventions.md`.
 
-## Step 2: Determine the layout
+---
 
-**Extended layout** — feature has any of: `context/`, `provider/`, `mutations/`, `query/`  
-**Minimal layout** — none of the above are present
+### Rule 2 — English-only copy
 
-The layout determines what checks apply and what the expected structure is.
+Scan every `.tsx` / `.ts` file for Indonesian strings. Fix all occurrences:
 
-### Expected structure
+| Indonesian | English |
+|---|---|
+| Tambah / Tambahkan | Add |
+| Simpan | Save |
+| Hapus | Delete |
+| Batal | Cancel |
+| Ubah / Perbarui | Edit / Update |
+| Keterangan | Description |
+| Catatan | Notes |
+| Jumlah | Amount |
+| Tanggal / Waktu | Date / Time |
+| Rekening | Account |
+| Kategori | Category |
+| Tanpa X | No X |
+| Berhasil X | X successful → rephrase as "X [noun]" e.g. "Transaction added" |
+| Gagal X | Failed to X |
+| dipilih | selected |
+| transaksi / kategori / anggaran / dll | transaction / category / budget / etc. |
+| Hari Ini | Today |
+| Belum ada X | No X yet |
+| Coba X | Try X |
+| Tindakan ini tidak dapat dibatalkan | This action cannot be undone |
 
-**Minimal:**
+Also fix toast messages, page titles (`SiteHeader`, `MainPageTitle`, `MainPageDescripton`), dialog titles and descriptions, button labels, field labels, placeholders, empty state text, and badge/status labels.
+
+---
+
+### Rule 3 — Upsert mutation
+
+If the feature has separate `useCreateXxxMutation` and `useUpdateXxxMutation`, combine them into `useUpsertXxxMutation(id?: string)`:
+
+```ts
+export const useUpsertXxxMutation = (id?: string) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: XxxDto) => {
+      if (id) return updateXxxApi({ id, input })   // or updateXxxApi(id, input) — match api signature
+      return createXxxApi(input)
+    },
+    onSuccess: () => {
+      toast.success(id ? "X updated" : "X added")
+      queryClient.invalidateQueries({ queryKey: [XXX_QUERY_KEY] })
+    },
+    onError: (e) => toast.error(e.message || (id ? "Failed to update X" : "Failed to add X")),
+  })
+}
 ```
-api/            # Raw HTTP functions + queryOptions factories (get-<name>.query.ts)
-components/
-hooks/          # useXxxForm, useXxxMutation, useXxxFilter
-types/
-validations/
+
+Keep `useDeleteXxxMutation` and any bulk-delete mutations as separate hooks.
+
+---
+
+### Rule 4 — Schema and DTO naming
+
+The validations file must export:
+- `xxxSchema` (not `xxxCreateSchema`)
+- `XxxDto` (not `XxxCreateDto`)
+
+Remove `xxxUpdateSchema` and `XxxUpdateDto` — partial updates use the same DTO.
+
+After renaming, update every import across `api/`, `mutations/`, and `hooks/`.
+
+---
+
+### Rule 5 — Form hook signature
+
+`useXxxForm` must accept `{ prevData?, options? }`:
+
+```ts
+interface UseXxxForm {
+  prevData?: Xxx | null
+  options?: {
+    onSuccess?: () => void
+    onError?: () => void
+  }
+}
+
+export const useXxxForm = ({ prevData, options }: UseXxxForm) => {
+  const mutation = useUpsertXxxMutation(prevData?.id)
+  // defaultValues derived from prevData with fallbacks
+  // onSubmit: await mutation.mutateAsync(value, options); formApi.reset()
+  return { form, mutation }
+}
 ```
 
-**Extended:**
+Remove discriminated-union `Args` types (`| { mode: "create" } | { mode: "edit"; data: Xxx }`).
+
+---
+
+### Rule 6 — Form component props
+
+`XxxForm` must accept `{ prevData?: Xxx | null; onSuccess?: () => void }`:
+
+```tsx
+export function XxxForm({ prevData, onSuccess }: Props) {
+  const { form } = useXxxForm({ prevData, options: { onSuccess } })
+  // ...
+  // Button label: !prevData ? "Add ..." : "Save ..."
+  // Delete dialog: {prevData && <XxxDeleteDialog id={prevData.id} onSuccess={onSuccess} />}
+}
 ```
-api/            # Raw HTTP functions ONLY
-query/          # QUERY_KEY constant + getXxxQueryOptions factory
-mutations/      # useMutation hooks (toast + invalidateQueries here)
-context/        # XxxContextType interface + createContext (no state)
-provider/       # XxxProvider with useState dialog state
-hooks/          # useXxxContext, useXxxForm, useXxxFilter
-components/
-types/
-validations/
+
+Remove `mode` prop and all branches on `mode === "create"` / `mode === "edit"`.
+
+---
+
+### Rule 7 — Dedicated dialogs component
+
+The feature must have `components/xxx-dialogs.tsx` that reads dialog state from context and renders the main dialog + delete dialog. The page must NOT define `ResponsiveDialog` inline.
+
+Template:
+
+```tsx
+"use client"
+
+import { useXxxContext } from "../hooks/use-xxx-context"
+import { XxxForm } from "./xxx-form"
+import { ResponsiveDialog } from "@/components/responsive-dialog"
+
+export default function XxxDialogs() {
+  const { dialogOpen, selectedXxx, handleDialogClose } = useXxxContext()
+
+  const dialogTitle = selectedXxx ? "Edit X" : "Add X"
+  const dialogDescription = selectedXxx
+    ? "Update the details of this X."
+    : "Fill in the details to add a new X."
+
+  return (
+    <ResponsiveDialog
+      title={dialogTitle}
+      description={dialogDescription}
+      open={dialogOpen}
+      onOpenChange={handleDialogClose}
+    >
+      <XxxForm prevData={selectedXxx} onSuccess={handleDialogClose} />
+    </ResponsiveDialog>
+  )
+}
 ```
 
-## Step 3: Run checks
+If a delete dialog exists and is context-driven (state in provider), include it here too alongside `ResponsiveDialog`.
 
-Read all files in the feature. Check each area:
+---
 
-### api/ checks
+### Rule 8 — Page structure
 
-**Both layouts:**
-- Raw HTTP functions must destructure `{ data }` from Axios and return `data` directly
-- Functions must be typed: `api.get<ReturnType>()`
-- No React hooks (`use*`) in this folder
+The page must:
+- Dynamically import the list component with `ssr: false` and a skeleton `loading:` fallback
+- Dynamically import the dialogs component with `ssr: false`
+- Wrap content in `<XxxProvider>`
+- Use `<QueryErrorBoundary>` around data-fetching components
+- NOT define `ResponsiveDialog` inline
 
-**Extended layout only:**
-- Must NOT contain `queryOptions` — those go in `query/`
-- Must NOT contain `useMutation` — those go in `mutations/`
+```tsx
+const XxxList = dynamic(() => import("@/features/xxx/components/xxx-list"), {
+  ssr: false,
+  loading: () => <XxxListSkeleton />,
+})
 
-**Minimal layout only:**
-- Must have a `get-<name>.query.ts` file with `getXxxQueryOptions` and `getXxxQueryKey` exports
+const XxxDialogs = dynamic(() => import("@/features/xxx/components/xxx-dialogs"), {
+  ssr: false,
+})
 
-### query/ checks (extended only)
+export default function XxxPage() {
+  return (
+    <XxxProvider>
+      {/* ... */}
+      <QueryErrorBoundary><XxxList /></QueryErrorBoundary>
+      <XxxDialogs />
+    </XxxProvider>
+  )
+}
+```
 
-- Must export a `QUERY_KEY` constant (e.g. `CATEGORIES_QUERY_KEY = "categories" as const`)
-- Must export a `getXxxQueryOptions(params)` that calls `queryOptions({ queryKey, queryFn })`
-- `queryFn` must import from `../api` — no direct `api.get()` calls here
-- No React hooks in this file
+If the page needs context for a button (e.g. "Add" in the header), extract it into a small inner component or a helper component that calls `useXxxContext()`.
 
-### mutations/ checks (extended only)
+---
 
-- Must export `useXxxMutation` hooks (named with `Mutation` suffix)
-- Must import `QUERY_KEY` from `../query` — no hardcoded query key strings
-- Must call `queryClient.invalidateQueries` in `onSuccess`
-- Must call `toast.success` in `onSuccess` and `toast.error` in `onError`
-- `onError` must use `e.message` with a fallback: `e.message || "fallback text"`
+## Step 3: Run verification
 
-### context/ checks (extended only)
+```bash
+npx tsc --noEmit 2>&1 | grep "features/<name>"
+pnpm run lint 2>&1 | grep "features/<name>"
+```
 
-- Must export the context type interface (`XxxContextType`)
-- Must export `createContext<XxxContextType | null>(null)`
-- Must NOT contain `useState`, `useEffect`, or handler implementations — those go in `provider/`
+Fix any new type errors introduced by your changes. Pre-existing errors in other features can be ignored.
 
-### provider/ checks (extended only)
+---
 
-- Must export a `XxxProvider({ children })` component
-- Must have `useState` for each dialog's `open` and `selected` state
-- Must derive `dialogMode` from selected state (not a separate `useState`)
-- Must import context from `../context/<name>.context`
-- Must NOT contain query calls or mutation calls
+## Step 4: Report
 
-### hooks/ checks
+After all fixes are applied, produce a short summary:
 
-**Extended layout:**
-- Must have `use-<name>-context.ts` with a null guard: `if (!context) throw new Error(...)`
-- Must NOT contain `useMutation` — those belong in `mutations/`
-- `useXxxForm` must import the mutation from `../mutations`, not define it inline
+```
+## Audit complete — <feature-name>
 
-**Both layouts:**
-- Filter hooks must use `nuqs` (`useQueryState` / `parseAsStringEnum`) — not raw `useSearchParams`
+### Fixed
+- [x] Rule N — brief description of what was changed
 
-### components/ checks (all files)
+### Already compliant
+- [x] Rule N — already correct, no changes needed
 
-- **No manual `useMemo` or `useCallback`** — React Compiler is active; these are redundant and should be removed. Replace `useMemo(() => expr, [dep])` with a plain `const`.
-- **No placeholder text** — search for: "I don't know", "TODO", "lorem ipsum", "placeholder", "written here", "test text". These must be replaced with real copy or removed.
-- **Map keys must be stable identifiers** — if you see `key={item.label}` or `key={item.name}` in a `.map()`, check whether `item.value` or `item.id` would be more appropriate.
-- **AlertDialog/Dialog descriptions must be specific** — generic copy like "delete your account" in a category delete dialog is a bug.
+### Skipped
+- Rule N — reason (e.g. feature uses minimal layout intentionally, no upsert pattern needed)
+```
 
-### validations/ checks
-
-- Must import from `"zod/v4"` (not `"zod"`)
-- Must export both the schema (`xyzSchema`) and inferred type (`XyzDto`)
-
-### types/ checks
-
-- Must be in `index.ts`
-- DTO types must have `Dto` suffix (e.g. `CategoryDto`)
-
-## Step 4: Report findings
-
-List every violation grouped by severity:
-
-**Bug** — wrong behavior visible to users (wrong copy, bad keys)  
-**Convention** — structural or pattern deviation  
-**Performance** — unnecessary code the React Compiler already handles
-
-For each violation, state:
-- File path (relative to `src/features/<name>/`)
-- What's wrong
-- What it should be
-
-## Step 5: Fix
-
-Ask for confirmation if there are many changes, then fix everything. Apply fixes precisely:
-
-- For `useMemo` removal: delete the import and replace the `useMemo(() => ..., [dep])` call with a plain `const` assignment. If the logic is complex, you can simplify it (e.g. `find(...) ?? fallback` instead of an if/else).
-- For wrong copy: replace with accurate, production-ready text. If unsure, write something plausible and note it.
-- For bad keys: change `key={item.label}` → `key={item.value}` (or `key={item.id}` for entity lists).
-- For structural violations (e.g. `queryOptions` in `api/` when it should be in `query/`): move the code and update all import paths.
-- For mutations in `hooks/`: move the `useMutation` block to `mutations/index.ts`, update the hook to import from `../mutations`.
-
-After fixing, run `pnpm run lint` and `npx tsc --noEmit` to verify no new errors were introduced.
-
-## Conventions reference
-
-The authoritative source for patterns is `docs/conventions.md`. The area skills in `.claude/skills/feature-*/SKILL.md` have detailed code examples for each layer. When in doubt about a pattern, read the relevant area skill.
+Keep it scannable. One line per rule.

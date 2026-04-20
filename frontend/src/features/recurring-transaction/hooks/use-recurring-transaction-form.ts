@@ -1,33 +1,18 @@
+import { useUpsertRecurringTransactionMutation } from "../mutations"
 import { RecurringTransaction } from "../types"
-import {
-  RecurringTransactionCreateDto,
-  recurringTransactionCreateSchema,
-} from "../validations/schema"
-import { api } from "@/lib/api"
+import { recurringTransactionSchema } from "../validations/schema"
 import { useForm } from "@tanstack/react-form"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
 
-type Args =
-  | { mode: "create"; onSuccess?: () => void }
-  | { mode: "edit"; data: RecurringTransaction; onSuccess?: () => void }
-
-const recurringTransactionApi = async (
-  mode: "create" | "edit",
-  input: RecurringTransactionCreateDto,
-  id?: string,
-) => {
-  if (mode === "create") {
-    const { data } = await api.post<RecurringTransaction>("/recurring-transaction", input)
-    return data
+interface UseRecurringTransactionForm {
+  prevData?: RecurringTransaction | null
+  options?: {
+    onSuccess?: () => void
+    onError?: () => void
   }
-  const { data } = await api.put<RecurringTransaction>(`/recurring-transaction/${id}`, input)
-  return data
 }
 
-export const useRecurringTransactionForm = (args: Args) => {
-  const queryClient = useQueryClient()
-  const prevData = args.mode === "edit" ? args.data : null
+export const useRecurringTransactionForm = ({ prevData, options }: UseRecurringTransactionForm) => {
+  const mutation = useUpsertRecurringTransactionMutation(prevData?.id)
 
   const form = useForm({
     defaultValues: {
@@ -39,25 +24,11 @@ export const useRecurringTransactionForm = (args: Args) => {
       nextDueDate: prevData?.nextDueDate ?? new Date().toISOString(),
     },
     validators: {
-      onSubmit: recurringTransactionCreateSchema,
+      onSubmit: recurringTransactionSchema,
     },
-    onSubmit: async ({ value }) => {
-      const id = prevData?.id
-      await mutation.mutateAsync({ input: value, id }, { onSuccess: args.onSuccess })
-    },
-  })
-
-  const mutation = useMutation({
-    mutationFn: ({ input, id }: { input: RecurringTransactionCreateDto; id?: string }) =>
-      recurringTransactionApi(args.mode, input, id),
-    onSuccess: () => {
-      const verb = args.mode === "create" ? "added" : "updated"
-      toast.success(`Recurring transaction has been ${verb} successfully`)
-      form.reset()
-      queryClient.invalidateQueries({ queryKey: ["recurring-transactions"] })
-    },
-    onError: () => {
-      toast.error("Unexpected error has occurred")
+    onSubmit: async ({ value, formApi }) => {
+      await mutation.mutateAsync(value, options)
+      formApi.reset()
     },
   })
 
