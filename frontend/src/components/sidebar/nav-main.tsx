@@ -34,7 +34,6 @@ export function NavMain({ items, label }: Props) {
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton
-                size="md"
                 tooltip={item.title}
                 isActive={isActive(item.url)}
                 className="rounded-l-none"
