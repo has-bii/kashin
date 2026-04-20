@@ -7,15 +7,12 @@ export const getBudgetsApi = async () => {
   return data
 }
 
-export const createBudgetApi = async (payload: BudgetDto & { alertThreshold: number }) => {
+export const createBudgetApi = async (payload: BudgetDto) => {
   const { data } = await api.post<Budget>("/budget", payload)
   return data
 }
 
-export const updateBudgetApi = async (
-  id: string,
-  payload: BudgetDto & { alertThreshold: number },
-) => {
+export const updateBudgetApi = async (id: string, payload: BudgetDto) => {
   const { data } = await api.put<Budget>(`/budget/${id}`, payload)
   return data
 }

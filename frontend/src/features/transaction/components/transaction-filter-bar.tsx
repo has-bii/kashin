@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { getCategoriesQueryOptions } from "@/features/category/api/get-categories.api"
+import { getCategoriesQueryOptions } from "@/features/category/query"
 import { useTransactionFilters } from "@/features/transaction/hooks/use-transaction-filters"
 import { TransactionType } from "@/types/enums"
 import { formatDate } from "@/utils/format-date"
@@ -101,7 +101,7 @@ export default function TransactionFilterBar() {
           setFilters({ categoryId: value === "all" ? null : value, page: 1 })
         }
       >
-        <SelectTrigger className="h-13! grow basis-72" size="xl">
+        <SelectTrigger className="h-13! grow basis-72">
           <SelectValue placeholder="All Categories" />
         </SelectTrigger>
         <SelectContent>

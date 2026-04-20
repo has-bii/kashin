@@ -38,7 +38,7 @@ export const useDeleteCategoryMutation = () => {
       })
     },
     onError: (e) => {
-      toast.error(e.message || "Failed to delete category")
+      toast.error(e.message || "Unexpected error has been occurred")
     },
   })
 }

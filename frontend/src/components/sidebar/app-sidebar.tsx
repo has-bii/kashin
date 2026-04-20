@@ -52,7 +52,7 @@ const data = {
   ],
   tools: [
     {
-      title: "Anggaran",
+      title: "Budgets",
       url: "/dashboard/budget",
       icon: <PieChartIcon />,
     },
@@ -89,7 +89,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              size="md"
+              size="lg"
               className="text-foreground rounded-l-none data-[slot=sidebar-menu-button]:p-4!"
               asChild
             >

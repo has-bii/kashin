@@ -1,38 +1,25 @@
+import { useCreateTransactionMutation, useUpdateTransactionMutation } from "../mutations"
 import { Transaction } from "../types"
 import { TransactionCreateDto, transactionCreateSchema } from "../validations/schema"
-import { api } from "@/lib/api"
 import { useForm } from "@tanstack/react-form"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
 
 type Args =
   | { mode: "create"; onSuccess?: () => void }
   | { mode: "edit"; data: Transaction; onSuccess?: () => void }
 
-const transactionApi = async (
-  mode: "create" | "edit",
-  input: TransactionCreateDto,
-  id?: string,
-) => {
-  if (mode === "create") {
-    const { data } = await api.post<Transaction>("/transaction", input)
-    return data
-  }
-  const { data } = await api.put<Transaction>(`/transaction/${id}`, input)
-  return data
-}
-
 export const useTransactionForm = (args: Args) => {
-  const queryClient = useQueryClient()
-
   const prevData = args.mode === "edit" ? args.data : null
   const today = new Date().toISOString()
+
+  const createMutation = useCreateTransactionMutation()
+  const updateMutation = useUpdateTransactionMutation()
+  const mutation = args.mode === "create" ? createMutation : updateMutation
 
   const form = useForm({
     defaultValues: {
       type: (prevData?.type ?? "expense") as "expense" | "income",
       amount: prevData?.amount ? Number(prevData.amount) : 0,
-      transactionDate: prevData?.transactionDate ? prevData.transactionDate : today,
+      transactionDate: prevData?.transactionDate ?? today,
       categoryId: (prevData?.categoryId ?? null) as string | null,
       bankAccountId: (prevData?.bankAccountId ?? null) as string | null,
       description: prevData?.description ?? "",
@@ -41,24 +28,16 @@ export const useTransactionForm = (args: Args) => {
     validators: {
       onSubmit: transactionCreateSchema,
     },
-    onSubmit: async ({ value }) => {
-      const id = prevData?.id
-      await mutation.mutateAsync({ input: value, id }, { onSuccess: args.onSuccess })
-    },
-  })
-
-  const mutation = useMutation({
-    mutationFn: ({ input, id }: { input: TransactionCreateDto; id?: string }) =>
-      transactionApi(args.mode, input, id),
-    onSuccess: () => {
-      const verb = args.mode === "create" ? "added" : "updated"
-      toast.success(`Transaction has been ${verb} successfully`)
+    onSubmit: async ({ value }: { value: TransactionCreateDto }) => {
+      if (args.mode === "create") {
+        await createMutation.mutateAsync(value, { onSuccess: args.onSuccess })
+      } else {
+        await updateMutation.mutateAsync(
+          { id: prevData!.id, input: value },
+          { onSuccess: args.onSuccess },
+        )
+      }
       form.reset()
-      queryClient.invalidateQueries({ queryKey: ["transactions"] })
-      queryClient.invalidateQueries({ queryKey: ["bank-accounts"] })
-    },
-    onError: (error) => {
-      toast.error(error.message ?? "Unexpected error has occurred")
     },
   })
 

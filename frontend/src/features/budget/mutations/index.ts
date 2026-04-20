@@ -14,13 +14,11 @@ export const useUpsertBudgetMutation = (id?: string) => {
       return createBudgetApi(payload)
     },
     onSuccess: (data) => {
-      toast.success(
-        `Budget untuk ${data.category?.name ?? "kategori"} telah ${id ? "diperbarui" : "dibuat"}`,
-      )
+      toast.success(`${data.category.name} budget has been ${id ? "updated" : "created"}`)
       queryClient.invalidateQueries({ queryKey: [BUDGET_QUERY_KEY] })
     },
     onError: (e) => {
-      toast.error(e.message || "Gagal menyimpan anggaran")
+      toast.error(e.message || "Unexpected error has been occurred")
     },
   })
 }
@@ -31,11 +29,11 @@ export const useDeleteBudgetMutation = () => {
   return useMutation({
     mutationFn: deleteBudgetApi,
     onSuccess: (data) => {
-      toast.success(`Budget untuk ${data.category?.name ?? "kategori"} telah dihapus`)
+      toast.success(`${data.category.name} has been deleted`)
       queryClient.invalidateQueries({ queryKey: [BUDGET_QUERY_KEY] })
     },
     onError: (e) => {
-      toast.error(e.message || "Gagal menghapus anggaran")
+      toast.error(e.message || "Unexpected error has been occurred")
     },
   })
 }

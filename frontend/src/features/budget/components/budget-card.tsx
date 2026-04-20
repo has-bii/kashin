@@ -18,9 +18,9 @@ import { getCategoryStyle } from "@/utils/get-category-style"
 import { EllipsisIcon, PencilIcon, Trash2Icon } from "lucide-react"
 
 const STATUS_LABELS: Record<string, string> = {
-  ok: "Aman",
-  warning: "Peringatan",
-  exceeded: "Terlampaui",
+  ok: "Ok",
+  warning: "Warning",
+  exceeded: "Exceeded",
 }
 
 type Props = {
@@ -49,7 +49,7 @@ export function BudgetCard({ data }: Props) {
         : "bg-red-100 text-red-700"
 
   return (
-    <Card className="h-64 w-full rounded-3xl shadow-none">
+    <Card className="h-64 w-full">
       <CardHeader>
         <div className="flex items-start justify-between">
           <div
@@ -75,7 +75,7 @@ export function BudgetCard({ data }: Props) {
                   </DropdownMenuItem>
                   <DropdownMenuItem variant="destructive" onClick={() => handleDeleteBudget(data)}>
                     <Trash2Icon />
-                    Hapus
+                    Delete
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
               </DropdownMenuContent>
@@ -98,7 +98,7 @@ export function BudgetCard({ data }: Props) {
                 / {formatCurrency(data.amount, { compactDisplay: "short", notation: "compact" })}
               </span>
             </div>
-            <span className={cn("block font-bold", progressStyle)}>{progress}%</span>
+            <span className={cn("block font-bold", progressStyle)}>{progress.toFixed(2)}%</span>
           </div>
           <Progress value={progress} className={progressStyle} />
         </div>

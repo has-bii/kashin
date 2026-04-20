@@ -28,15 +28,15 @@ export function BudgetDeleteDialog() {
     <AlertDialog open={dialogDeleteOpen}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Hapus anggaran ini?</AlertDialogTitle>
+          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            Anggaran untuk kategori &ldquo;{data?.category?.name}&rdquo; akan dihapus secara
-            permanen. Tindakan ini tidak dapat dibatalkan.
+            This will permanently delete the &ldquo;{data?.category.name}&rdquo; budget. This action
+            cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <Button variant="secondary" size="lg" disabled={deleteMutation.isPending} onClick={close}>
-            Batal
+            Cancel
           </Button>
           <Button
             variant="destructive"
@@ -44,7 +44,7 @@ export function BudgetDeleteDialog() {
             disabled={deleteMutation.isPending}
             onClick={handleDelete}
           >
-            Hapus {deleteMutation.isPending ? <Loader2 className="animate-spin" /> : <Trash2 />}
+            Delete {deleteMutation.isPending ? <Loader2 className="animate-spin" /> : <Trash2 />}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

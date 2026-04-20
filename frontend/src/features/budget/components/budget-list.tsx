@@ -26,7 +26,7 @@ export default function BudgetList() {
           <Button size="icon-lg">
             <Plus />
           </Button>
-          <p className="text-primary text-lg font-medium">Anggaran baru</p>
+          <p className="text-primary text-lg font-medium">New Budget</p>
         </div>
       )}
     </>

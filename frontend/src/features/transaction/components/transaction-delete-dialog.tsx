@@ -1,6 +1,6 @@
 "use client"
 
-import { useDeleteTransaction } from "../hooks/use-delete-transaction"
+import { useDeleteTransactionMutation } from "../mutations"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,10 +21,10 @@ type Props = {
 }
 
 export function TransactionDeleteDialog({ transactionId, onSuccess }: Props) {
-  const { mutateAsync, isPending } = useDeleteTransaction({ onSuccess })
+  const { mutateAsync, isPending } = useDeleteTransactionMutation()
 
   const handleDelete = async () => {
-    await mutateAsync(transactionId)
+    await mutateAsync(transactionId, { onSuccess })
   }
 
   return (

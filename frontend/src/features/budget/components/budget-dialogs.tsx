@@ -6,7 +6,11 @@ import { ResponsiveDialog } from "@/components/responsive-dialog"
 export default function BudgetDialogs() {
   const { dialogOpen, dialogMode, selectedBudget, handleDialogClose } = useBudgetContext()
 
-  const dialogTitle = dialogMode === "create" ? "Anggaran Baru" : "Ubah Anggaran"
+  const dialogTitle = dialogMode === "create" ? "Set a new limit" : "Edit your budget"
+  const dialogDescription =
+    dialogMode === "create"
+      ? "Choose a spending category and the maximum amount you want to spend."
+      : "Need to change your numbers? Update your limit or category name here."
 
   return (
     <>
@@ -14,9 +18,9 @@ export default function BudgetDialogs() {
         open={dialogOpen}
         onOpenChange={handleDialogClose}
         title={dialogTitle}
-        description="Tentukan batas pengeluaran untuk kategori dalam periode tertentu."
+        description={dialogDescription}
       >
-        <BudgetForm mode={dialogMode} data={selectedBudget} />
+        <BudgetForm mode={dialogMode} prevData={selectedBudget} />
       </ResponsiveDialog>
 
       <BudgetDeleteDialog />

@@ -10,12 +10,12 @@ import {
 } from "@/components/sidebar/main-page"
 import { SiteHeader } from "@/components/sidebar/site-header"
 import { Button } from "@/components/ui/button"
-import { TransactionListSkeleton } from "@/features/transaction/components/transaciton-list-skeleton"
 import { TransactionForm } from "@/features/transaction/components/transaction-form"
-import type { Transaction } from "@/features/transaction/types"
+import { TransactionListSkeleton } from "@/features/transaction/components/transaction-list-skeleton"
+import { useTransactionContext } from "@/features/transaction/hooks/use-transaction-context"
+import { TransactionProvider } from "@/features/transaction/provider/transaction.provider"
 import { PlusIcon } from "lucide-react"
 import dynamic from "next/dynamic"
-import { useMemo, useState } from "react"
 
 const TransactionList = dynamic(
   () => import("@/features/transaction/components/transaction-list"),
@@ -32,45 +32,20 @@ const TransactionFilterBar = dynamic(
   },
 )
 
-export default function TransactionsPage() {
-  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null)
-  const [dialogOpen, setDialogOpen] = useState(false)
+function TransactionsPageInner() {
+  const { selectedTransaction, dialogOpen, dialogMode, handleAddTransaction, handleDialogClose } =
+    useTransactionContext()
 
-  // dialogMode derived: if selectedTransaction is set → "edit"; otherwise → "create"
-  const dialogMode = useMemo(() => (selectedTransaction ? "edit" : "create"), [selectedTransaction])
-
-  const handleRowClick = (transaction: Transaction) => {
-    setSelectedTransaction(transaction)
-    setDialogOpen(true)
-  }
-
-  const handleAddTransaction = () => {
-    setSelectedTransaction(null)
-    setDialogOpen(true)
-  }
-
-  const handleDialogClose = () => {
-    setDialogOpen(false)
-    // Reset selectedTransaction after close to avoid stale state (Pitfall 3)
-    setTimeout(() => setSelectedTransaction(null), 200)
-  }
-
-  // Dialog Info
-  const dialogInfo = useMemo(() => {
-    return {
-      title: dialogMode === "create" ? "Tambah Transaksi" : "Ubah Transaksi",
-      description:
-        dialogMode === "create"
-          ? "Catat pengeluaran atau pemasukan baru."
-          : "Perbarui detail transaksi ini.",
-    }
-  }, [dialogMode])
+  const dialogTitle = dialogMode === "create" ? "Tambah Transaksi" : "Ubah Transaksi"
+  const dialogDescription =
+    dialogMode === "create"
+      ? "Catat pengeluaran atau pemasukan baru."
+      : "Perbarui detail transaksi ini."
 
   return (
     <>
       <SiteHeader label="Transaksi" />
       <MainPage>
-        {/* Header */}
         <MainPageHeader>
           <div className="space-y-2">
             <MainPageTitle>Transaksi</MainPageTitle>
@@ -90,20 +65,17 @@ export default function TransactionsPage() {
           </Button>
         </MainPageHeader>
 
-        {/* Filter bar */}
         <QueryErrorBoundary>
           <TransactionFilterBar />
         </QueryErrorBoundary>
 
-        {/* Transaction list */}
         <QueryErrorBoundary>
-          <TransactionList onRowClick={handleRowClick} />
+          <TransactionList />
         </QueryErrorBoundary>
 
-        {/* Transaction Responsive Dialog - Create or update mode */}
         <ResponsiveDialog
-          title={dialogInfo.title}
-          description={dialogInfo.description}
+          title={dialogTitle}
+          description={dialogDescription}
           open={dialogOpen}
           onOpenChange={handleDialogClose}
         >
@@ -119,5 +91,13 @@ export default function TransactionsPage() {
         </ResponsiveDialog>
       </MainPage>
     </>
+  )
+}
+
+export default function TransactionsPage() {
+  return (
+    <TransactionProvider>
+      <TransactionsPageInner />
+    </TransactionProvider>
   )
 }

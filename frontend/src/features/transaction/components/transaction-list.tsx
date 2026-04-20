@@ -2,19 +2,17 @@ import { TransactionCard } from "./transaction-card"
 import { TransactionPagination } from "./transaction-pagination"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Separator } from "@/components/ui/separator"
-import { getTransactionsQueryOptions } from "@/features/transaction/api/get-transactions.query"
+import { useTransactionContext } from "@/features/transaction/hooks/use-transaction-context"
 import { useTransactionFilters } from "@/features/transaction/hooks/use-transaction-filters"
+import { getTransactionsQueryOptions } from "@/features/transaction/query"
 import type { Transaction } from "@/features/transaction/types"
 import { formatDate } from "@/utils/format-date"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { formatISO, isToday } from "date-fns"
 import { ReceiptIcon } from "lucide-react"
 
-type TransactionListProps = {
-  onRowClick?: (transaction: Transaction) => void
-}
-
-export default function TransactionList({ onRowClick }: TransactionListProps) {
+export default function TransactionList() {
+  const { handleRowClick: onRowClick } = useTransactionContext()
   const { filters, setFilters } = useTransactionFilters()
 
   const queryParams = {
