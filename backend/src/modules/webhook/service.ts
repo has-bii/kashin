@@ -16,7 +16,7 @@ export abstract class WebhookService {
     try {
       const ticket = await this.client.verifyIdToken({
         idToken: token,
-        audience: "https://blaming-purple-evolve.ngrok-free.dev/api/webhook/gmail",
+        audience: ENV.GOOGLE.audience,
       })
 
       const payload = ticket.getPayload()

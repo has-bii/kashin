@@ -116,15 +116,6 @@ CREATE TABLE "gmail_watch_configs" (
 );
 
 -- CreateTable
-CREATE TABLE "gmail_watch_bank_filters" (
-    "id" UUID NOT NULL,
-    "watchConfigId" UUID NOT NULL,
-    "bankAccountId" UUID NOT NULL,
-
-    CONSTRAINT "gmail_watch_bank_filters_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "categories" (
     "id" UUID NOT NULL,
     "userId" UUID NOT NULL,
@@ -281,9 +272,6 @@ CREATE INDEX "gmail_watch_configs_userId_idx" ON "gmail_watch_configs"("userId")
 CREATE INDEX "gmail_watch_configs_gmailAddress_idx" ON "gmail_watch_configs"("gmailAddress");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "gmail_watch_bank_filters_watchConfigId_bankAccountId_key" ON "gmail_watch_bank_filters"("watchConfigId", "bankAccountId");
-
--- CreateIndex
 CREATE INDEX "categories_userId_idx" ON "categories"("userId");
 
 -- CreateIndex
@@ -366,12 +354,6 @@ ALTER TABLE "user_settings" ADD CONSTRAINT "user_settings_userId_fkey" FOREIGN K
 
 -- AddForeignKey
 ALTER TABLE "gmail_watch_configs" ADD CONSTRAINT "gmail_watch_configs_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "gmail_watch_bank_filters" ADD CONSTRAINT "gmail_watch_bank_filters_watchConfigId_fkey" FOREIGN KEY ("watchConfigId") REFERENCES "gmail_watch_configs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "gmail_watch_bank_filters" ADD CONSTRAINT "gmail_watch_bank_filters_bankAccountId_fkey" FOREIGN KEY ("bankAccountId") REFERENCES "bank_accounts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "categories" ADD CONSTRAINT "categories_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
