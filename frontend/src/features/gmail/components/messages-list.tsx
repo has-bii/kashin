@@ -13,13 +13,11 @@ import { toast } from "sonner"
 
 export default function MessagesList() {
   const { filters, setFilters } = useMessagesFilters()
-  const { selectedIds, selectId, selectAll, clearSelection } = useGmailContext()
+  const { selectedIds, clearSelection } = useGmailContext()
   const { data } = useSuspenseQuery(getMessagesQueryOptions(filters))
   const { mutate, isPending } = useImportMessagesMutation()
 
   const [pageTokenHistory, setPageTokenHistory] = useState<string[]>([""])
-
-  const isAllSelected = selectedIds.length === data.messages.length
 
   /* ------------------------------- Pagination ------------------------------- */
   const isPrevAvailable = pageTokenHistory.length > 1
@@ -101,13 +99,7 @@ export default function MessagesList() {
       </div>
 
       {/* Table */}
-      <MessageTable
-        data={data.messages}
-        selectedIds={selectedIds}
-        selectId={selectId}
-        selectAll={() => selectAll(data.messages.map((m) => m.id))}
-        isAllSelected={isAllSelected}
-      />
+      <MessageTable data={data.messages} />
     </div>
   )
 }
