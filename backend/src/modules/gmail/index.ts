@@ -13,6 +13,9 @@ export const gmailController = new Elysia({ prefix: "/gmail" })
     auth: true,
     body: importMessagesBody,
   })
+  .get("/labels", async ({ user }) => GmailService.getLabels(user.id), {
+    auth: true,
+  })
   .get("/watch", async ({ user }) => GmailService.getWatchConfig(user.id), {
     auth: true,
   })

@@ -346,6 +346,25 @@ export abstract class GmailService {
     return created.count
   }
 
+  static async getLabels(userId: string) {
+    const accessToken = await auth.api
+      .getAccessToken({ body: { userId, providerId: "google" } })
+      .then((res) => res.accessToken)
+      .catch(() => null)
+
+    if (!accessToken) return []
+
+    const gmail = this.createGmailClient(accessToken)
+    const response = await gmail.users.labels.list({ userId: "me" })
+
+    return (
+      response.data.labels?.map((label) => ({
+        id: label.id!,
+        name: label.name!,
+      })) ?? []
+    )
+  }
+
   static createGmailClient(accessToken: string) {
     const auth = new google.auth.OAuth2()
     auth.setCredentials({ access_token: accessToken })

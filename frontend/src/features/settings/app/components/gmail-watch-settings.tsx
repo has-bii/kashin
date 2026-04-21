@@ -45,13 +45,13 @@ export default function GmailWatchSettings() {
     defaultValues: {
       subjectKeywords: joinList(config.subjectKeywords),
       gmailLabels: joinList(config.gmailLabels),
-      bankAccountIds: joinList(config.bankAccountIds),
+      // bankAccountIds: joinList(config.bankAccountIds),
     },
     onSubmit: ({ value }) => {
       filtersMutation.mutate({
         subjectKeywords: parseList(value.subjectKeywords),
         gmailLabels: parseList(value.gmailLabels),
-        bankAccountIds: parseList(value.bankAccountIds),
+        // bankAccountIds: parseList(value.bankAccountIds),
       })
     },
   })
@@ -127,7 +127,7 @@ export default function GmailWatchSettings() {
             )}
           </form.Field>
 
-          <form.Field name="bankAccountIds">
+          {/* <form.Field name="bankAccountIds">
             {(field) => (
               <div className="space-y-2">
                 <Label htmlFor={field.name}>Bank Account IDs</Label>
@@ -143,7 +143,7 @@ export default function GmailWatchSettings() {
                 </p>
               </div>
             )}
-          </form.Field>
+          </form.Field> */}
 
           <div className="flex justify-end">
             <Button type="submit" disabled={filtersMutation.isPending}>

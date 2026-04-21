@@ -11,7 +11,7 @@ export interface GmailWatchConfig {
   expiresAt: string | null
   subjectKeywords: string[]
   gmailLabels: string[]
-  bankAccountIds: string[]
+  // bankAccountIds: string[]
   isActive: boolean
 }
 
