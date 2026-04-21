@@ -49,7 +49,7 @@ export function BudgetCard({ data }: Props) {
         : "bg-red-100 text-red-700"
 
   return (
-    <Card className="h-64 w-full">
+    <Card className="h-64 w-full border shadow-none">
       <CardHeader>
         <div className="flex items-start justify-between">
           <div
