@@ -23,11 +23,11 @@ export function GmailWatchCard() {
             <CardDescription>Automatically process new emails as they arrive</CardDescription>
           </div>
           <div className="flex items-center gap-3">
-            <Badge variant={config.isActive ? "default" : "secondary"}>
-              {config.isActive ? "Active" : "Inactive"}
+            <Badge variant={config.enabled ? "default" : "secondary"}>
+              {config.enabled ? "Active" : "Inactive"}
             </Badge>
             <Switch
-              checked={config.isActive}
+              checked={config.enabled}
               onCheckedChange={handleToggle}
               disabled={toggleMutation.isPending}
             />
@@ -36,7 +36,7 @@ export function GmailWatchCard() {
       </CardHeader>
       <CardContent className="flex items-center justify-between">
         <p className="text-muted-foreground text-sm">
-          {config.isActive && config.expiresAt
+          {config.enabled && config.expiresAt
             ? `Renews ${formatDate(config.expiresAt, "dd MMM yyyy")}`
             : "Enable to receive automatic email processing"}
         </p>
