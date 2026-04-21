@@ -1,4 +1,4 @@
-import { type GetMessagesParams, getMessagesApi, getWatchConfigApi } from "../api"
+import { type GetMessagesParams, getLabelsApi, getMessagesApi, getWatchConfigApi } from "../api"
 import { queryOptions } from "@tanstack/react-query"
 
 export const MESSAGES_QUERY_KEY = "messages" as const
@@ -15,4 +15,12 @@ export const getWatchConfigQueryOptions = () =>
   queryOptions({
     queryKey: [WATCH_CONFIG_QUERY_KEY],
     queryFn: getWatchConfigApi,
+  })
+
+export const LABELS_QUERY_KEY = "gmail-labels" as const
+
+export const getLabelsQueryOptions = () =>
+  queryOptions({
+    queryKey: [LABELS_QUERY_KEY],
+    queryFn: getLabelsApi,
   })

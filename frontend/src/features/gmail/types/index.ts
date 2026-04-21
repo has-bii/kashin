@@ -20,3 +20,8 @@ export interface UpdateWatchFiltersDto {
   gmailLabels?: string[]
   bankAccountIds?: string[]
 }
+
+export interface GmailLabel {
+  id: string
+  name: string
+}

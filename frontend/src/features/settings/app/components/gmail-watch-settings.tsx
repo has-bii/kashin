@@ -1,7 +1,9 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import {
@@ -9,7 +11,7 @@ import {
   useEnableWatchMutation,
   useUpdateWatchFiltersMutation,
 } from "@/features/gmail/mutations"
-import { getWatchConfigQueryOptions } from "@/features/gmail/query"
+import { getLabelsQueryOptions, getWatchConfigQueryOptions } from "@/features/gmail/query"
 import { formatDate } from "@/utils/format-date"
 import { useForm } from "@tanstack/react-form"
 import { useSuspenseQuery } from "@tanstack/react-query"
@@ -27,6 +29,7 @@ function joinList(arr: string[]): string {
 
 export default function GmailWatchSettings() {
   const { data: config } = useSuspenseQuery(getWatchConfigQueryOptions())
+  const { data: labels } = useSuspenseQuery(getLabelsQueryOptions())
   const enableMutation = useEnableWatchMutation()
   const disableMutation = useDisableWatchMutation()
   const filtersMutation = useUpdateWatchFiltersMutation()
@@ -44,14 +47,12 @@ export default function GmailWatchSettings() {
   const form = useForm({
     defaultValues: {
       subjectKeywords: joinList(config.subjectKeywords),
-      gmailLabels: joinList(config.gmailLabels),
-      // bankAccountIds: joinList(config.bankAccountIds),
+      gmailLabels: config.gmailLabels,
     },
     onSubmit: ({ value }) => {
       filtersMutation.mutate({
         subjectKeywords: parseList(value.subjectKeywords),
-        gmailLabels: parseList(value.gmailLabels),
-        // bankAccountIds: parseList(value.bankAccountIds),
+        gmailLabels: value.gmailLabels,
       })
     },
   })
@@ -112,38 +113,40 @@ export default function GmailWatchSettings() {
           <form.Field name="gmailLabels">
             {(field) => (
               <div className="space-y-2">
-                <Label htmlFor={field.name}>Gmail Labels</Label>
-                <Textarea
-                  id={field.name}
-                  placeholder="e.g. INBOX, Label_123"
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  rows={2}
-                />
+                <Label>Gmail Labels</Label>
+                {labels.length === 0 ? (
+                  <p className="text-muted-foreground text-sm">
+                    No labels found. Connect your Gmail account first.
+                  </p>
+                ) : (
+                  <ScrollArea className="h-48 rounded-md border p-3">
+                    <div className="space-y-2">
+                      {labels.map((label) => (
+                        <div key={label.id} className="flex items-center gap-2">
+                          <Checkbox
+                            id={label.id}
+                            checked={field.state.value.includes(label.id)}
+                            onCheckedChange={(checked) => {
+                              const next = checked
+                                ? [...field.state.value, label.id]
+                                : field.state.value.filter((id) => id !== label.id)
+                              field.handleChange(next)
+                            }}
+                          />
+                          <label htmlFor={label.id} className="cursor-pointer text-sm">
+                            {label.name}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                )}
                 <p className="text-muted-foreground text-xs">
-                  Comma-separated Gmail label IDs to watch.
+                  Select Gmail labels to watch for incoming emails.
                 </p>
               </div>
             )}
           </form.Field>
-
-          {/* <form.Field name="bankAccountIds">
-            {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>Bank Account IDs</Label>
-                <Textarea
-                  id={field.name}
-                  placeholder="e.g. clx1abc, clx2def"
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  rows={2}
-                />
-                <p className="text-muted-foreground text-xs">
-                  Comma-separated bank account IDs to link to this watch.
-                </p>
-              </div>
-            )}
-          </form.Field> */}
 
           <div className="flex justify-end">
             <Button type="submit" disabled={filtersMutation.isPending}>

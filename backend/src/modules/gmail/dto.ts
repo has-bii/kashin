@@ -11,8 +11,8 @@ export const importMessagesBody = t.Object({
 })
 
 export const updateWatchFiltersBody = t.Object({
-  keywords: t.Optional(t.Array(t.String({ maxLength: 255 }))),
-  labelIds: t.Optional(t.Array(t.String({ maxLength: 100 }))),
+  subjectKeywords: t.Optional(t.Array(t.String({ maxLength: 255 }))),
+  gmailLabels: t.Optional(t.Array(t.String({ maxLength: 100 }))),
   bankAccountIds: t.Optional(t.Array(t.String({ format: "uuid" }))),
 })
 

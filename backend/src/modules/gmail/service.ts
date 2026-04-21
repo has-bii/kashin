@@ -167,12 +167,12 @@ export abstract class GmailService {
       create: {
         userId,
         gmailAddress: "",
-        ...(body.keywords !== undefined && { subjectKeywords: body.keywords }),
-        ...(body.labelIds !== undefined && { gmailLabels: body.labelIds }),
+        ...(body.subjectKeywords !== undefined && { subjectKeywords: body.subjectKeywords }),
+        ...(body.gmailLabels !== undefined && { gmailLabels: body.gmailLabels }),
       },
       update: {
-        ...(body.keywords !== undefined && { subjectKeywords: body.keywords }),
-        ...(body.labelIds !== undefined && { gmailLabels: body.labelIds }),
+        ...(body.subjectKeywords !== undefined && { subjectKeywords: body.subjectKeywords }),
+        ...(body.gmailLabels !== undefined && { gmailLabels: body.gmailLabels }),
       },
     })
 
