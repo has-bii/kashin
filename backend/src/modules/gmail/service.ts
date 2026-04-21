@@ -137,14 +137,15 @@ export abstract class GmailService {
   }
 
   static async getWatchConfig(userId: string) {
-    const config = await prisma.gmailWatchConfig.findUnique({
-      where: { userId },
-      include: {
-        bankFilters: {
-          select: { id: true, bankAccountId: true },
-        },
-      },
-    })
+    const select = {
+      enabled: true,
+      historyId: true,
+      expiresAt: true,
+      subjectKeywords: true,
+      gmailLabels: true,
+    } as const
+
+    const config = await prisma.gmailWatchConfig.findUnique({ where: { userId }, select })
     if (config) return config
 
     const user = await prisma.user.findUniqueOrThrow({
@@ -153,16 +154,12 @@ export abstract class GmailService {
     })
     return prisma.gmailWatchConfig.create({
       data: { userId, gmailAddress: user.email },
-      include: {
-        bankFilters: {
-          select: { id: true, bankAccountId: true },
-        },
-      },
+      select,
     })
   }
 
   static async updateFilters(userId: string, body: UpdateWatchFiltersBody) {
-    const config = await prisma.gmailWatchConfig.upsert({
+    await prisma.gmailWatchConfig.upsert({
       where: { userId },
       create: {
         userId,
@@ -176,32 +173,17 @@ export abstract class GmailService {
       },
     })
 
-    if (body.bankAccountIds !== undefined) {
-      await prisma.$transaction([
-        prisma.gmailWatchBankFilter.deleteMany({ where: { watchConfigId: config.id } }),
-        prisma.gmailWatchBankFilter.createMany({
-          data: body.bankAccountIds.map((bankAccountId) => ({
-            watchConfigId: config.id,
-            bankAccountId,
-          })),
-          skipDuplicates: true,
-        }),
-      ])
-    }
-
     return this.getWatchConfig(userId)
   }
 
   static async enableWatch(userId: string) {
     const config = await prisma.gmailWatchConfig.findUnique({
       where: { userId },
-      include: { bankFilters: { select: { id: true } } },
+      select: { subjectKeywords: true, gmailLabels: true },
     })
 
     const hasFilters =
-      (config?.subjectKeywords.length ?? 0) > 0 ||
-      (config?.gmailLabels.length ?? 0) > 0 ||
-      (config?.bankFilters.length ?? 0) > 0
+      (config?.subjectKeywords.length ?? 0) > 0 || (config?.gmailLabels.length ?? 0) > 0
 
     if (!hasFilters)
       createError("bad_request", "Configure at least one filter before enabling watch")

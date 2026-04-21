@@ -13,7 +13,6 @@ export const importMessagesBody = t.Object({
 export const updateWatchFiltersBody = t.Object({
   subjectKeywords: t.Optional(t.Array(t.String({ maxLength: 255 }))),
   gmailLabels: t.Optional(t.Array(t.String({ maxLength: 100 }))),
-  bankAccountIds: t.Optional(t.Array(t.String({ format: "uuid" }))),
 })
 
 export type GetMessagesQuery = (typeof getMessagesQuery)["static"]

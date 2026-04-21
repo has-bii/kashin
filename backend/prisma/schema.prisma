@@ -179,24 +179,11 @@ model GmailWatchConfig {
   createdAt       DateTime  @default(now()) @db.Timestamptz
   updatedAt       DateTime  @updatedAt @db.Timestamptz
 
-  user        User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  bankFilters GmailWatchBankFilter[]
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([gmailAddress])
   @@map("gmail_watch_configs")
-}
-
-model GmailWatchBankFilter {
-  id            String @id @default(uuid(7)) @db.Uuid
-  watchConfigId String @db.Uuid
-  bankAccountId String @db.Uuid
-
-  watchConfig GmailWatchConfig @relation(fields: [watchConfigId], references: [id], onDelete: Cascade)
-  bankAccount BankAccount      @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
-
-  @@unique([watchConfigId, bankAccountId])
-  @@map("gmail_watch_bank_filters")
 }
 
 // -----------------------------------------------------------
@@ -326,7 +313,6 @@ model BankAccount {
   bank          Bank           @relation(fields: [bankId], references: [id], onDelete: Cascade)
   transactions  Transaction[]
   aiExtractions AiExtraction[]
-  gmailWatchBankFilters GmailWatchBankFilter[]
 
   @@unique([userId, bankId])
   @@map("bank_accounts")
