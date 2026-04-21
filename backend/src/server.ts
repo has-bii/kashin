@@ -1,8 +1,8 @@
 import app from "."
-import { logger } from "./lib/logger"
 import { ENV } from "./config/env"
+import { logger } from "./lib/logger"
 
-const shutdown = async () => {
+const shutdown = () => {
   process.exit(0)
 }
 
