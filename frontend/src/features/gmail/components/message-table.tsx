@@ -56,7 +56,7 @@ export function MessageTable({ data, selectedIds, selectId, selectAll, isAllSele
                   {message.snippet}
                 </TableCell>
                 <TableCell className="pr-4 text-right">
-                  {message.date ? formatDate(message.date, "dd MMMM") : "Unknown"}
+                  {message.date ? formatDate(message.date, "dd MMMM yyyy") : "Unknown"}
                 </TableCell>
               </TableRow>
             ))}

@@ -9,6 +9,7 @@ import {
 } from "@/components/sidebar/main-page"
 import { SiteHeader } from "@/components/sidebar/site-header"
 import { MessagesListSkeleton } from "@/features/gmail/components/messages-list-skeleton"
+import { GmailProvider } from "@/features/gmail/provider/gmail.provider"
 import dynamic from "next/dynamic"
 
 const MessagesList = dynamic(() => import("@/features/gmail/components/messages-list"), {
@@ -16,7 +17,7 @@ const MessagesList = dynamic(() => import("@/features/gmail/components/messages-
   loading: () => <MessagesListSkeleton />,
 })
 
-export default function EmailAutomationPage() {
+export default function GmailPage() {
   return (
     <>
       <SiteHeader label="Gmail Inbox" />
@@ -24,12 +25,14 @@ export default function EmailAutomationPage() {
         <MainPageHeader>
           <div className="space-y-2">
             <MainPageTitle>Gmail Inbox</MainPageTitle>
-            <MainPageDescripton></MainPageDescripton>
+            <MainPageDescripton>Import transactions from your Gmail messages</MainPageDescripton>
           </div>
         </MainPageHeader>
-        <QueryErrorBoundary>
-          <MessagesList />
-        </QueryErrorBoundary>
+        <GmailProvider>
+          <QueryErrorBoundary>
+            <MessagesList />
+          </QueryErrorBoundary>
+        </GmailProvider>
       </MainPage>
     </>
   )

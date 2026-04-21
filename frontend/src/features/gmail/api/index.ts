@@ -1,6 +1,5 @@
 import { Message } from "../types"
 import { api } from "@/lib/api"
-import { queryOptions } from "@tanstack/react-query"
 
 export type GetMessagesParams = {
   pageToken?: string
@@ -8,7 +7,7 @@ export type GetMessagesParams = {
   before?: Date | null
 }
 
-const getMessages = async (params: GetMessagesParams) => {
+export const getMessagesApi = async (params: GetMessagesParams) => {
   const { data } = await api.get<{ pageToken: string | null; messages: Message[] }>("/gmail", {
     params: {
       ...params,
@@ -19,11 +18,14 @@ const getMessages = async (params: GetMessagesParams) => {
   return data
 }
 
-export const getMessagesQuerykey = (params: GetMessagesParams) => ["messages", params]
+export interface ImportMessageData {
+  total: number
+  pendingImportEmail: number
+  skippedImportEmail: number
+  fetchFailureCount: number
+}
 
-export const getMessagesQueryOptions = (params: GetMessagesParams) => {
-  return queryOptions({
-    queryKey: getMessagesQuerykey(params),
-    queryFn: () => getMessages(params),
-  })
+export const importMessagesApi = async (messageIds: string[]) => {
+  const { data } = await api.post<ImportMessageData>("/gmail/import", { messageIds })
+  return data
 }
