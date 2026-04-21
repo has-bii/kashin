@@ -1,10 +1,10 @@
+import { ENV } from "../config/env"
 import { sendPasswordResetEmail, sendVerificationOtp, sendWelcomeEmail } from "./email"
 import { prisma } from "./prisma"
 import { passkey } from "@better-auth/passkey"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { betterAuth } from "better-auth/minimal"
 import { emailOTP } from "better-auth/plugins"
-import { ENV } from "../config/env"
 
 export const auth = betterAuth({
   appName: "Kashin",

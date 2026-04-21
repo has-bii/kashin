@@ -22,8 +22,8 @@ import {
   PieChartIcon,
   RepeatIcon,
   Settings2Icon,
-  Wallet,
 } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
 import * as React from "react"
 
@@ -94,8 +94,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
             >
               <Link href="/dashboard">
-                <Wallet className="size-5!" />
-                <span className="text-base font-semibold">Kashin.</span>
+                <Image src="/logo.svg" alt="Kashin Logo" width={26} height={26} />
+                <span className="font-logo text-2xl tracking-wide">Kashin.</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
