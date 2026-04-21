@@ -1,9 +1,11 @@
+import { ENV } from "../../config/env"
+import { auth } from "../../lib/auth"
 import { logger } from "../../lib/logger"
 import { prisma } from "../../lib/prisma"
 import { qstash } from "../../lib/qstash"
+import { GmailService } from "../gmail/service"
 import { status } from "elysia"
 import { OAuth2Client } from "google-auth-library"
-import { ENV } from "../../config/env"
 
 export abstract class WebhookService {
   private static client = new OAuth2Client()
@@ -26,7 +28,7 @@ export abstract class WebhookService {
 
       const decodedData = JSON.parse(Buffer.from(body.message.data, "base64").toString())
 
-      const { emailAddress, historyId } = decodedData
+      const { emailAddress } = decodedData
 
       // Find the user by their Google email
       const userAccount = await prisma.account.findFirst({
@@ -42,7 +44,7 @@ export abstract class WebhookService {
       // Queue to QStash for async processing
       await qstash.publishJSON({
         url: `${ENV.SERVER.backendUrl}/api/webhook/process-email`,
-        body: { userId: userAccount.userId, historyId },
+        body: { userId: userAccount.userId },
       })
 
       return status(200, { received: true })
@@ -50,5 +52,141 @@ export abstract class WebhookService {
       logger.error({ err: error }, "Webhook error")
       return status(500)
     }
+  }
+
+  static async handleProcessEmail(userId: string) {
+    const config = await prisma.gmailWatchConfig.findUnique({
+      where: { userId },
+      include: {
+        bankFilters: {
+          include: { bankAccount: { include: { bank: true } } },
+        },
+      },
+    })
+    if (!config || !config.enabled || !config.historyId) return
+
+    const accessToken = await auth.api
+      .getAccessToken({ body: { userId, providerId: "google" } })
+      .then((r) => r.accessToken)
+      .catch(() => null)
+
+    if (!accessToken) {
+      await prisma.gmailWatchConfig.update({ where: { userId }, data: { enabled: false } })
+      return
+    }
+
+    const gmail = GmailService.createGmailClient(accessToken)
+
+    let historyData
+    try {
+      const response = await gmail.users.history.list({
+        userId: "me",
+        startHistoryId: config.historyId,
+        historyTypes: ["messageAdded"],
+        labelId: "INBOX",
+      })
+      historyData = response.data
+    } catch (err) {
+      logger.error({ err }, "Gmail history fetch failed — disabling watch")
+      await prisma.gmailWatchConfig.update({ where: { userId }, data: { enabled: false, expiresAt: null, qstashMessageId: null } })
+      return
+    }
+
+    if (historyData.historyId) {
+      await prisma.gmailWatchConfig.update({
+        where: { userId },
+        data: { historyId: historyData.historyId },
+      })
+    }
+
+    const newMessages = historyData.history?.flatMap((h) => h.messagesAdded ?? []).map((m) => m.message!) ?? []
+    if (newMessages.length === 0) return
+
+    const metaResults = await Promise.allSettled(
+      newMessages.map((m) => gmail.users.messages.get({ userId: "me", id: m.id!, format: "metadata" })),
+    )
+
+    const allowedSenderEmails = new Set(config.bankFilters.flatMap((f) => f.bankAccount.bank.email))
+    const allowedKeywords = config.subjectKeywords.map((k) => k.toLowerCase())
+    const allowedLabelIds = new Set(config.gmailLabels)
+
+    const passing: Array<{ gmailMessageId: string; emailFrom: string; emailSubject: string; emailSnippet: string; emailReceivedAt: Date | null }> = []
+
+    for (const result of metaResults) {
+      if (result.status !== "fulfilled") continue
+      const msg = result.value.data
+      const meta = GmailService.parseEmailMetadata(msg)
+      const msgLabelIds = msg.labelIds ?? []
+
+      const senderEmail = meta.from?.match(/<([^>]+)>/)?.[1] ?? meta.from ?? ""
+
+      const matchesSender = allowedSenderEmails.size > 0 && allowedSenderEmails.has(senderEmail)
+      const matchesKeyword =
+        allowedKeywords.length > 0 &&
+        allowedKeywords.some((k) => (meta.subject ?? "").toLowerCase().includes(k))
+      const matchesLabel =
+        allowedLabelIds.size > 0 && msgLabelIds.some((l) => allowedLabelIds.has(l))
+
+      if (matchesSender || matchesKeyword || matchesLabel) {
+        passing.push({
+          gmailMessageId: msg.id!,
+          emailFrom: meta.from ?? "",
+          emailSubject: meta.subject ?? "",
+          emailSnippet: meta.snippet ?? "",
+          emailReceivedAt: meta.date ? new Date(meta.date) : null,
+        })
+      }
+    }
+
+    if (passing.length === 0) return
+
+    await GmailService.createExtractionsAndQueue(userId, passing)
+  }
+
+  static async handleGmailWatchRenew(userId: string) {
+    const config = await prisma.gmailWatchConfig.findUnique({
+      where: { userId },
+      select: { enabled: true, qstashMessageId: true },
+    })
+    if (!config || !config.enabled) return
+
+    const accessToken = await auth.api
+      .getAccessToken({ body: { userId, providerId: "google" } })
+      .then((r) => r.accessToken)
+      .catch(() => null)
+
+    if (!accessToken) {
+      await prisma.gmailWatchConfig.update({ where: { userId }, data: { enabled: false, expiresAt: null, qstashMessageId: null } })
+      return
+    }
+
+    const gmail = GmailService.createGmailClient(accessToken)
+    const watchResponse = await gmail.users.watch({
+      userId: "me",
+      requestBody: {
+        topicName: ENV.GOOGLE.topicName,
+        labelIds: ["INBOX"],
+        labelFilterBehavior: "INCLUDE",
+      },
+    })
+
+    const historyId = watchResponse.data.historyId!
+    const expiresAt = new Date(Number(watchResponse.data.expiration))
+    const notBefore = Math.floor((expiresAt.getTime() - 24 * 60 * 60 * 1000) / 1000)
+
+    if (config.qstashMessageId) {
+      await qstash.messages.delete(config.qstashMessageId).catch(() => {})
+    }
+
+    const scheduled = await qstash.publishJSON({
+      url: `${ENV.SERVER.backendUrl}/api/webhook/gmail-watch-renew`,
+      body: { userId },
+      notBefore,
+    })
+
+    await prisma.gmailWatchConfig.update({
+      where: { userId },
+      data: { historyId, expiresAt, qstashMessageId: scheduled.messageId },
+    })
   }
 }

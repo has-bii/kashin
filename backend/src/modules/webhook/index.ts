@@ -32,3 +32,25 @@ export const webhookController = new Elysia({ prefix: "/webhook" })
 
     return { received: true }
   })
+  .post("/process-email", async ({ request, headers, status }) => {
+    const rawBody = await request.text()
+    const isValid = await receiver
+      .verify({ signature: headers["upstash-signature"] ?? "", body: rawBody })
+      .catch(() => false)
+    if (!isValid) return status(401)
+
+    const { userId } = JSON.parse(rawBody) as { userId: string }
+    await WebhookService.handleProcessEmail(userId)
+    return { received: true }
+  })
+  .post("/gmail-watch-renew", async ({ request, headers, status }) => {
+    const rawBody = await request.text()
+    const isValid = await receiver
+      .verify({ signature: headers["upstash-signature"] ?? "", body: rawBody })
+      .catch(() => false)
+    if (!isValid) return status(401)
+
+    const { userId } = JSON.parse(rawBody) as { userId: string }
+    await WebhookService.handleGmailWatchRenew(userId)
+    return { received: true }
+  })

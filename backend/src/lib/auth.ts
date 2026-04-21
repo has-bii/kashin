@@ -60,7 +60,6 @@ export const auth = betterAuth({
           await prisma.userSettings.create({
             data: {
               userId: user.id,
-              filterEmailsByBank: false,
             },
           })
           void sendWelcomeEmail(user.email, user.name)
