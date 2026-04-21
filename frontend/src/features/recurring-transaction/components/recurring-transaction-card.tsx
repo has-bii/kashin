@@ -1,6 +1,6 @@
 "use client"
 
-import { useToggleRecurringTransaction } from "../hooks/use-toggle-recurring-transaction"
+import { useToggleRecurringTransactionMutation } from "../mutations"
 import { RecurringTransaction } from "../types"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
@@ -23,7 +23,7 @@ const frequencyLabels: Record<string, string> = {
 
 export function RecurringTransactionCard({ data, onRowClick }: Props) {
   const { type, category, amount, description, frequency, nextDueDate, isActive } = data
-  const toggle = useToggleRecurringTransaction()
+  const toggle = useToggleRecurringTransactionMutation()
 
   const handleToggle = (e: React.MouseEvent) => {
     e.stopPropagation()

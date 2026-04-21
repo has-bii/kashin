@@ -1,7 +1,6 @@
 "use client"
 
 import { QueryErrorBoundary } from "@/components/query-error-boundary"
-import { ResponsiveDialog } from "@/components/responsive-dialog"
 import {
   MainPage,
   MainPageDescripton,
@@ -10,13 +9,11 @@ import {
 } from "@/components/sidebar/main-page"
 import { SiteHeader } from "@/components/sidebar/site-header"
 import { Button } from "@/components/ui/button"
-import BankAccountDelete from "@/features/bank-account/components/bank-account-delete"
-import { BankAccountForm } from "@/features/bank-account/components/bank-account-form"
 import BankAccountSkeleton from "@/features/bank-account/components/bank-account-skeleton"
-import type { BankAccount } from "@/features/bank-account/types"
+import { useBankAccountContext } from "@/features/bank-account/hooks/use-bank-account-context"
+import { BankAccountProvider } from "@/features/bank-account/provider/bank-account.provider"
 import { PlusIcon } from "lucide-react"
 import dynamic from "next/dynamic"
-import { useState } from "react"
 
 const BankAccountList = dynamic(
   () => import("@/features/bank-account/components/bank-account-list"),
@@ -26,69 +23,46 @@ const BankAccountList = dynamic(
   },
 )
 
-export default function BankAccountsPage() {
-  const [selectedAccount, setSelectedAccount] = useState<BankAccount | null>(null)
-  const [addDialogOpen, setAddDialogOpen] = useState(false)
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+const BankAccountDialogs = dynamic(
+  () => import("@/features/bank-account/components/bank-account-dialogs"),
+  { ssr: false },
+)
 
-  const handleAddAccount = () => setAddDialogOpen(true)
-
-  const handleDeleteAccount = (account: BankAccount) => {
-    setSelectedAccount(account)
-    setDeleteDialogOpen(true)
-  }
-
-  const handleAddDialogClose = () => setAddDialogOpen(false)
-
-  const handleDeleteDialogClose = () => {
-    setDeleteDialogOpen(false)
-    setTimeout(() => setSelectedAccount(null), 200)
-  }
-
+function AddAccountButton() {
+  const { handleDialogOpen } = useBankAccountContext()
   return (
-    <>
-      <SiteHeader label="Rekening Bank" />
+    <Button
+      onClick={handleDialogOpen}
+      size="lg"
+      className="fixed right-4 bottom-4 md:relative md:right-0 md:bottom-0"
+    >
+      <PlusIcon className="size-4" />
+      <span className="hidden md:block">Add Account</span>
+    </Button>
+  )
+}
+
+export default function BankAccountsPage() {
+  return (
+    <BankAccountProvider>
+      <SiteHeader label="Bank Accounts" />
       <MainPage className="@container/main">
         <MainPageHeader>
           <div className="space-y-2">
-            <MainPageTitle>Rekening Bank</MainPageTitle>
+            <MainPageTitle>Bank Accounts</MainPageTitle>
             <MainPageDescripton>
-              Kelola rekening bank Anda dan pantau saldo di seluruh akun dengan mudah.
+              Manage your bank accounts and track balances across all accounts.
             </MainPageDescripton>
           </div>
-
-          <Button
-            onClick={handleAddAccount}
-            size="xl"
-            className="fixed right-4 bottom-4 md:relative md:right-0 md:bottom-0"
-          >
-            <PlusIcon className="size-4" />
-            <span className="hidden md:block">Tambah Rekening</span>
-          </Button>
+          <AddAccountButton />
         </MainPageHeader>
 
         <QueryErrorBoundary>
-          <BankAccountList onDelete={handleDeleteAccount} />
+          <BankAccountList />
         </QueryErrorBoundary>
 
-        <ResponsiveDialog
-          title="Tambah Rekening"
-          description="Tambahkan rekening bank baru untuk memantau saldo Anda."
-          open={addDialogOpen}
-          onOpenChange={handleAddDialogClose}
-        >
-          <BankAccountForm mode="create" onSuccess={handleAddDialogClose} />
-        </ResponsiveDialog>
-
-        <ResponsiveDialog
-          title={`Hapus rekening ${selectedAccount?.bank.name}?`}
-          description="Rekening ini akan dihapus secara permanen. Pilih tindakan untuk transaksi yang tertaut."
-          open={deleteDialogOpen}
-          onOpenChange={handleDeleteDialogClose}
-        >
-          <BankAccountDelete data={selectedAccount} close={handleDeleteDialogClose} />
-        </ResponsiveDialog>
+        <BankAccountDialogs />
       </MainPage>
-    </>
+    </BankAccountProvider>
   )
 }

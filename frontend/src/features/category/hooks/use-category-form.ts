@@ -1,60 +1,34 @@
+import { useUpsertCategoryMutation } from "../mutations"
 import { Category } from "../types"
-import { CategoryDto, categorySchema } from "../validations/schema"
+import { categorySchema } from "../validations/schema"
 import { CATEGORY_COLORS } from "@/constants/category-colors"
-import { api } from "@/lib/api"
 import { TransactionType } from "@/types/enums"
 import { useForm } from "@tanstack/react-form"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
 
-type Args =
-  | { mode: "create"; onSuccess?: () => void }
-  | { mode: "update"; prevData: Category | null; onSuccess?: () => void }
-
-const categoryApi = async (mode: "create" | "update", input: CategoryDto, id?: string) => {
-  if (mode === "create") {
-    const { data } = await api.post<Category>("/category", input)
-    return data
+interface UseCategoryForm {
+  prevData?: Category | null
+  options?: {
+    onSuccess?: () => void
+    onError?: () => void
   }
-  const { data } = await api.put<Category>(`/category/${id}`, input)
-  return data
 }
 
-export const useCategoryForm = (args: Args) => {
-  const queryClient = useQueryClient()
-
-  const prevData = args.mode === "update" ? args.prevData : null
+export const useCategoryForm = ({ prevData, options }: UseCategoryForm) => {
+  const mutation = useUpsertCategoryMutation(prevData?.id)
 
   const form = useForm({
     defaultValues: {
-      name: prevData?.name ?? "",
-      icon: prevData?.icon ?? "🍔",
-      color: prevData?.color ?? CATEGORY_COLORS[0].background,
-      type: (prevData?.type ?? "expense") as TransactionType,
+      name: prevData?.name || "",
+      icon: prevData?.icon || "🍔",
+      color: prevData?.color || CATEGORY_COLORS[0].background,
+      type: (prevData?.type || "expense") as TransactionType,
     },
     validators: {
       onSubmit: categorySchema,
     },
-    onSubmit: async ({ value }) => {
-      if (args.mode === "update" && !prevData) return
-      const id = prevData?.id
-      await mutation.mutateAsync({ input: value, id }, { onSuccess: args.onSuccess })
-    },
-  })
-
-  const mutation = useMutation({
-    mutationFn: ({ input, id }: { input: CategoryDto; id?: string }) =>
-      categoryApi(args.mode, input, id),
-    onSuccess: (data) => {
-      const verb = args.mode === "create" ? "added" : "updated"
-      toast.success(`${data.name} category has been ${verb} successfully`)
-      form.reset()
-      queryClient.invalidateQueries({
-        queryKey: ["categories"],
-      })
-    },
-    onError: (error) => {
-      toast.error(error.message ?? "Unexpected error has occurred")
+    onSubmit: async ({ value, formApi }) => {
+      await mutation.mutateAsync(value, options)
+      formApi.reset()
     },
   })
 

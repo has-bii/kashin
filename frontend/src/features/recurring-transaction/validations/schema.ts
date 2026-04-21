@@ -1,6 +1,6 @@
 import { z } from "zod/v4"
 
-export const recurringTransactionCreateSchema = z.object({
+export const recurringTransactionSchema = z.object({
   type: z.enum(["expense", "income"]),
   amount: z.number().positive(),
   description: z.string().max(255),
@@ -9,7 +9,4 @@ export const recurringTransactionCreateSchema = z.object({
   nextDueDate: z.iso.datetime(),
 })
 
-export const recurringTransactionUpdateSchema = recurringTransactionCreateSchema.partial()
-
-export type RecurringTransactionCreateDto = z.infer<typeof recurringTransactionCreateSchema>
-export type RecurringTransactionUpdateDto = z.infer<typeof recurringTransactionUpdateSchema>
+export type RecurringTransactionDto = z.infer<typeof recurringTransactionSchema>

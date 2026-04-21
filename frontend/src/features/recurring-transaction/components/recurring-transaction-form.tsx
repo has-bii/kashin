@@ -2,8 +2,11 @@
 
 import { useRecurringTransactionForm } from "../hooks/use-recurring-transaction-form"
 import { RecurringTransaction } from "../types"
-import { RecurringTransactionDeleteDialog } from "./recurring-transaction-delete-dialog"
-import { DatetimePicker, DatetimePickerDate, DatetimePickerTime } from "@/components/datetime-picker"
+import {
+  DatetimePicker,
+  DatetimePickerDate,
+  DatetimePickerTime,
+} from "@/components/datetime-picker"
 import { ResponsiveDialogFooter } from "@/components/responsive-dialog"
 import { SelectTab, SelectTabItem } from "@/components/select-tab"
 import { Button } from "@/components/ui/button"
@@ -16,33 +19,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { getCategoriesQueryOptions } from "@/features/category/api/get-categories.query"
+import { getCategoriesQueryOptions } from "@/features/category/query"
 import { TransactionType } from "@/types/enums"
 import { useQuery } from "@tanstack/react-query"
 import { Loader2, Plus, SaveIcon } from "lucide-react"
 
 const types: Array<{ label: string; value: TransactionType }> = [
-  { label: "Pengeluaran", value: "expense" },
-  { label: "Pemasukan", value: "income" },
+  { label: "Expense", value: "expense" },
+  { label: "Income", value: "income" },
 ]
 
 const frequencies = [
-  { label: "Mingguan", value: "weekly" },
-  { label: "Dua Mingguan", value: "biweekly" },
-  { label: "Bulanan", value: "monthly" },
-  { label: "Tahunan", value: "yearly" },
+  { label: "Weekly", value: "weekly" },
+  { label: "Biweekly", value: "biweekly" },
+  { label: "Monthly", value: "monthly" },
+  { label: "Yearly", value: "yearly" },
 ] as const
 
-type Props =
-  | { mode: "create"; onSuccess?: () => void }
-  | { mode: "edit"; data: RecurringTransaction; onSuccess?: () => void }
+type Props = {
+  prevData?: RecurringTransaction | null
+  onSuccess?: () => void
+}
 
-export function RecurringTransactionForm(props: Props) {
-  const { form } = useRecurringTransactionForm(
-    props.mode === "create"
-      ? { mode: "create", onSuccess: props.onSuccess }
-      : { mode: "edit", data: props.data, onSuccess: props.onSuccess },
-  )
+export function RecurringTransactionForm({ prevData, onSuccess }: Props) {
+  const { form } = useRecurringTransactionForm({ prevData, options: { onSuccess } })
 
   return (
     <>
@@ -84,7 +84,7 @@ export function RecurringTransactionForm(props: Props) {
               const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
               return (
                 <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Jumlah</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>Amount</FieldLabel>
                   <Input
                     id={field.name}
                     name={field.name}
@@ -113,17 +113,20 @@ export function RecurringTransactionForm(props: Props) {
               const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
               return (
                 <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Frekuensi</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>Frequency</FieldLabel>
                   <Select
                     value={field.state.value}
                     onValueChange={(value) =>
-                      field.handleChange(
-                        value as "weekly" | "biweekly" | "monthly" | "yearly",
-                      )
+                      field.handleChange(value as "weekly" | "biweekly" | "monthly" | "yearly")
                     }
                   >
-                    <SelectTrigger id={field.name} aria-invalid={isInvalid} onBlur={field.handleBlur} className="w-full">
-                      <SelectValue placeholder="Pilih frekuensi" />
+                    <SelectTrigger
+                      id={field.name}
+                      aria-invalid={isInvalid}
+                      onBlur={field.handleBlur}
+                      className="w-full"
+                    >
+                      <SelectValue placeholder="Select frequency" />
                     </SelectTrigger>
                     <SelectContent position="popper">
                       {frequencies.map((f) => (
@@ -151,12 +154,12 @@ export function RecurringTransactionForm(props: Props) {
                     onChangeValue={(input) => field.handleChange(input!)}
                   >
                     <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor={`date-${field.name}`}>Tanggal Jatuh Tempo</FieldLabel>
+                      <FieldLabel htmlFor={`date-${field.name}`}>Next Due Date</FieldLabel>
                       <DatetimePickerDate />
                       {isInvalid && <FieldError errors={field.state.meta.errors} />}
                     </Field>
                     <Field>
-                      <FieldLabel htmlFor={`time-${field.name}`}>Waktu</FieldLabel>
+                      <FieldLabel htmlFor={`time-${field.name}`}>Time</FieldLabel>
                       <DatetimePickerTime />
                     </Field>
                   </DatetimePicker>
@@ -196,7 +199,7 @@ export function RecurringTransactionForm(props: Props) {
               const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
               return (
                 <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Deskripsi</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>Description</FieldLabel>
                   <Input
                     id={field.name}
                     name={field.name}
@@ -206,7 +209,7 @@ export function RecurringTransactionForm(props: Props) {
                     aria-invalid={isInvalid}
                     autoComplete="off"
                     maxLength={255}
-                    placeholder="cth. Langganan Netflix"
+                    placeholder="e.g. Netflix subscription"
                   />
                   {isInvalid && <FieldError errors={field.state.meta.errors} />}
                 </Field>
@@ -226,21 +229,14 @@ export function RecurringTransactionForm(props: Props) {
               className="w-full"
               disabled={isSubmitting || !canSubmit}
             >
-              {props.mode === "create" ? (
-                <>Tambah {isSubmitting ? <Loader2 className="animate-spin" /> : <Plus />}</>
+              {prevData ? (
+                <>Save {isSubmitting ? <Loader2 className="animate-spin" /> : <SaveIcon />}</>
               ) : (
-                <>Simpan {isSubmitting ? <Loader2 className="animate-spin" /> : <SaveIcon />}</>
+                <>Add {isSubmitting ? <Loader2 className="animate-spin" /> : <Plus />}</>
               )}
             </Button>
           )}
         />
-
-        {props.mode === "edit" && (
-          <RecurringTransactionDeleteDialog
-            recurringTransactionId={props.data.id}
-            onSuccess={props.onSuccess}
-          />
-        )}
       </ResponsiveDialogFooter>
     </>
   )
@@ -267,13 +263,13 @@ function CategorySelectField({
 
   return (
     <Field data-invalid={isInvalid}>
-      <FieldLabel htmlFor={fieldName}>Kategori</FieldLabel>
+      <FieldLabel htmlFor={fieldName}>Category</FieldLabel>
       <Select value={value ?? "__none__"} onValueChange={onChange}>
         <SelectTrigger id={fieldName} aria-invalid={isInvalid} onBlur={onBlur} className="w-full">
-          <SelectValue placeholder="Tanpa Kategori" />
+          <SelectValue placeholder="No Category" />
         </SelectTrigger>
         <SelectContent position="popper">
-          <SelectItem value="__none__">Tanpa Kategori</SelectItem>
+          <SelectItem value="__none__">No Category</SelectItem>
           {categories.map((cat) => (
             <SelectItem key={cat.id} value={cat.id}>
               <span>{cat.icon}</span>

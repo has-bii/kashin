@@ -1,14 +1,8 @@
 import app from "."
-import { logger } from "./lib/logger"
-import { pgListener } from "./lib/pg-listener"
 import { ENV } from "./config/env"
+import { logger } from "./lib/logger"
 
-pgListener.connect().catch((err) => {
-  logger.error({ err }, "pg-listener: failed to start")
-})
-
-const shutdown = async () => {
-  await pgListener.disconnect()
+const shutdown = () => {
   process.exit(0)
 }
 

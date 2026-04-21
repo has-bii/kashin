@@ -60,11 +60,6 @@ enum AiExtractionStatus {
   failed
 }
 
-enum EmailImportBatchStatus {
-  running
-  completed
-}
-
 // -----------------------------------------------------------
 // Better Auth tables (do not modify)
 // -----------------------------------------------------------
@@ -89,8 +84,7 @@ model User {
   budgets               Budget[]
   bankAccounts          BankAccount[]
   settings              UserSettings?
-  emailImportBatches    EmailImportBatch[]
-
+  gmailWatchConfig      GmailWatchConfig?
   @@unique([email])
   @@map("users")
 }
@@ -161,16 +155,35 @@ model Passkey {
 }
 
 model UserSettings {
-  id                 String   @id @default(uuid(7)) @db.Uuid
-  userId             String   @unique @db.Uuid
-  filterEmailsByBank Boolean  @default(true)
-  createdAt          DateTime @default(now()) @db.Timestamptz
-  updatedAt          DateTime @updatedAt @db.Timestamptz
+  id        String   @id @default(uuid(7)) @db.Uuid
+  userId    String   @unique @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("user_settings")
+}
+
+model GmailWatchConfig {
+  id              String    @id @default(uuid(7)) @db.Uuid
+  userId          String    @unique @db.Uuid
+  gmailAddress    String    @db.VarChar(255)
+  enabled         Boolean   @default(false)
+  historyId       String?   @db.VarChar(50)
+  expiresAt       DateTime? @db.Timestamptz
+  qstashMessageId String?   @db.Text
+  subjectKeywords String[]  @default([]) @db.VarChar(255)
+  gmailLabels     String[]  @default([]) @db.VarChar(100)
+  createdAt       DateTime  @default(now()) @db.Timestamptz
+  updatedAt       DateTime  @updatedAt @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([gmailAddress])
+  @@map("gmail_watch_configs")
 }
 
 // -----------------------------------------------------------
@@ -308,12 +321,12 @@ model BankAccount {
 model AiExtraction {
   id                 String             @id @default(uuid(7)) @db.Uuid
   userId             String             @db.Uuid
-  emailImportBatchId String?            @db.Uuid
   status             AiExtractionStatus @default(pending)
   // Email Data
   gmailMessageId  String             @unique @db.VarChar(255)
-  emailFrom       String?            @db.VarChar(255)
-  emailSubject    String?            @db.VarChar(255)
+  emailFrom       String             @db.VarChar(255)
+  emailSubject    String             @db.VarChar(255)
+  emailSnippet    String             @db.VarChar(500)
   emailText       String?            @db.Text
   emailHtml       String?            @db.Text
   emailReceivedAt DateTime?          @db.Timestamptz
@@ -345,28 +358,12 @@ model AiExtraction {
   updatedAt DateTime @updatedAt @db.Timestamptz
 
   user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  emailImportBatch     EmailImportBatch? @relation(fields: [emailImportBatchId], references: [id], onDelete: SetNull)
   extractedCategory    Category?         @relation(fields: [extractedCategoryId], references: [id], onDelete: SetNull)
   transaction          Transaction?
   extractedBankAccount BankAccount?      @relation(fields: [extractedBankAccountId], references: [id], onDelete: SetNull)
 
-  @@index([emailImportBatchId])
   @@index([extractedBankAccountId])
   @@index([extractedCategoryId])
   @@index([userId, status])
   @@map("ai_extractions")
-}
-
-model EmailImportBatch {
-  id          String                 @id @default(uuid(7)) @db.Uuid
-  userId      String                 @db.Uuid
-  user        User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  total       Int
-  status      EmailImportBatchStatus @default(running)
-  createdAt   DateTime               @default(now()) @db.Timestamptz
-  completedAt DateTime?              @db.Timestamptz
-  extractions AiExtraction[]
-
-  @@index([userId, createdAt])
-  @@map("email_import_batches")
 }

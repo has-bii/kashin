@@ -3,9 +3,10 @@ import { createError } from "../../global/error"
 import { auth } from "../../lib/auth"
 import { logger } from "../../lib/logger"
 import { prisma } from "../../lib/prisma"
-import { inngest } from "../inngest/client"
-import type { GetMessagesQuery, ImportMessagesBody } from "./dto"
-import { InternalServerError, status } from "elysia"
+import { qstash } from "../../lib/qstash"
+import { sendProcessEmailEvent } from "../inngest/events"
+import type { GetMessagesQuery, ImportMessagesBody, UpdateWatchFiltersBody } from "./dto"
+import { InternalServerError } from "elysia"
 import { gmail_v1, google } from "googleapis"
 
 export abstract class GmailService {
@@ -60,52 +61,290 @@ export abstract class GmailService {
       .catch(() => null)
     if (!accessToken) createError("bad_request", "Your account is not linked to a Google account")
 
+    const gmail = this.createGmailClient(accessToken!)
+    const metadataResults = await Promise.allSettled(
+      body.messageIds.map((id) =>
+        gmail.users.messages.get({ id, userId: "me", format: "metadata" }),
+      ),
+    )
+
+    const settled = body.messageIds.map((gmailMessageId, i) => ({
+      gmailMessageId,
+      result: metadataResults[i],
+    }))
+
+    const successes = settled.filter(
+      (
+        s,
+      ): s is typeof s & {
+        result: PromiseFulfilledResult<Awaited<ReturnType<typeof gmail.users.messages.get>>>
+      } => s.result.status === "fulfilled",
+    )
+    const fetchFailureCount = settled.length - successes.length
+
+    const created = await prisma.$transaction(async (tx) => {
+      const existing = await tx.aiExtraction.findMany({
+        where: { userId, status: { in: ["pending", "processing"] } },
+        select: { id: true },
+      })
+      if (existing.length > 0)
+        createError(
+          "bad_request",
+          "The system is still processing a previous import. Please wait until it finishes",
+        )
+
+      const rows = await tx.aiExtraction.createManyAndReturn({
+        skipDuplicates: true,
+        data: successes.map(({ gmailMessageId, result }) => {
+          const meta = GmailService.parseEmailMetadata(result.value.data)
+          return {
+            userId,
+            gmailMessageId,
+            status: "pending",
+            emailFrom: meta.from ?? "",
+            emailSubject: meta.subject ?? "",
+            emailSnippet: meta.snippet ?? "",
+            emailReceivedAt: meta.date ? new Date(meta.date) : null,
+          }
+        }),
+        select: { id: true, userId: true },
+      })
+
+      return rows
+    })
+
+    if (created.length > 0) {
+      try {
+        await Promise.all(
+          created.map(({ id, userId: uid }) =>
+            sendProcessEmailEvent({ aiExtractionId: id, userId: uid }),
+          ),
+        )
+      } catch {
+        await prisma.aiExtraction.deleteMany({
+          where: { id: { in: created.map((r) => r.id) } },
+        })
+        createError("internal_server", "Failed to queue emails for processing. Please try again.")
+      }
+    }
+
+    return {
+      total: body.messageIds.length,
+      pendingImportEmail: created.length,
+      skippedImportEmail: successes.length - created.length,
+      fetchFailureCount,
+    }
+  }
+
+  static async getWatchConfig(userId: string) {
+    const select = {
+      enabled: true,
+      historyId: true,
+      expiresAt: true,
+      subjectKeywords: true,
+      gmailLabels: true,
+    } as const
+
+    const config = await prisma.gmailWatchConfig.findUnique({ where: { userId }, select })
+    if (config) return config
+
+    const user = await prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      select: { email: true },
+    })
+    return prisma.gmailWatchConfig.create({
+      data: { userId, gmailAddress: user.email },
+      select,
+    })
+  }
+
+  static async updateFilters(userId: string, body: UpdateWatchFiltersBody) {
+    await prisma.gmailWatchConfig.upsert({
+      where: { userId },
+      create: {
+        userId,
+        gmailAddress: "",
+        ...(body.subjectKeywords !== undefined && { subjectKeywords: body.subjectKeywords }),
+        ...(body.gmailLabels !== undefined && { gmailLabels: body.gmailLabels }),
+      },
+      update: {
+        ...(body.subjectKeywords !== undefined && { subjectKeywords: body.subjectKeywords }),
+        ...(body.gmailLabels !== undefined && { gmailLabels: body.gmailLabels }),
+      },
+    })
+
+    return this.getWatchConfig(userId)
+  }
+
+  static async enableWatch(userId: string) {
+    const config = await prisma.gmailWatchConfig.findUnique({
+      where: { userId },
+      select: { subjectKeywords: true, gmailLabels: true },
+    })
+
+    const hasFilters =
+      (config?.subjectKeywords.length ?? 0) > 0 || (config?.gmailLabels.length ?? 0) > 0
+
+    if (!hasFilters)
+      createError("bad_request", "Configure at least one filter before enabling watch")
+
+    const accessToken = await auth.api
+      .getAccessToken({ body: { userId, providerId: "google" } })
+      .then((r) => r.accessToken)
+      .catch(() => null)
+    if (!accessToken) createError("bad_request", "Your account is not linked to a Google account")
+
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { email: true } })
+    const gmailAddress = user!.email
+
+    const gmail = this.createGmailClient(accessToken!)
+    const watchResponse = await gmail.users.watch({
+      userId: "me",
+      requestBody: {
+        topicName: ENV.GOOGLE.topicName,
+        labelIds: ["INBOX"],
+        labelFilterBehavior: "INCLUDE",
+      },
+    })
+
+    const historyId = watchResponse.data.historyId!
+    const expiresAt = new Date(Number(watchResponse.data.expiration))
+
+    const notBefore = Math.floor((expiresAt.getTime() - 24 * 60 * 60 * 1000) / 1000)
+    let qstashMessageId: string
+    try {
+      const scheduled = await qstash.publishJSON({
+        url: `${ENV.SERVER.backendUrl}/api/webhook/gmail-watch-renew`,
+        body: { userId },
+        notBefore,
+      })
+      qstashMessageId = scheduled.messageId
+    } catch (err) {
+      await gmail.users.stop({ userId: "me" })
+      throw err
+    }
+
+    await prisma.gmailWatchConfig.upsert({
+      where: { userId },
+      create: {
+        userId,
+        gmailAddress,
+        enabled: true,
+        historyId,
+        expiresAt,
+        qstashMessageId,
+      },
+      update: {
+        gmailAddress,
+        enabled: true,
+        historyId,
+        expiresAt,
+        qstashMessageId,
+      },
+    })
+
+    return { enabled: true, expiresAt }
+  }
+
+  static async disableWatch(userId: string) {
+    const config = await prisma.gmailWatchConfig.findUnique({
+      where: { userId },
+      select: { qstashMessageId: true, enabled: true },
+    })
+
+    if (!config || !config.enabled) return { enabled: false }
+
+    if (config.qstashMessageId) {
+      await qstash.messages.cancel(config.qstashMessageId).catch(() => {})
+    }
+
+    const accessToken = await auth.api
+      .getAccessToken({ body: { userId, providerId: "google" } })
+      .then((r) => r.accessToken)
+      .catch(() => null)
+
+    if (accessToken) {
+      const gmail = this.createGmailClient(accessToken)
+      await gmail.users.stop({ userId: "me" }).catch(() => {})
+    }
+
+    await prisma.gmailWatchConfig.update({
+      where: { userId },
+      data: { enabled: false, historyId: null, expiresAt: null, qstashMessageId: null },
+    })
+
+    return { enabled: false }
+  }
+
+  static async createExtractionsAndQueue(
+    userId: string,
+    messages: Array<{
+      gmailMessageId: string
+      emailFrom: string
+      emailSubject: string
+      emailSnippet: string
+      emailReceivedAt: Date | null
+    }>,
+  ): Promise<number> {
     const existing = await prisma.aiExtraction.findMany({
       where: { userId, status: { in: ["pending", "processing"] } },
       select: { id: true },
     })
+    if (existing.length > 0) return 0
 
-    if (existing.length > 0)
-      createError(
-        "bad_request",
-        "The system is still processing a previous import. Please wait until it finishes",
-      )
-
-    const { batchId, created } = await prisma.$transaction(async (tx) => {
-      const batch = await tx.emailImportBatch.create({
-        data: { userId, total: body.messageIds.length, status: "running" },
-        select: { id: true },
-      })
-
-      const rows = await tx.aiExtraction.createManyAndReturn({
-        skipDuplicates: true,
-        data: body.messageIds.map((gmailMessageId) => ({
-          userId,
-          gmailMessageId,
-          status: "pending",
-          emailImportBatchId: batch.id,
-        })),
-        select: { id: true, userId: true },
-      })
-
-      return { batchId: batch.id, created: rows }
+    const created = await prisma.aiExtraction.createMany({
+      skipDuplicates: true,
+      data: messages.map((m) => ({
+        userId,
+        gmailMessageId: m.gmailMessageId,
+        status: "pending" as const,
+        emailFrom: m.emailFrom,
+        emailSubject: m.emailSubject,
+        emailSnippet: m.emailSnippet,
+        emailReceivedAt: m.emailReceivedAt,
+      })),
     })
 
-    if (created.length > 0) {
-      await inngest.send(
-        created.map(({ id, userId: uid }) => ({
-          id: `process-email-${id}`,
-          name: "email/process.email" as const,
-          data: { aiExtractionId: id, userId: uid, emailImportBatchId: batchId },
-        })),
-      )
+    if (created.count > 0) {
+      const rows = await prisma.aiExtraction.findMany({
+        where: {
+          userId,
+          gmailMessageId: { in: messages.map((m) => m.gmailMessageId) },
+          status: "pending",
+        },
+        select: { id: true, userId: true },
+      })
+      try {
+        await Promise.all(
+          rows.map(({ id, userId: uid }) =>
+            sendProcessEmailEvent({ aiExtractionId: id, userId: uid }),
+          ),
+        )
+      } catch {
+        await prisma.aiExtraction.deleteMany({ where: { id: { in: rows.map((r) => r.id) } } })
+      }
     }
-    return {
-      batchId,
-      total: body.messageIds.length,
-      pendingImportEmail: created.length,
-      skippedImportEmail: body.messageIds.length - created.length,
-    }
+
+    return created.count
+  }
+
+  static async getLabels(userId: string) {
+    const accessToken = await auth.api
+      .getAccessToken({ body: { userId, providerId: "google" } })
+      .then((res) => res.accessToken)
+      .catch(() => null)
+
+    if (!accessToken) return []
+
+    const gmail = this.createGmailClient(accessToken)
+    const response = await gmail.users.labels.list({ userId: "me" })
+
+    return (
+      response.data.labels?.map((label) => ({
+        id: label.id!,
+        name: label.name!,
+      })) ?? []
+    )
   }
 
   static createGmailClient(accessToken: string) {
@@ -149,32 +388,11 @@ export abstract class GmailService {
     return gmail.users.messages.get({ userId: "me", id: messageId, format: "raw" })
   }
 
-  private static parseEmailMetadata(email: gmail_v1.Schema$Message) {
+  static parseEmailMetadata(email: gmail_v1.Schema$Message) {
     const subject = email.payload?.headers?.find((acc) => acc.name === "Subject")?.value || null
     const from = email.payload?.headers?.find((acc) => acc.name === "From")?.value || null
     const date = email.payload?.headers?.find((acc) => acc.name === "Date")?.value || null
     const snippet = email.snippet || null
     return { subject, from, date, snippet }
-  }
-
-  private static async setupGmailWatch(accessToken: string, refreshToken: string) {
-    const auth = new google.auth.OAuth2()
-    auth.setCredentials({ access_token: accessToken, refresh_token: refreshToken })
-    const gmail = google.gmail({ version: "v1", auth })
-
-    try {
-      const response = await gmail.users.watch({
-        userId: "me",
-        requestBody: {
-          topicName: ENV.GOOGLE.topicName,
-          labelIds: ["INBOX"],
-          labelFilterBehavior: "INCLUDE",
-        },
-      })
-      return response.data
-    } catch (error) {
-      logger.error({ err: error }, "Failed to setup Gmail watch")
-      return status(500)
-    }
   }
 }

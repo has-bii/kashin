@@ -54,30 +54,33 @@ export abstract class TransactionService {
     return transaction
   }
 
-  static async create(userId: string, input: CreateInput) {
-    const { categoryId, bankAccountId, ...rest } = input
+  static async create(userId: string, input: CreateInput, tx?: Prisma.TransactionClient) {
+    const { categoryId, bankAccountId, aiExtractionId, ...rest } = input
 
-    return prisma.$transaction(async (tx) => {
-      const result = await tx.transaction.create({
+    const run = async (client: Prisma.TransactionClient) => {
+      const result = await client.transaction.create({
         data: {
           ...rest,
           userId,
           ...(categoryId !== undefined ? { categoryId } : {}),
           ...(bankAccountId !== undefined ? { bankAccountId } : {}),
+          ...(aiExtractionId !== undefined ? { aiExtractionId } : {}),
         },
         include: categoryInclude,
       })
 
       if (bankAccountId) {
         const delta = result.type === "income" ? result.amount : result.amount.negated()
-        await tx.bankAccount.update({
+        await client.bankAccount.update({
           where: { id: bankAccountId, userId },
           data: { balance: { increment: delta } },
         })
       }
 
       return status(201, result)
-    })
+    }
+
+    return tx ? run(tx) : prisma.$transaction((innerTx) => run(innerTx))
   }
 
   static async update(userId: string, id: string, input: UpdateInput) {

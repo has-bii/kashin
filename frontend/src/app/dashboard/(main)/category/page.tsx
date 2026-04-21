@@ -1,7 +1,6 @@
 "use client"
 
 import { QueryErrorBoundary } from "@/components/query-error-boundary"
-import { ResponsiveDialog } from "@/components/responsive-dialog"
 import {
   MainPage,
   MainPageDescripton,
@@ -11,54 +10,29 @@ import {
 import { SiteHeader } from "@/components/sidebar/site-header"
 import CategoryCardSkeleton from "@/features/category/components/category-card-skeleton"
 import { CategoryFilterTab } from "@/features/category/components/category-filter-tab"
-import { CategoryForm } from "@/features/category/components/category-form"
-import { Category } from "@/features/category/types"
+import { CategoryProvider } from "@/features/category/provider/category.provider"
 import dynamic from "next/dynamic"
-import { Suspense, useState } from "react"
+import { Suspense } from "react"
 
 const CategoryList = dynamic(() => import("@/features/category/components/categories-list"), {
   ssr: false,
   loading: () => <CategoryCardSkeleton />,
 })
 
+const CategoryDialogs = dynamic(() => import("@/features/category/components/category-dialogs"), {
+  ssr: false,
+})
+
 export default function CategoryPage() {
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
-  const [dialogOpen, setDialogOpen] = useState(false)
-
-  const dialogMode = selectedCategory ? "update" : "create"
-
-  const handleAddCategory = () => {
-    setSelectedCategory(null)
-    setDialogOpen(true)
-  }
-
-  const handleUpdateCategory = (category: Category) => {
-    setSelectedCategory(category)
-    setDialogOpen(true)
-  }
-
-  const handleDialogClose = (open: boolean) => {
-    setDialogOpen(open)
-
-    if (!open) {
-      setTimeout(() => setSelectedCategory(null), 200)
-    }
-  }
-
-  const dialogTitle = dialogMode === "create" ? "Kategori Baru" : "Ubah Kategori"
-  const DialogDescription = "Tentukan kategori pengeluaran atau pemasukan Anda"
-
   return (
-    <>
+    <CategoryProvider>
       <SiteHeader label="Kategori" />
-      <MainPage>
+      <MainPage className="@container/main">
         {/* Header */}
         <MainPageHeader>
           <div className="space-y-2">
-            <MainPageTitle>Kategori</MainPageTitle>
-            <MainPageDescripton>
-              Kelola kategori pengeluaran dan pemasukan Anda secara terstruktur.
-            </MainPageDescripton>
+            <MainPageTitle>Category</MainPageTitle>
+            <MainPageDescripton>Manage your expense and income categories.</MainPageDescripton>
           </div>
         </MainPageHeader>
 
@@ -67,25 +41,13 @@ export default function CategoryPage() {
           <CategoryFilterTab />
         </Suspense>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <QueryErrorBoundary>
-            <CategoryList
-              handleAddCategoryAction={handleAddCategory}
-              handleUpdateCategoryAction={handleUpdateCategory}
-            />
-          </QueryErrorBoundary>
-        </div>
+        <QueryErrorBoundary>
+          <CategoryList />
+        </QueryErrorBoundary>
 
-        {/* Category dialog - create or edit mode */}
-        <ResponsiveDialog
-          open={dialogOpen}
-          onOpenChange={handleDialogClose}
-          title={dialogTitle}
-          description={DialogDescription}
-        >
-          <CategoryForm mode={dialogMode} data={selectedCategory} />
-        </ResponsiveDialog>
+        {/* Category dialogs - create, edit, delete */}
+        <CategoryDialogs />
       </MainPage>
-    </>
+    </CategoryProvider>
   )
 }

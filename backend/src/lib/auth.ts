@@ -1,10 +1,10 @@
+import { ENV } from "../config/env"
 import { sendPasswordResetEmail, sendVerificationOtp, sendWelcomeEmail } from "./email"
 import { prisma } from "./prisma"
 import { passkey } from "@better-auth/passkey"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { betterAuth } from "better-auth/minimal"
 import { emailOTP } from "better-auth/plugins"
-import { ENV } from "../config/env"
 
 export const auth = betterAuth({
   appName: "Kashin",
@@ -57,12 +57,19 @@ export const auth = betterAuth({
     user: {
       create: {
         after: async (user) => {
-          await prisma.userSettings.create({
-            data: {
-              userId: user.id,
-              filterEmailsByBank: false,
-            },
-          })
+          await Promise.all([
+            prisma.userSettings.create({
+              data: {
+                userId: user.id,
+              },
+            }),
+            prisma.gmailWatchConfig.create({
+              data: {
+                userId: user.id,
+                gmailAddress: user.email,
+              },
+            }),
+          ])
           void sendWelcomeEmail(user.email, user.name)
         },
       },

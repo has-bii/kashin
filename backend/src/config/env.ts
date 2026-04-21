@@ -38,6 +38,7 @@ type Env = {
   GOOGLE: {
     serviceAccountCredential: string
     topicName: string
+    audience: string
   }
   LOG: {
     level: string
@@ -93,11 +94,10 @@ export const ENV: Env = {
   GOOGLE: {
     serviceAccountCredential: getRequired("SERVICE_ACCOUNT_CREDENTIAL"),
     topicName: getRequired("TOPIC_NAME"),
+    audience: getRequired("GMAIL_AUDIENCE"),
   },
   LOG: {
-    level:
-      process.env.LOG_LEVEL ??
-      (process.env.NODE_ENV === "production" ? "info" : "debug"),
+    level: process.env.LOG_LEVEL ?? (process.env.NODE_ENV === "production" ? "info" : "debug"),
     nodeEnv: process.env.NODE_ENV ?? "development",
   },
 }

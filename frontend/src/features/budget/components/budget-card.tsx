@@ -1,5 +1,6 @@
 "use client"
 
+import { useBudgetContext } from "../hooks/use-budget-context"
 import { Budget } from "../types"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
@@ -16,17 +17,21 @@ import { formatCurrency } from "@/utils/format-amount"
 import { getCategoryStyle } from "@/utils/get-category-style"
 import { EllipsisIcon, PencilIcon, Trash2Icon } from "lucide-react"
 
-type Props = {
-  data: Budget
-  onUpdate?: () => void
-  onDelete?: () => void
+const STATUS_LABELS: Record<string, string> = {
+  ok: "Ok",
+  warning: "Warning",
+  exceeded: "Exceeded",
 }
 
-export function BudgetCard({ data, onUpdate, onDelete }: Props) {
+type Props = {
+  data: Budget
+}
+
+export function BudgetCard({ data }: Props) {
+  const { handleUpdateBudget, handleDeleteBudget } = useBudgetContext()
+
   const progress = Math.min((data.spent / data.amount) * 100, 100)
-
   const categoryColor = getCategoryStyle(data.category.color)
-
   const status = data.alertStatus
 
   const progressStyle =
@@ -44,10 +49,9 @@ export function BudgetCard({ data, onUpdate, onDelete }: Props) {
         : "bg-red-100 text-red-700"
 
   return (
-    <Card className="h-64 w-full rounded-3xl shadow-none">
+    <Card className="h-64 w-full border shadow-none">
       <CardHeader>
         <div className="flex items-start justify-between">
-          {/* Icon */}
           <div
             className="flex size-12 items-center justify-center rounded-xl text-2xl"
             style={{ backgroundColor: categoryColor?.background }}
@@ -55,20 +59,21 @@ export function BudgetCard({ data, onUpdate, onDelete }: Props) {
             <span>{data.category.icon}</span>
           </div>
 
-          {/* Status */}
           <div className="inline-flex items-center gap-2">
-            <Badge className={cn("font-semibold uppercase", statusBadgeStyle)}>{status}</Badge>
+            <Badge className={cn("font-semibold uppercase", statusBadgeStyle)}>
+              {STATUS_LABELS[status] ?? status}
+            </Badge>
             <DropdownMenu>
               <DropdownMenuTrigger className="text-muted-foreground hover:text-foreground transition-colors">
                 <EllipsisIcon className="size-5" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuGroup>
-                  <DropdownMenuItem onClick={onUpdate}>
+                  <DropdownMenuItem onClick={() => handleUpdateBudget(data)}>
                     <PencilIcon />
                     Edit
                   </DropdownMenuItem>
-                  <DropdownMenuItem variant="destructive" onClick={onDelete}>
+                  <DropdownMenuItem variant="destructive" onClick={() => handleDeleteBudget(data)}>
                     <Trash2Icon />
                     Delete
                   </DropdownMenuItem>
@@ -93,7 +98,7 @@ export function BudgetCard({ data, onUpdate, onDelete }: Props) {
                 / {formatCurrency(data.amount, { compactDisplay: "short", notation: "compact" })}
               </span>
             </div>
-            <span className={cn("block font-bold", progressStyle)}>{progress}%</span>
+            <span className={cn("block font-bold", progressStyle)}>{progress.toFixed(2)}%</span>
           </div>
           <Progress value={progress} className={progressStyle} />
         </div>

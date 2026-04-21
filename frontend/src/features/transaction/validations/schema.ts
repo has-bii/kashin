@@ -1,6 +1,6 @@
 import { z } from "zod/v4"
 
-export const transactionCreateSchema = z.object({
+export const transactionSchema = z.object({
   type: z.enum(["expense", "income"]),
   amount: z.number().positive(),
   transactionDate: z.iso.datetime(),
@@ -10,7 +10,4 @@ export const transactionCreateSchema = z.object({
   notes: z.string(),
 })
 
-export const transactionUpdateSchema = transactionCreateSchema.partial()
-
-export type TransactionCreateDto = z.infer<typeof transactionCreateSchema>
-export type TransactionUpdateDto = z.infer<typeof transactionUpdateSchema>
+export type TransactionDto = z.infer<typeof transactionSchema>

@@ -6,6 +6,7 @@ import { bankAccountController } from "./modules/bank-account"
 import { budgetController } from "./modules/budget"
 import { categoryController } from "./modules/category"
 import { dashboardController } from "./modules/dashboard"
+import { aiExtractionController } from "./modules/ai-extraction"
 import { gmailController } from "./modules/gmail"
 import { healthController } from "./modules/health"
 import { inngestHandler } from "./modules/inngest"
@@ -103,6 +104,7 @@ export const app = new Elysia({ prefix: "/api" })
   .use(bankAccountController)
   .use(recurringTransactionController)
   .use(gmailController)
+  .use(aiExtractionController)
   .use(userSettingsController)
   .use(webhookController)
 

@@ -1,7 +1,6 @@
 "use client"
 
 import { QueryErrorBoundary } from "@/components/query-error-boundary"
-import { ResponsiveDialog } from "@/components/responsive-dialog"
 import {
   MainPage,
   MainPageDescripton,
@@ -11,11 +10,10 @@ import {
 import { SiteHeader } from "@/components/sidebar/site-header"
 import { Button } from "@/components/ui/button"
 import { RecurringTransactionListSkeleton } from "@/features/recurring-transaction/components/recurring-transaction-list-skeleton"
-import { RecurringTransactionForm } from "@/features/recurring-transaction/components/recurring-transaction-form"
-import type { RecurringTransaction } from "@/features/recurring-transaction/types"
+import { useRecurringTransactionContext } from "@/features/recurring-transaction/hooks/use-recurring-transaction-context"
+import { RecurringTransactionProvider } from "@/features/recurring-transaction/provider/recurring-transaction.provider"
 import { PlusIcon } from "lucide-react"
 import dynamic from "next/dynamic"
-import { useMemo, useState } from "react"
 
 const RecurringTransactionList = dynamic(
   () => import("@/features/recurring-transaction/components/recurring-transaction-list"),
@@ -25,81 +23,51 @@ const RecurringTransactionList = dynamic(
   },
 )
 
+const RecurringTransactionDialogs = dynamic(
+  () => import("@/features/recurring-transaction/components/recurring-transaction-dialogs"),
+  {
+    ssr: false,
+  },
+)
+
 export default function RecurringTransactionsPage() {
-  const [selectedItem, setSelectedItem] = useState<RecurringTransaction | null>(null)
-  const [dialogOpen, setDialogOpen] = useState(false)
-
-  const dialogMode = useMemo(() => (selectedItem ? "edit" : "create"), [selectedItem])
-
-  const handleRowClick = (item: RecurringTransaction) => {
-    setSelectedItem(item)
-    setDialogOpen(true)
-  }
-
-  const handleAdd = () => {
-    setSelectedItem(null)
-    setDialogOpen(true)
-  }
-
-  const handleDialogClose = () => {
-    setDialogOpen(false)
-    setTimeout(() => setSelectedItem(null), 200)
-  }
-
-  const dialogInfo = useMemo(
-    () => ({
-      title: dialogMode === "create" ? "Tambah Transaksi Berulang" : "Ubah Transaksi Berulang",
-      description:
-        dialogMode === "create"
-          ? "Atur pengeluaran atau pemasukan berulang baru."
-          : "Perbarui transaksi berulang ini.",
-    }),
-    [dialogMode],
-  )
-
   return (
-    <>
-      <SiteHeader label="Transaksi Berulang" />
+    <RecurringTransactionProvider>
+      <SiteHeader label="Recurring Transactions" />
       <MainPage>
         <MainPageHeader>
           <div className="space-y-2">
-            <MainPageTitle>Transaksi Berulang</MainPageTitle>
+            <MainPageTitle>Recurring Transactions</MainPageTitle>
             <MainPageDescripton>
-              Otomatiskan pengeluaran dan pemasukan rutin Anda. Atur sekali, Kashin yang mengelola sisanya.
+              Automate your recurring expenses and income. Set it up once and let Kashin handle the
+              rest.
             </MainPageDescripton>
           </div>
 
-          <Button
-            onClick={handleAdd}
-            size="xl"
-            className="fixed right-4 bottom-4 md:relative md:right-0 md:bottom-0"
-          >
-            <PlusIcon className="size-4" />
-            <span className="hidden md:block">Tambah Berulang</span>
-          </Button>
+          <AddRecurringTransactionButton />
         </MainPageHeader>
 
         <QueryErrorBoundary>
-          <RecurringTransactionList onRowClick={handleRowClick} />
+          <RecurringTransactionList />
         </QueryErrorBoundary>
 
-        <ResponsiveDialog
-          title={dialogInfo.title}
-          description={dialogInfo.description}
-          open={dialogOpen}
-          onOpenChange={handleDialogClose}
-        >
-          {dialogMode === "create" ? (
-            <RecurringTransactionForm mode="create" onSuccess={handleDialogClose} />
-          ) : (
-            <RecurringTransactionForm
-              mode="edit"
-              data={selectedItem!}
-              onSuccess={handleDialogClose}
-            />
-          )}
-        </ResponsiveDialog>
+        <RecurringTransactionDialogs />
       </MainPage>
-    </>
+    </RecurringTransactionProvider>
+  )
+}
+
+function AddRecurringTransactionButton() {
+  const { handleAddRecurringTransaction } = useRecurringTransactionContext()
+
+  return (
+    <Button
+      onClick={handleAddRecurringTransaction}
+      size="lg"
+      className="fixed right-4 bottom-4 md:relative md:right-0 md:bottom-0"
+    >
+      <PlusIcon className="size-4" />
+      <span className="hidden md:block">Add Recurring</span>
+    </Button>
   )
 }

@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/sidebar"
 import {
   ArrowLeftRightIcon,
+  BotIcon,
   CreditCardIcon,
   LayersIcon,
   LayoutDashboardIcon,
@@ -21,42 +22,42 @@ import {
   PieChartIcon,
   RepeatIcon,
   Settings2Icon,
-  Wallet,
 } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
 import * as React from "react"
 
 const data = {
   navMain: [
     {
-      title: "Beranda",
+      title: "Dashboard",
       url: "/dashboard",
       icon: <LayoutDashboardIcon />,
     },
     {
-      title: "Transaksi",
+      title: "Transactions",
       url: "/dashboard/transactions",
       icon: <ArrowLeftRightIcon />,
     },
     {
-      title: "Rekening Bank",
+      title: "Bank Accounts",
       url: "/dashboard/bank-accounts",
       icon: <CreditCardIcon />,
     },
     {
-      title: "Kategori",
+      title: "Category",
       url: "/dashboard/category",
       icon: <LayersIcon />,
     },
   ],
   tools: [
     {
-      title: "Anggaran",
+      title: "Budgets",
       url: "/dashboard/budget",
       icon: <PieChartIcon />,
     },
     {
-      title: "Berulang",
+      title: "Recurring Transactions",
       url: "/dashboard/recurring-transactions",
       icon: <RepeatIcon />,
     },
@@ -64,6 +65,11 @@ const data = {
       title: "Gmail",
       url: "/dashboard/gmail",
       icon: <MailIcon />,
+    },
+    {
+      title: "AI Extraction",
+      url: "/dashboard/ai-extraction",
+      icon: <BotIcon />,
     },
   ],
   navSecondary: [
@@ -83,13 +89,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              size="md"
+              size="lg"
               className="text-foreground rounded-l-none data-[slot=sidebar-menu-button]:p-4!"
               asChild
             >
               <Link href="/dashboard">
-                <Wallet className="size-5!" />
-                <span className="text-base font-semibold">Kashin.</span>
+                <Image src="/logo.svg" alt="Kashin Logo" width={26} height={26} />
+                <span className="font-logo text-2xl tracking-wide">Kashin.</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

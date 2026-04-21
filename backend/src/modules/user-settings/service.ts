@@ -6,7 +6,7 @@ export abstract class UserSettingsService {
     return prisma.userSettings.upsert({
       where: { userId },
       update: {},
-      create: { userId, filterEmailsByBank: false },
+      create: { userId },
     })
   }
 

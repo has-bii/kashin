@@ -10,5 +10,11 @@ export const importMessagesBody = t.Object({
   messageIds: t.Array(t.String(), { minItems: 1, maxItems: 50 }),
 })
 
+export const updateWatchFiltersBody = t.Object({
+  subjectKeywords: t.Optional(t.Array(t.String({ maxLength: 255 }))),
+  gmailLabels: t.Optional(t.Array(t.String({ maxLength: 100 }))),
+})
+
 export type GetMessagesQuery = (typeof getMessagesQuery)["static"]
 export type ImportMessagesBody = (typeof importMessagesBody)["static"]
+export type UpdateWatchFiltersBody = (typeof updateWatchFiltersBody)["static"]

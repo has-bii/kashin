@@ -11,13 +11,21 @@ const AccessPermission = dynamic(
   { ssr: false, loading: () => <SettingFormSkeleton /> },
 )
 
+const GmailWatchSettings = dynamic(
+  () => import("@/features/settings/app/components/gmail-watch-settings"),
+  { ssr: false, loading: () => <SettingFormSkeleton /> },
+)
+
 export default function SettingsAppPage() {
   return (
     <>
       <SiteHeader label="Application Settings" />
-      <MainPage>
+      <MainPage className="space-y-4">
         <QueryErrorBoundary>
           <AccessPermission />
+        </QueryErrorBoundary>
+        <QueryErrorBoundary>
+          <GmailWatchSettings />
         </QueryErrorBoundary>
       </MainPage>
     </>

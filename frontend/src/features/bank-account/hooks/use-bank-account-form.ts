@@ -1,38 +1,34 @@
+import { useCreateBankAccountMutation } from "../mutations"
 import type { BankAccount } from "../types"
-import { bankAccountCreateSchema } from "../validations/schema"
-import type { BankAccountCreateDto } from "../validations/schema"
-import { api } from "@/lib/api"
+import { bankAccountSchema } from "../validations/schema"
+import type { BankAccountDto } from "../validations/schema"
 import { useForm } from "@tanstack/react-form"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
 
-type Args = { mode: "create"; onSuccess?: () => void }
-
-const bankAccountApi = async (input: BankAccountCreateDto) => {
-  const { data } = await api.post<BankAccount>("/bank-account", input)
-  return data
+interface UseBankAccountForm {
+  prevData?: BankAccount | null
+  options?: {
+    onSuccess?: () => void
+    onError?: () => void
+  }
 }
 
-export const useBankAccountForm = (args: Args) => {
-  const queryClient = useQueryClient()
+export const useBankAccountForm = ({ prevData, options }: UseBankAccountForm = {}) => {
+  const mutation = useCreateBankAccountMutation()
 
   const form = useForm({
-    defaultValues: { bankId: "" as BankAccountCreateDto["bankId"], initialBalance: 0 },
-    validators: { onSubmit: bankAccountCreateSchema },
+    defaultValues: {
+      bankId: prevData?.bank.id ?? ("" as BankAccountDto["bankId"]),
+      initialBalance: 0,
+    },
+    validators: { onSubmit: bankAccountSchema },
     onSubmit: async ({ value }) => {
-      await mutation.mutateAsync(value, { onSuccess: args.onSuccess })
-    },
-  })
-
-  const mutation = useMutation({
-    mutationFn: (input: BankAccountCreateDto) => bankAccountApi(input),
-    onSuccess: () => {
-      toast.success("Bank account created successfully")
-      form.reset()
-      queryClient.invalidateQueries({ queryKey: ["bank-accounts"] })
-    },
-    onError: (error) => {
-      toast.error(error.message ?? "Something went wrong")
+      await mutation.mutateAsync(value, {
+        onSuccess: () => {
+          options?.onSuccess?.()
+          form.reset()
+        },
+        onError: options?.onError,
+      })
     },
   })
 
