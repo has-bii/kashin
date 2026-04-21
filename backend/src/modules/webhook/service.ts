@@ -57,13 +57,14 @@ export abstract class WebhookService {
   static async handleProcessEmail(userId: string) {
     const config = await prisma.gmailWatchConfig.findUnique({
       where: { userId },
-      include: {
-        bankFilters: {
-          include: { bankAccount: { include: { bank: true } } },
-        },
-      },
+      select: { enabled: true, historyId: true, subjectKeywords: true, gmailLabels: true },
     })
     if (!config || !config.enabled || !config.historyId) return
+
+    const bankAccounts = await prisma.bankAccount.findMany({
+      where: { userId },
+      include: { bank: true },
+    })
 
     const accessToken = await auth.api
       .getAccessToken({ body: { userId, providerId: "google" } })
@@ -88,7 +89,10 @@ export abstract class WebhookService {
       historyData = response.data
     } catch (err) {
       logger.error({ err }, "Gmail history fetch failed — disabling watch")
-      await prisma.gmailWatchConfig.update({ where: { userId }, data: { enabled: false, expiresAt: null, qstashMessageId: null } })
+      await prisma.gmailWatchConfig.update({
+        where: { userId },
+        data: { enabled: false, expiresAt: null, qstashMessageId: null },
+      })
       return
     }
 
@@ -99,18 +103,27 @@ export abstract class WebhookService {
       })
     }
 
-    const newMessages = historyData.history?.flatMap((h) => h.messagesAdded ?? []).map((m) => m.message!) ?? []
+    const newMessages =
+      historyData.history?.flatMap((h) => h.messagesAdded ?? []).map((m) => m.message!) ?? []
     if (newMessages.length === 0) return
 
     const metaResults = await Promise.allSettled(
-      newMessages.map((m) => gmail.users.messages.get({ userId: "me", id: m.id!, format: "metadata" })),
+      newMessages.map((m) =>
+        gmail.users.messages.get({ userId: "me", id: m.id!, format: "metadata" }),
+      ),
     )
 
-    const allowedSenderEmails = new Set(config.bankFilters.flatMap((f) => f.bankAccount.bank.email))
+    const allowedSenderEmails = new Set(bankAccounts.flatMap((a) => a.bank.email))
     const allowedKeywords = config.subjectKeywords.map((k) => k.toLowerCase())
     const allowedLabelIds = new Set(config.gmailLabels)
 
-    const passing: Array<{ gmailMessageId: string; emailFrom: string; emailSubject: string; emailSnippet: string; emailReceivedAt: Date | null }> = []
+    const passing: Array<{
+      gmailMessageId: string
+      emailFrom: string
+      emailSubject: string
+      emailSnippet: string
+      emailReceivedAt: Date | null
+    }> = []
 
     for (const result of metaResults) {
       if (result.status !== "fulfilled") continue
@@ -156,7 +169,10 @@ export abstract class WebhookService {
       .catch(() => null)
 
     if (!accessToken) {
-      await prisma.gmailWatchConfig.update({ where: { userId }, data: { enabled: false, expiresAt: null, qstashMessageId: null } })
+      await prisma.gmailWatchConfig.update({
+        where: { userId },
+        data: { enabled: false, expiresAt: null, qstashMessageId: null },
+      })
       return
     }
 
@@ -175,7 +191,7 @@ export abstract class WebhookService {
     const notBefore = Math.floor((expiresAt.getTime() - 24 * 60 * 60 * 1000) / 1000)
 
     if (config.qstashMessageId) {
-      await qstash.messages.delete(config.qstashMessageId).catch(() => {})
+      await qstash.messages.cancel(config.qstashMessageId).catch(() => {})
     }
 
     const scheduled = await qstash.publishJSON({
