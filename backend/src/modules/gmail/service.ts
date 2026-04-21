@@ -4,7 +4,7 @@ import { auth } from "../../lib/auth"
 import { logger } from "../../lib/logger"
 import { prisma } from "../../lib/prisma"
 import { qstash } from "../../lib/qstash"
-import { inngest } from "../inngest/client"
+import { sendProcessEmailEvent } from "../inngest/events"
 import type { GetMessagesQuery, ImportMessagesBody, UpdateWatchFiltersBody } from "./dto"
 import { InternalServerError } from "elysia"
 import { gmail_v1, google } from "googleapis"
@@ -112,12 +112,10 @@ export abstract class GmailService {
 
     if (created.length > 0) {
       try {
-        await inngest.send(
-          created.map(({ id, userId: uid }) => ({
-            id: `process-email-${id}`,
-            name: "email/process.email" as const,
-            data: { aiExtractionId: id, userId: uid },
-          })),
+        await Promise.all(
+          created.map(({ id, userId: uid }) =>
+            sendProcessEmailEvent({ aiExtractionId: id, userId: uid }),
+          ),
         )
       } catch {
         await prisma.aiExtraction.deleteMany({
@@ -308,12 +306,10 @@ export abstract class GmailService {
         select: { id: true, userId: true },
       })
       try {
-        await inngest.send(
-          rows.map(({ id, userId: uid }) => ({
-            id: `process-email-${id}`,
-            name: "email/process.email" as const,
-            data: { aiExtractionId: id, userId: uid },
-          })),
+        await Promise.all(
+          rows.map(({ id, userId: uid }) =>
+            sendProcessEmailEvent({ aiExtractionId: id, userId: uid }),
+          ),
         )
       } catch {
         await prisma.aiExtraction.deleteMany({ where: { id: { in: rows.map((r) => r.id) } } })

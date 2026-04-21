@@ -2,7 +2,7 @@ import { Prisma } from "../../generated/prisma/client"
 import { createError } from "../../global/error"
 import { prisma } from "../../lib/prisma"
 import { inngest } from "../inngest/client"
-import { INNGEST_FUNCTION_EVENTS } from "../inngest/functions"
+import { sendCancelEmailEvent } from "../inngest/events"
 import { TransactionService } from "../transaction/service"
 import type { ConfirmInput, GetAllQuery } from "./dto"
 
@@ -161,7 +161,7 @@ export abstract class AiExtractionService {
       createError("bad_request", "Only pending or processing extractions can be cancelled")
     }
 
-    await INNGEST_FUNCTION_EVENTS.cancelEmail.sendEvent({ aiExtractionId: id })
+    await sendCancelEmailEvent({ aiExtractionId: id })
     await prisma.aiExtraction.delete({ where: { id } })
     return { message: "Extraction cancelled" }
   }
