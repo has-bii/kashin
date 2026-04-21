@@ -1,4 +1,4 @@
-import { Message } from "../types"
+import { GmailWatchConfig, Message, UpdateWatchFiltersDto } from "../types"
 import { api } from "@/lib/api"
 
 export type GetMessagesParams = {
@@ -27,5 +27,24 @@ export interface ImportMessageData {
 
 export const importMessagesApi = async (messageIds: string[]) => {
   const { data } = await api.post<ImportMessageData>("/gmail/import", { messageIds })
+  return data
+}
+
+export const getWatchConfigApi = async () => {
+  const { data } = await api.get<GmailWatchConfig>("/gmail/watch")
+  return data
+}
+
+export const enableWatchApi = async () => {
+  const { data } = await api.post<GmailWatchConfig>("/gmail/watch/enable")
+  return data
+}
+
+export const disableWatchApi = async () => {
+  await api.post("/gmail/watch/disable")
+}
+
+export const updateWatchFiltersApi = async (body: UpdateWatchFiltersDto) => {
+  const { data } = await api.patch<GmailWatchConfig>("/gmail/watch/filters", body)
   return data
 }

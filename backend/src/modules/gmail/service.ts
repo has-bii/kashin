@@ -74,8 +74,11 @@ export abstract class GmailService {
     }))
 
     const successes = settled.filter(
-      (s): s is typeof s & { result: PromiseFulfilledResult<Awaited<ReturnType<typeof gmail.users.messages.get>>> } =>
-        s.result.status === "fulfilled",
+      (
+        s,
+      ): s is typeof s & {
+        result: PromiseFulfilledResult<Awaited<ReturnType<typeof gmail.users.messages.get>>>
+      } => s.result.status === "fulfilled",
     )
     const fetchFailureCount = settled.length - successes.length
 
@@ -134,8 +137,22 @@ export abstract class GmailService {
   }
 
   static async getWatchConfig(userId: string) {
-    return prisma.gmailWatchConfig.findUnique({
+    const config = await prisma.gmailWatchConfig.findUnique({
       where: { userId },
+      include: {
+        bankFilters: {
+          select: { id: true, bankAccountId: true },
+        },
+      },
+    })
+    if (config) return config
+
+    const user = await prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      select: { email: true },
+    })
+    return prisma.gmailWatchConfig.create({
+      data: { userId, gmailAddress: user.email },
       include: {
         bankFilters: {
           select: { id: true, bankAccountId: true },
@@ -256,7 +273,7 @@ export abstract class GmailService {
     if (!config || !config.enabled) return { enabled: false }
 
     if (config.qstashMessageId) {
-      await qstash.messages.delete(config.qstashMessageId).catch(() => {})
+      await qstash.messages.cancel(config.qstashMessageId).catch(() => {})
     }
 
     const accessToken = await auth.api
@@ -279,7 +296,13 @@ export abstract class GmailService {
 
   static async createExtractionsAndQueue(
     userId: string,
-    messages: Array<{ gmailMessageId: string; emailFrom: string; emailSubject: string; emailSnippet: string; emailReceivedAt: Date | null }>,
+    messages: Array<{
+      gmailMessageId: string
+      emailFrom: string
+      emailSubject: string
+      emailSnippet: string
+      emailReceivedAt: Date | null
+    }>,
   ): Promise<number> {
     const existing = await prisma.aiExtraction.findMany({
       where: { userId, status: { in: ["pending", "processing"] } },
@@ -302,7 +325,11 @@ export abstract class GmailService {
 
     if (created.count > 0) {
       const rows = await prisma.aiExtraction.findMany({
-        where: { userId, gmailMessageId: { in: messages.map((m) => m.gmailMessageId) }, status: "pending" },
+        where: {
+          userId,
+          gmailMessageId: { in: messages.map((m) => m.gmailMessageId) },
+          status: "pending",
+        },
         select: { id: true, userId: true },
       })
       try {
@@ -367,5 +394,4 @@ export abstract class GmailService {
     const snippet = email.snippet || null
     return { subject, from, date, snippet }
   }
-
 }

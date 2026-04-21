@@ -2,6 +2,7 @@ import { useGmailContext } from "../hooks/use-gmail-context"
 import { useMessagesFilters } from "../hooks/use-messages-filters"
 import { useImportMessagesMutation } from "../mutations"
 import { getMessagesQueryOptions } from "../query"
+import { GmailWatchCard } from "./gmail-watch-card"
 import { MessageDateFilters } from "./message-date-filters"
 import { MessageTable } from "./message-table"
 import { Badge } from "@/components/ui/badge"
@@ -73,6 +74,7 @@ export default function MessagesList() {
 
   return (
     <div className="space-y-4">
+      <GmailWatchCard />
       <div className="flex items-end gap-4">
         {/* Date Filters */}
         <MessageDateFilters after={filters.after} before={filters.before} apply={applyDateFilter} />
