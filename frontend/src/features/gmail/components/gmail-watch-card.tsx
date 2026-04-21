@@ -1,4 +1,4 @@
-import { useDisableWatchMutation, useEnableWatchMutation } from "../mutations"
+import { useToggleWatchMutation } from "../mutations"
 import { getWatchConfigQueryOptions } from "../query"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -10,18 +10,9 @@ import Link from "next/link"
 
 export function GmailWatchCard() {
   const { data: config } = useSuspenseQuery(getWatchConfigQueryOptions())
-  const enableMutation = useEnableWatchMutation()
-  const disableMutation = useDisableWatchMutation()
+  const toggleMutation = useToggleWatchMutation()
 
-  const isPending = enableMutation.isPending || disableMutation.isPending
-
-  const handleToggle = (checked: boolean) => {
-    if (checked) {
-      enableMutation.mutate()
-    } else {
-      disableMutation.mutate()
-    }
-  }
+  const handleToggle = (checked: boolean) => toggleMutation.mutate(checked)
 
   return (
     <Card>
@@ -35,7 +26,11 @@ export function GmailWatchCard() {
             <Badge variant={config.isActive ? "default" : "secondary"}>
               {config.isActive ? "Active" : "Inactive"}
             </Badge>
-            <Switch checked={config.isActive} onCheckedChange={handleToggle} disabled={isPending} />
+            <Switch
+              checked={config.isActive}
+              onCheckedChange={handleToggle}
+              disabled={toggleMutation.isPending}
+            />
           </div>
         </div>
       </CardHeader>

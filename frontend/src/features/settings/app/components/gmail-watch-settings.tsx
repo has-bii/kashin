@@ -6,56 +6,15 @@ import { Label } from "@/components/ui/label"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
-import {
-  useDisableWatchMutation,
-  useEnableWatchMutation,
-  useUpdateWatchFiltersMutation,
-} from "@/features/gmail/mutations"
+import { useGmailWatchSettingsForm } from "@/features/gmail/hooks/use-gmail-watch-settings-form"
 import { getLabelsQueryOptions, getWatchConfigQueryOptions } from "@/features/gmail/query"
 import { formatDate } from "@/utils/format-date"
-import { useForm } from "@tanstack/react-form"
 import { useSuspenseQuery } from "@tanstack/react-query"
-
-function parseList(value: string): string[] {
-  return value
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean)
-}
-
-function joinList(arr: string[]): string {
-  return arr.join(", ")
-}
 
 export default function GmailWatchSettings() {
   const { data: config } = useSuspenseQuery(getWatchConfigQueryOptions())
   const { data: labels } = useSuspenseQuery(getLabelsQueryOptions())
-  const enableMutation = useEnableWatchMutation()
-  const disableMutation = useDisableWatchMutation()
-  const filtersMutation = useUpdateWatchFiltersMutation()
-
-  const isPending = enableMutation.isPending || disableMutation.isPending
-
-  const handleToggle = (checked: boolean) => {
-    if (checked) {
-      enableMutation.mutate()
-    } else {
-      disableMutation.mutate()
-    }
-  }
-
-  const form = useForm({
-    defaultValues: {
-      subjectKeywords: joinList(config.subjectKeywords),
-      gmailLabels: config.gmailLabels,
-    },
-    onSubmit: ({ value }) => {
-      filtersMutation.mutate({
-        subjectKeywords: parseList(value.subjectKeywords),
-        gmailLabels: value.gmailLabels,
-      })
-    },
-  })
+  const { form, filtersMutation, toggleMutation } = useGmailWatchSettingsForm(config)
 
   return (
     <Card>
@@ -72,15 +31,19 @@ export default function GmailWatchSettings() {
             <div className="flex-1 space-y-0.5">
               <h4 className="font-semibold">Push Notifications</h4>
               <p className="text-muted-foreground text-sm">
-                {config.isActive && config.expiresAt
+                {config.enabled && config.expiresAt
                   ? `Active · renews ${formatDate(config.expiresAt, "dd MMM yyyy")}`
                   : "Disabled — enable to start watching your inbox"}
               </p>
             </div>
-            <Badge variant={config.isActive ? "default" : "secondary"}>
-              {config.isActive ? "Active" : "Inactive"}
+            <Badge variant={config.enabled ? "default" : "secondary"}>
+              {config.enabled ? "Active" : "Inactive"}
             </Badge>
-            <Switch checked={config.isActive} onCheckedChange={handleToggle} disabled={isPending} />
+            <Switch
+              checked={config.enabled}
+              onCheckedChange={(checked) => toggleMutation.mutate(checked)}
+              disabled={toggleMutation.isPending}
+            />
           </div>
         </div>
 
@@ -99,8 +62,15 @@ export default function GmailWatchSettings() {
                 <Textarea
                   id={field.name}
                   placeholder="e.g. BCA, Mandiri, transfer"
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
+                  value={field.state.value.join(", ")}
+                  onChange={(e) =>
+                    field.handleChange(
+                      e.target.value
+                        .split(",")
+                        .map((s) => s.trim())
+                        .filter(Boolean),
+                    )
+                  }
                   rows={2}
                 />
                 <p className="text-muted-foreground text-xs">

@@ -19,32 +19,22 @@ export const useImportMessagesMutation = () => {
   })
 }
 
-export const useEnableWatchMutation = () => {
+export const useToggleWatchMutation = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: enableWatchApi,
-    onSuccess: () => {
-      toast.success("Gmail watch enabled")
-      queryClient.invalidateQueries({ queryKey: [WATCH_CONFIG_QUERY_KEY] })
+    mutationFn: async (isActive: boolean) => {
+      if (isActive) await enableWatchApi()
+      else await disableWatchApi()
+    },
+    onSuccess: (_, isActive) => {
+      toast.success(isActive ? "Gmail watch enabled" : "Gmail watch disabled")
     },
     onError: (error) => {
-      toast.error(error.message || "Failed to enable watch")
+      toast.error(error.message || "Failed to update watch")
     },
-  })
-}
-
-export const useDisableWatchMutation = () => {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: disableWatchApi,
-    onSuccess: () => {
-      toast.success("Gmail watch disabled")
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: [WATCH_CONFIG_QUERY_KEY] })
-    },
-    onError: (error) => {
-      toast.error(error.message || "Failed to disable watch")
     },
   })
 }
