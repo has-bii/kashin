@@ -131,10 +131,6 @@ export abstract class AiExtractionService {
     if (record!.status !== "failed") {
       createError("bad_request", "Only failed extractions can be reanalyzed")
     }
-    if (!record!.emailImportBatchId) {
-      createError("bad_request", "Extraction has no associated import batch")
-    }
-
     await prisma.aiExtraction.update({
       where: { id },
       data: { status: "pending", errorMessage: null, processedAt: null, finishedAt: null },
@@ -143,7 +139,7 @@ export abstract class AiExtractionService {
     await inngest.send({
       id: `process-email-${id}-reanalyze-${Date.now()}`,
       name: "email/process.email",
-      data: { aiExtractionId: id, userId, emailImportBatchId: record!.emailImportBatchId },
+      data: { aiExtractionId: id, userId },
     })
 
     return { message: "Reanalysis queued" }

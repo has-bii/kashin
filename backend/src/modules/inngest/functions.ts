@@ -1,7 +1,6 @@
 import { auth } from "../../lib/auth"
 import { logger } from "../../lib/logger"
 import { prisma } from "../../lib/prisma"
-import { progressBus } from "../../lib/progress-bus"
 import { EmailProcessorService } from "../email-processor/service"
 import { GmailService } from "../gmail/service"
 import { inngest } from "./client"
@@ -10,31 +9,6 @@ import { NonRetriableError } from "inngest"
 type ProcessEmailEventData = {
   aiExtractionId: string
   userId: string
-  emailImportBatchId: string
-}
-
-async function checkBatchCompletion(
-  emailImportBatchId: string,
-): Promise<{ completed: boolean; total: number; processed: number }> {
-  const [batch, remaining] = await Promise.all([
-    prisma.emailImportBatch.findUnique({
-      where: { id: emailImportBatchId },
-      select: { total: true },
-    }),
-    prisma.aiExtraction.count({
-      where: { emailImportBatchId, status: { in: ["pending", "processing"] } },
-    }),
-  ])
-  const total = batch?.total ?? 0
-  const processed = total - remaining
-  const completed = remaining === 0
-  if (completed) {
-    await prisma.emailImportBatch.update({
-      where: { id: emailImportBatchId },
-      data: { status: "completed", completedAt: new Date() },
-    })
-  }
-  return { completed, total, processed }
 }
 
 export const INNGEST_FUNCTION_EVENTS = {
@@ -65,26 +39,17 @@ export const processEmail = inngest.createFunction(
     },
     retries: 2,
     onFailure: async ({ error, event, step }) => {
-      const { aiExtractionId, emailImportBatchId, userId } = event.data.event
-        .data as ProcessEmailEventData
+      const { aiExtractionId } = event.data.event.data as ProcessEmailEventData
       await step.run("handle-failure", async () => {
         await prisma.aiExtraction.update({
           where: { id: aiExtractionId },
           data: { status: "failed", finishedAt: new Date(), errorMessage: error.message },
         })
-        const { completed, total, processed } = await checkBatchCompletion(emailImportBatchId)
-        await progressBus.publish({
-          batchId: emailImportBatchId,
-          userId,
-          status: completed ? "completed" : "processing",
-          total,
-          processed,
-        })
       })
     },
   },
   async ({ event, step }) => {
-    const { userId, aiExtractionId, emailImportBatchId } = event.data as ProcessEmailEventData
+    const { userId, aiExtractionId } = event.data as ProcessEmailEventData
 
     logger.info({ userId, aiExtractionId }, "process-email: starting")
 
@@ -212,15 +177,6 @@ export const processEmail = inngest.createFunction(
                 note: result.message,
               }),
         },
-      })
-
-      const { completed, total, processed } = await checkBatchCompletion(emailImportBatchId)
-      await progressBus.publish({
-        batchId: emailImportBatchId,
-        userId,
-        status: completed ? "completed" : "processing",
-        total,
-        processed,
       })
     })
 
