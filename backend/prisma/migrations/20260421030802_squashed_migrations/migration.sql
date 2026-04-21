@@ -92,11 +92,36 @@ CREATE TABLE "passkey" (
 CREATE TABLE "user_settings" (
     "id" UUID NOT NULL,
     "userId" UUID NOT NULL,
-    "filterEmailsByBank" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMPTZ NOT NULL,
 
     CONSTRAINT "user_settings_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "gmail_watch_configs" (
+    "id" UUID NOT NULL,
+    "userId" UUID NOT NULL,
+    "gmailAddress" VARCHAR(255) NOT NULL,
+    "enabled" BOOLEAN NOT NULL DEFAULT false,
+    "historyId" VARCHAR(50),
+    "expiresAt" TIMESTAMPTZ,
+    "qstashMessageId" TEXT,
+    "subjectKeywords" VARCHAR(255)[] DEFAULT ARRAY[]::VARCHAR(255)[],
+    "gmailLabels" VARCHAR(100)[] DEFAULT ARRAY[]::VARCHAR(100)[],
+    "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT "gmail_watch_configs_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "gmail_watch_bank_filters" (
+    "id" UUID NOT NULL,
+    "watchConfigId" UUID NOT NULL,
+    "bankAccountId" UUID NOT NULL,
+
+    CONSTRAINT "gmail_watch_bank_filters_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -196,8 +221,9 @@ CREATE TABLE "ai_extractions" (
     "userId" UUID NOT NULL,
     "status" "AiExtractionStatus" NOT NULL DEFAULT 'pending',
     "gmailMessageId" VARCHAR(255) NOT NULL,
-    "emailFrom" VARCHAR(255),
-    "emailSubject" VARCHAR(255),
+    "emailFrom" VARCHAR(255) NOT NULL,
+    "emailSubject" VARCHAR(255) NOT NULL,
+    "emailSnippet" VARCHAR(500) NOT NULL,
     "emailText" TEXT,
     "emailHtml" TEXT,
     "emailReceivedAt" TIMESTAMPTZ,
@@ -209,14 +235,15 @@ CREATE TABLE "ai_extractions" (
     "extractedCategoryId" UUID,
     "extractedBankAccountId" UUID,
     "suggestedCategory" VARCHAR(255),
-    "extractedNotes" TEXT,
     "confidenceScore" REAL,
     "errorMessage" TEXT,
+    "note" TEXT,
     "processedAt" TIMESTAMPTZ,
     "finishedAt" TIMESTAMPTZ,
     "confirmedAt" TIMESTAMPTZ,
     "rejectedAt" TIMESTAMPTZ,
     "tokenUsage" INTEGER,
+    "aiResponse" TEXT,
     "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMPTZ NOT NULL,
 
@@ -243,6 +270,18 @@ CREATE UNIQUE INDEX "user_settings_userId_key" ON "user_settings"("userId");
 
 -- CreateIndex
 CREATE INDEX "user_settings_userId_idx" ON "user_settings"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "gmail_watch_configs_userId_key" ON "gmail_watch_configs"("userId");
+
+-- CreateIndex
+CREATE INDEX "gmail_watch_configs_userId_idx" ON "gmail_watch_configs"("userId");
+
+-- CreateIndex
+CREATE INDEX "gmail_watch_configs_gmailAddress_idx" ON "gmail_watch_configs"("gmailAddress");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "gmail_watch_bank_filters_watchConfigId_bankAccountId_key" ON "gmail_watch_bank_filters"("watchConfigId", "bankAccountId");
 
 -- CreateIndex
 CREATE INDEX "categories_userId_idx" ON "categories"("userId");
@@ -324,6 +363,15 @@ ALTER TABLE "passkey" ADD CONSTRAINT "passkey_userId_fkey" FOREIGN KEY ("userId"
 
 -- AddForeignKey
 ALTER TABLE "user_settings" ADD CONSTRAINT "user_settings_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "gmail_watch_configs" ADD CONSTRAINT "gmail_watch_configs_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "gmail_watch_bank_filters" ADD CONSTRAINT "gmail_watch_bank_filters_watchConfigId_fkey" FOREIGN KEY ("watchConfigId") REFERENCES "gmail_watch_configs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "gmail_watch_bank_filters" ADD CONSTRAINT "gmail_watch_bank_filters_bankAccountId_fkey" FOREIGN KEY ("bankAccountId") REFERENCES "bank_accounts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "categories" ADD CONSTRAINT "categories_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
