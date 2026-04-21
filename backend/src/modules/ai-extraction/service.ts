@@ -2,6 +2,7 @@ import { Prisma } from "../../generated/prisma/client"
 import { createError } from "../../global/error"
 import { prisma } from "../../lib/prisma"
 import { inngest } from "../inngest/client"
+import { INNGEST_FUNCTION_EVENTS } from "../inngest/functions"
 import { TransactionService } from "../transaction/service"
 import type { ConfirmInput, GetAllQuery } from "./dto"
 
@@ -91,22 +92,30 @@ export abstract class AiExtractionService {
       createError("bad_request", "type, amount, currency, and transactionDate are required")
     }
 
-    const result = await TransactionService.create(userId, {
-      type: type!,
-      amount: amount!,
-      currency: currency!,
-      transactionDate: transactionDate!,
-      description,
-      notes,
-      source: "email",
-      aiExtractionId: id,
-      ...(categoryId ? { categoryId } : {}),
-      ...(bankAccountId ? { bankAccountId } : {}),
-    })
+    const result = await prisma.$transaction(async (tx) => {
+      const created = await TransactionService.create(
+        userId,
+        {
+          type: type!,
+          amount: amount!,
+          currency: currency!,
+          transactionDate: transactionDate!,
+          description,
+          notes,
+          source: "email",
+          aiExtractionId: id,
+          ...(categoryId ? { categoryId } : {}),
+          ...(bankAccountId ? { bankAccountId } : {}),
+        },
+        tx,
+      )
 
-    await prisma.aiExtraction.update({
-      where: { id },
-      data: { status: "confirmed", confirmedAt: new Date() },
+      await tx.aiExtraction.update({
+        where: { id },
+        data: { status: "confirmed", confirmedAt: new Date() },
+      })
+
+      return created
     })
 
     return result
@@ -152,6 +161,7 @@ export abstract class AiExtractionService {
       createError("bad_request", "Only pending or processing extractions can be cancelled")
     }
 
+    await INNGEST_FUNCTION_EVENTS.cancelEmail.sendEvent({ aiExtractionId: id })
     await prisma.aiExtraction.delete({ where: { id } })
     return { message: "Extraction cancelled" }
   }

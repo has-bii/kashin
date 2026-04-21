@@ -22,6 +22,11 @@ export const INNGEST_FUNCTION_EVENTS = {
       })
     },
   },
+  cancelEmail: {
+    key: "email/cancel.email",
+    sendEvent: async (data: { aiExtractionId: string }) =>
+      inngest.send({ name: "email/cancel.email", data }),
+  },
 }
 
 export const processEmail = inngest.createFunction(
@@ -38,10 +43,16 @@ export const processEmail = inngest.createFunction(
       event: INNGEST_FUNCTION_EVENTS.processEmail.key,
     },
     retries: 2,
+    cancelOn: [
+      {
+        event: INNGEST_FUNCTION_EVENTS.cancelEmail.key,
+        if: "async.data.aiExtractionId == event.data.aiExtractionId",
+      },
+    ],
     onFailure: async ({ error, event, step }) => {
       const { aiExtractionId } = event.data.event.data as ProcessEmailEventData
       await step.run("handle-failure", async () => {
-        await prisma.aiExtraction.update({
+        await prisma.aiExtraction.updateMany({
           where: { id: aiExtractionId },
           data: { status: "failed", finishedAt: new Date(), errorMessage: error.message },
         })
