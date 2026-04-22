@@ -1,8 +1,10 @@
 import { ENV } from "../../config/env"
+import { QuotaExceededError } from "../../global/error"
 import { auth } from "../../lib/auth"
 import { logger } from "../../lib/logger"
 import { prisma } from "../../lib/prisma"
 import { qstash } from "../../lib/qstash"
+import { AiUsageService } from "../ai-usage/service"
 import { GmailService } from "../gmail/service"
 import { status } from "elysia"
 import { OAuth2Client } from "google-auth-library"
@@ -153,7 +155,23 @@ export abstract class WebhookService {
 
     if (passing.length === 0) return
 
-    await GmailService.createExtractionsAndQueue(userId, passing)
+    const allowed: typeof passing = []
+    for (const email of passing) {
+      try {
+        await AiUsageService.assertQuotaAndRecord(userId, "email_extraction")
+        allowed.push(email)
+      } catch (err) {
+        if (err instanceof QuotaExceededError) {
+          logger.info({ userId }, "handleProcessEmail: daily quota reached, skipping remaining emails")
+          break
+        }
+        throw err
+      }
+    }
+
+    if (allowed.length > 0) {
+      await GmailService.createExtractionsAndQueue(userId, allowed)
+    }
   }
 
   static async handleGmailWatchRenew(userId: string) {

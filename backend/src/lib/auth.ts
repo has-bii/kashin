@@ -57,12 +57,30 @@ export const auth = betterAuth({
     user: {
       create: {
         after: async (user) => {
-          await prisma.gmailWatchConfig.create({
-            data: {
-              userId: user.id,
-              gmailAddress: user.email,
-            },
-          })
+          const freePlan = await prisma.plan.findUnique({ where: { code: "free" } })
+
+          const now = new Date()
+          const farFuture = new Date("2099-12-31")
+
+          await Promise.all([
+            prisma.gmailWatchConfig.create({
+              data: {
+                userId: user.id,
+                gmailAddress: user.email,
+              },
+            }),
+            freePlan
+              ? prisma.subscription.create({
+                  data: {
+                    userId: user.id,
+                    planId: freePlan.id,
+                    status: "active",
+                    currentPeriodStart: now,
+                    currentPeriodEnd: farFuture,
+                  },
+                })
+              : Promise.resolve(),
+          ])
           void sendWelcomeEmail(user.email, user.name)
         },
       },
