@@ -413,7 +413,7 @@ model Subscription {
   updatedAt          DateTime           @updatedAt @db.Timestamptz
 
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  plan     Plan      @relation(fields: [planId], references: [id])
+  plan     Plan      @relation(fields: [planId], references: [id], onDelete: NoAction)
   payments Payment[]
 
   @@index([planId])
@@ -434,7 +434,6 @@ model AiUsageDaily {
   events AiUsageEvent[]
 
   @@unique([userId, date])
-  @@index([userId, date])
   @@map("ai_usage_daily")
 }
 
@@ -443,7 +442,7 @@ model AiUsageEvent {
   userId    String      @db.Uuid
   usageDate DateTime    @db.Date
   kind      AiUsageKind
-  refId     String?     @db.Uuid
+  refId     String?     @db.Uuid   // FK to ai_extractions.id or other source record (polymorphic, no enforced FK)
   createdAt DateTime    @default(now()) @db.Timestamptz
 
   daily AiUsageDaily @relation(fields: [userId, usageDate], references: [userId, date], onDelete: Cascade)
