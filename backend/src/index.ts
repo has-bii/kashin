@@ -12,7 +12,6 @@ import { healthController } from "./modules/health"
 import { inngestHandler } from "./modules/inngest"
 import { recurringTransactionController } from "./modules/recurring-transaction"
 import { transactionController } from "./modules/transaction"
-import { userSettingsController } from "./modules/user-settings"
 import { webhookController } from "./modules/webhook"
 import cors from "@elysiajs/cors"
 import { Elysia } from "elysia"
@@ -105,7 +104,6 @@ export const app = new Elysia({ prefix: "/api" })
   .use(recurringTransactionController)
   .use(gmailController)
   .use(aiExtractionController)
-  .use(userSettingsController)
   .use(webhookController)
 
 export default app

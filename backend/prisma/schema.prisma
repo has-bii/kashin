@@ -83,7 +83,6 @@ model User {
   recurringTransactions RecurringTransaction[]
   budgets               Budget[]
   bankAccounts          BankAccount[]
-  settings              UserSettings?
   gmailWatchConfig      GmailWatchConfig?
   @@unique([email])
   @@map("users")
@@ -154,18 +153,6 @@ model Passkey {
   @@map("passkey")
 }
 
-model UserSettings {
-  id        String   @id @default(uuid(7)) @db.Uuid
-  userId    String   @unique @db.Uuid
-  createdAt DateTime @default(now()) @db.Timestamptz
-  updatedAt DateTime @updatedAt @db.Timestamptz
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@map("user_settings")
-}
-
 model GmailWatchConfig {
   id              String    @id @default(uuid(7)) @db.Uuid
   userId          String    @unique @db.Uuid
@@ -181,8 +168,6 @@ model GmailWatchConfig {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
-  @@index([gmailAddress])
   @@map("gmail_watch_configs")
 }
 
@@ -207,7 +192,6 @@ model Category {
   budgets               Budget[]
 
   @@unique([name, userId])
-  @@index([userId])
   @@index([userId, type])
   @@map("categories")
 }
@@ -235,13 +219,11 @@ model Transaction {
   aiExtraction         AiExtraction?         @relation(fields: [aiExtractionId], references: [id], onDelete: SetNull)
   bankAccount          BankAccount?          @relation(fields: [bankAccountId], references: [id], onDelete: SetNull)
 
-  @@index([userId])
   @@index([categoryId])
   @@index([recurringTxnId])
   @@index([userId, transactionDate])
   @@index([userId, type])
   @@index([userId, categoryId])
-  @@index([userId, source])
   @@index([bankAccountId])
   @@map("transactions")
 }
@@ -267,7 +249,6 @@ model RecurringTransaction {
 
   @@index([userId])
   @@index([categoryId])
-  @@index([isActive, nextDueDate])
   @@map("recurring_transactions")
 }
 

@@ -57,19 +57,12 @@ export const auth = betterAuth({
     user: {
       create: {
         after: async (user) => {
-          await Promise.all([
-            prisma.userSettings.create({
-              data: {
-                userId: user.id,
-              },
-            }),
-            prisma.gmailWatchConfig.create({
-              data: {
-                userId: user.id,
-                gmailAddress: user.email,
-              },
-            }),
-          ])
+          await prisma.gmailWatchConfig.create({
+            data: {
+              userId: user.id,
+              gmailAddress: user.email,
+            },
+          })
           void sendWelcomeEmail(user.email, user.name)
         },
       },
