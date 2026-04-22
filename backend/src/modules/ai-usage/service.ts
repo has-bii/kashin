@@ -17,7 +17,7 @@ export abstract class AiUsageService {
         select: { plan: { select: { dailyAiLimit: true } } },
       })
 
-      const limit = subscription?.plan.dailyAiLimit ?? 5
+      const limit = subscription?.plan?.dailyAiLimit ?? 5
 
       const daily = await tx.aiUsageDaily.upsert({
         where: { userId_date: { userId, date: today } },
@@ -27,11 +27,6 @@ export abstract class AiUsageService {
       })
 
       if (daily.count > limit) {
-        // Roll back the increment before throwing
-        await tx.aiUsageDaily.update({
-          where: { userId_date: { userId, date: today } },
-          data: { count: { decrement: 1 } },
-        })
         throw new QuotaExceededError("Daily AI quota exceeded")
       }
 
@@ -58,7 +53,7 @@ export abstract class AiUsageService {
 
     return {
       count: daily?.count ?? 0,
-      limit: subscription?.plan.dailyAiLimit ?? 5,
+      limit: subscription?.plan?.dailyAiLimit ?? 5,
     }
   }
 }
