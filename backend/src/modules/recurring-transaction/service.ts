@@ -163,7 +163,7 @@ export abstract class RecurringTransactionService {
   }
 
   static async scheduleNext(id: string, runAt: Date): Promise<void> {
-    const url = `${ENV.AUTH.betterAuthUrl}/api/webhook/recurring-transaction`
+    const url = `${ENV.SERVER.backendUrl}/api/webhook/recurring-transaction`
     await qstash.publishJSON({
       url,
       body: { recurringTransactionId: id, scheduledFor: runAt.toISOString() },

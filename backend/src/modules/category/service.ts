@@ -12,7 +12,9 @@ export abstract class CategoryService {
   }
 
   static async getById(userId: string, id: string) {
-    return prisma.category.findUnique({ where: { id, userId } })
+    const category = await prisma.category.findUnique({ where: { id, userId } })
+    if (!category) createError("not_found", "Category not found")
+    return category!
   }
 
   static async create(userId: string, input: CreateInput) {

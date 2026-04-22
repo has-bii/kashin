@@ -18,6 +18,8 @@ import cors from "@elysiajs/cors"
 import { Elysia } from "elysia"
 import { rateLimit } from "elysia-rate-limit"
 
+const MAX_BODY_SIZE = 10 * 1024 * 1024 // 10 MB
+
 const requestStore = new WeakMap<Request, { startTime: number }>()
 
 const getRateLimitKey = (req: Request): string => {
@@ -43,8 +45,27 @@ const getRateLimitMax = (key: string): number => {
 }
 
 export const app = new Elysia({ prefix: "/api" })
-  .onRequest(({ request }) => {
+  .use(
+    cors({
+      origin: ENV.AUTH.frontendUrl,
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+      credentials: true,
+      allowedHeaders: ["Content-Type", "Authorization"],
+    }),
+  )
+  .onRequest(({ request, set }) => {
     requestStore.set(request, { startTime: performance.now() })
+
+    const contentLength = request.headers.get("content-length")
+    if (contentLength && Number(contentLength) > MAX_BODY_SIZE) {
+      set.status = 413
+      return { error: "Payload too large", code: "PAYLOAD_TOO_LARGE" }
+    }
+
+    set.headers["X-Content-Type-Options"] = "nosniff"
+    set.headers["X-Frame-Options"] = "DENY"
+    set.headers["X-XSS-Protection"] = "0"
+    set.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
   })
   .onAfterResponse(({ request, set }) => {
     const path = new URL(request.url).pathname
@@ -73,14 +94,6 @@ export const app = new Elysia({ prefix: "/api" })
     set.status = 500
     return { error: "An internal server error occurred", code: "INTERNAL_ERROR" }
   })
-  .use(
-    cors({
-      origin: ENV.AUTH.frontendUrl,
-      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-      credentials: true,
-      allowedHeaders: ["Content-Type", "Authorization"],
-    }),
-  )
   .all("/inngest", ({ request }) => inngestHandler(request))
   .use(healthController)
   .use(

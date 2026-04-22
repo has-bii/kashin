@@ -1,5 +1,5 @@
-import { ChatOpenAI } from "@langchain/openai"
 import { ENV } from "../config/env"
+import { ChatOpenAI } from "@langchain/openai"
 
 export const model = new ChatOpenAI({
   modelName: ENV.LLM.model,
@@ -18,6 +18,6 @@ export const model = new ChatOpenAI({
   modelKwargs: {
     response_format: { type: "json_object" },
   },
-  temperature: 0.7,
-  maxRetries: 0,
+  temperature: 0.1,
+  maxRetries: 1,
 })
