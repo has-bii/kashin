@@ -42,6 +42,13 @@ export class ServiceUnavailable extends Error {
   }
 }
 
+export class QuotaExceededError extends Error {
+  status = 429
+  constructor(public message: string) {
+    super(message)
+  }
+}
+
 const ERROR_MAP = {
   bad_request: BadRequest,
   unauthorized: Unauthorized,
