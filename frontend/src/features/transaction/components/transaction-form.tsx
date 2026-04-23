@@ -23,6 +23,7 @@ import {
 import { getBankAccountsQueryOptions } from "@/features/bank-account/query"
 import { getCategoriesQueryOptions } from "@/features/category/query"
 import { TransactionType } from "@/types/enums"
+import { currencyToNumber, formatCurrency } from "@/utils/format-amount"
 import { useQuery } from "@tanstack/react-query"
 import { Loader2, Plus, SaveIcon } from "lucide-react"
 
@@ -84,13 +85,9 @@ export function TransactionForm({ prevData, onSuccess }: Props) {
                     id={field.name}
                     name={field.name}
                     type="text"
-                    inputMode="decimal"
-                    value={field.state.value === 0 ? "" : String(field.state.value)}
+                    value={formatCurrency(field.state.value || 0)}
                     onBlur={field.handleBlur}
-                    onChange={(e) => {
-                      const parsed = parseFloat(e.target.value)
-                      field.handleChange(isNaN(parsed) ? 0 : parsed)
-                    }}
+                    onChange={(e) => field.handleChange(currencyToNumber(e.target.value))}
                     aria-invalid={isInvalid}
                     autoComplete="off"
                     placeholder="e.g. 3000000"
