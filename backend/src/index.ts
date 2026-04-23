@@ -47,7 +47,7 @@ const getRateLimitMax = (key: string): number => {
 export const app = new Elysia({ prefix: "/api" })
   .use(
     cors({
-      origin: ENV.AUTH.frontendUrl,
+      origin: ENV.APP.frontendUrl,
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
       credentials: true,
       allowedHeaders: ["Content-Type", "Authorization"],

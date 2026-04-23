@@ -205,7 +205,7 @@ export abstract class GmailService {
     const watchResponse = await gmail.users.watch({
       userId: "me",
       requestBody: {
-        topicName: ENV.GOOGLE.topicName,
+        topicName: ENV.GOOGLE.pubsubTopicName,
         labelIds: ["INBOX"],
         labelFilterBehavior: "INCLUDE",
       },
@@ -218,7 +218,7 @@ export abstract class GmailService {
     let qstashMessageId: string
     try {
       const scheduled = await qstash.publishJSON({
-        url: `${ENV.SERVER.backendUrl}/api/webhook/gmail-watch-renew`,
+        url: `${ENV.SERVER.url}/api/webhook/gmail-watch-renew`,
         body: { userId },
         notBefore,
       })

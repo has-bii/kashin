@@ -8,8 +8,8 @@ import { emailOTP } from "better-auth/plugins"
 
 export const auth = betterAuth({
   appName: "Kashin",
-  baseURL: ENV.AUTH.betterAuthUrl,
-  secret: ENV.AUTH.betterAuthSecret,
+  baseURL: ENV.AUTH.url,
+  secret: ENV.AUTH.secret,
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
@@ -86,7 +86,7 @@ export const auth = betterAuth({
       },
     },
   },
-  trustedOrigins: [ENV.AUTH.frontendUrl],
+  trustedOrigins: [ENV.APP.frontendUrl],
   plugins: [
     emailOTP({
       changeEmail: {
@@ -103,7 +103,7 @@ export const auth = betterAuth({
       registration: {
         requireSession: true,
       },
-      rpID: new URL(ENV.AUTH.frontendUrl).hostname,
+      rpID: new URL(ENV.APP.frontendUrl).hostname,
       rpName: "Kashin",
       authenticatorSelection: {
         userVerification: "required",

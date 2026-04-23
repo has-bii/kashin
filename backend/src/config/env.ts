@@ -1,19 +1,21 @@
 type Env = {
-  DATABASE: {
+  DB: {
     url: string
   }
   AUTH: {
-    betterAuthUrl: string
-    betterAuthSecret: string
+    url: string
+    secret: string
     googleClientId: string
     googleClientSecret: string
     cookiePrefix: string | undefined
     domain: string | undefined
+  }
+  APP: {
     frontendUrl: string
   }
   SERVER: {
     port: number
-    backendUrl: string
+    url: string
   }
   EMAIL: {
     resendApiKey: string
@@ -21,7 +23,7 @@ type Env = {
   }
   LLM: {
     model: string
-    openAiApiKey: string
+    apiKey: string
     baseUrl: string | undefined
     httpReferer: string | undefined
     xTitle: string | undefined
@@ -37,8 +39,8 @@ type Env = {
   }
   GOOGLE: {
     serviceAccountCredential: string
-    topicName: string
-    audience: string
+    pubsubTopicName: string
+    gmailAudience: string
   }
   LOG: {
     level: string
@@ -55,29 +57,31 @@ function getRequired(key: string): string {
 }
 
 export const ENV: Env = {
-  DATABASE: {
-    url: getRequired("DATABASE_URL"),
+  DB: {
+    url: getRequired("DB_URL"),
   },
   AUTH: {
-    betterAuthUrl: getRequired("BETTER_AUTH_URL"),
-    betterAuthSecret: getRequired("BETTER_AUTH_SECRET"),
-    googleClientId: getRequired("GOOGLE_CLIENT_ID"),
-    googleClientSecret: getRequired("GOOGLE_CLIENT_SECRET"),
-    cookiePrefix: process.env.COOKIE_PREFIX,
-    domain: process.env.DOMAIN,
-    frontendUrl: getRequired("FRONTEND_URL"),
+    url: getRequired("AUTH_URL"),
+    secret: getRequired("AUTH_SECRET"),
+    googleClientId: getRequired("AUTH_GOOGLE_CLIENT_ID"),
+    googleClientSecret: getRequired("AUTH_GOOGLE_CLIENT_SECRET"),
+    cookiePrefix: process.env.AUTH_COOKIE_PREFIX,
+    domain: process.env.AUTH_DOMAIN,
+  },
+  APP: {
+    frontendUrl: getRequired("APP_FRONTEND_URL"),
   },
   SERVER: {
-    port: Number(process.env.PORT) || 3030,
-    backendUrl: getRequired("BACKEND_URL"),
+    port: Number(process.env.SERVER_PORT) || 3030,
+    url: getRequired("SERVER_URL"),
   },
   EMAIL: {
-    resendApiKey: getRequired("RESEND_API_KEY"),
+    resendApiKey: getRequired("EMAIL_RESEND_API_KEY"),
     from: process.env.EMAIL_FROM ?? "Kashin <noreply@kashin.app>",
   },
   LLM: {
-    model: getRequired("MODEL_EXTRACTION"),
-    openAiApiKey: getRequired("OPENAI_API_KEY"),
+    model: getRequired("LLM_MODEL"),
+    apiKey: getRequired("LLM_API_KEY"),
     baseUrl: process.env.LLM_BASE_URL,
     httpReferer: process.env.LLM_HTTP_REFERER,
     xTitle: process.env.LLM_X_TITLE,
@@ -92,9 +96,9 @@ export const ENV: Env = {
     id: process.env.INNGEST_ID || "kashin-dev",
   },
   GOOGLE: {
-    serviceAccountCredential: getRequired("SERVICE_ACCOUNT_CREDENTIAL"),
-    topicName: getRequired("TOPIC_NAME"),
-    audience: getRequired("GMAIL_AUDIENCE"),
+    serviceAccountCredential: getRequired("GOOGLE_SERVICE_ACCOUNT_CREDENTIAL"),
+    pubsubTopicName: getRequired("GOOGLE_PUBSUB_TOPIC_NAME"),
+    gmailAudience: getRequired("GOOGLE_GMAIL_AUDIENCE"),
   },
   LOG: {
     level: process.env.LOG_LEVEL ?? (process.env.NODE_ENV === "production" ? "info" : "debug"),

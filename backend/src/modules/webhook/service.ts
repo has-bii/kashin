@@ -18,7 +18,7 @@ export abstract class WebhookService {
     try {
       const ticket = await this.client.verifyIdToken({
         idToken: token,
-        audience: ENV.GOOGLE.audience,
+        audience: ENV.GOOGLE.gmailAudience,
       })
 
       const payload = ticket.getPayload()
@@ -45,7 +45,7 @@ export abstract class WebhookService {
 
       // Queue to QStash for async processing
       await qstash.publishJSON({
-        url: `${ENV.SERVER.backendUrl}/api/webhook/process-email`,
+        url: `${ENV.SERVER.url}/api/webhook/process-email`,
         body: { userId: userAccount.userId },
       })
 
@@ -198,7 +198,7 @@ export abstract class WebhookService {
     const watchResponse = await gmail.users.watch({
       userId: "me",
       requestBody: {
-        topicName: ENV.GOOGLE.topicName,
+        topicName: ENV.GOOGLE.pubsubTopicName,
         labelIds: ["INBOX"],
         labelFilterBehavior: "INCLUDE",
       },
@@ -213,7 +213,7 @@ export abstract class WebhookService {
     }
 
     const scheduled = await qstash.publishJSON({
-      url: `${ENV.SERVER.backendUrl}/api/webhook/gmail-watch-renew`,
+      url: `${ENV.SERVER.url}/api/webhook/gmail-watch-renew`,
       body: { userId },
       notBefore,
     })
