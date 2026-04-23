@@ -4,6 +4,7 @@ import Providers from "@/providers"
 import type { Metadata } from "next"
 import { Cormorant_Garamond, Geist, Geist_Mono, Inter, Jersey_10, Roboto } from "next/font/google"
 import { Toaster } from "sonner"
+import { Analytics } from "@vercel/analytics/next"
 
 const jersey10 = Jersey_10({ subsets: ["latin"], variable: "--font-jersey", weight: "400" })
 
@@ -57,6 +58,7 @@ export default async function RootLayout({
           <Providers>{children}</Providers>
         </main>
         <Toaster richColors />
+        <Analytics />
       </body>
     </html>
   )
