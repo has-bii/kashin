@@ -1,3 +1,4 @@
+import { logger } from "../../lib/logger"
 import { agent } from "./agent"
 import { GenerateHumanMessage, generateHumanMessage } from "./human-message"
 import { isValid } from "date-fns"
@@ -39,28 +40,39 @@ export abstract class EmailProcessorService {
   static async processEmail({ userId, aiExtractionId, ...email }: ProcessEmail) {
     const humanMessage = generateHumanMessage(email)
 
-    const response = await agent.invoke(
-      { messages: [humanMessage] },
-      {
-        context: { userId },
-        runName: "process-email",
-        tags: ["email-processor"],
-        metadata: { userId, aiExtractionId },
-        signal: AbortSignal.timeout(10_000),
-      },
-    )
+    try {
+      const response = await agent.invoke(
+        { messages: [humanMessage] },
+        {
+          context: { userId },
+          runName: "process-email",
+          tags: ["email-processor"],
+          metadata: { userId, aiExtractionId },
+          signal: AbortSignal.timeout(60_000),
+          recursionLimit: 10,
+        },
+      )
 
-    const tokenUsage = response.messages.reduce<number>((acc, msg) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const meta = msg.response_metadata as any
+      logger.debug(
+        { response: response.structuredResponse, userId, aiExtractionId },
+        "Email processed",
+      )
 
-      if (typeof meta?.estimatedTokenUsage?.totalTokens === "number") {
-        return acc + meta.estimatedTokenUsage.totalTokens
-      }
-      return acc
-    }, 0)
+      const tokenUsage = response.messages.reduce<number>((acc, msg) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const meta = msg.response_metadata as any
 
-    return { result: response.structuredResponse, tokenUsage }
+        if (typeof meta?.tokenUsage?.total_tokens === "number") {
+          return acc + meta.tokenUsage.total_tokens
+        }
+        return acc
+      }, 0)
+
+      return { result: response.structuredResponse, tokenUsage }
+    } catch (error) {
+      logger.error({ error, userId, aiExtractionId }, "Email processing failed")
+      throw error
+    }
   }
 
   /* ---------------------------- Private Functions --------------------------- */
