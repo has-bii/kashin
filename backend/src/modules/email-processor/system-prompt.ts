@@ -26,7 +26,7 @@ You will be provided an email. Like sender address (from), subject, email with t
    [
       {
          "id": "019d9034-480f-71c9-b7fd-879fe448a916",
-         "balance": 1000000,
+         "balance": "1000000",
          "bankId": "019d87e7-7286-7539-8b0a-71450855b968",
          "bank": {
             "id": "019d87e7-7286-7539-8b0a-71450855b968",

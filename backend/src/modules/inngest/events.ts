@@ -12,7 +12,6 @@ export const EMAIL_EVENTS = {
 
 export const sendProcessEmailEvent = (data: ProcessEmailEventData) =>
   inngest.send({
-    id: `process-email-${data.aiExtractionId}`,
     name: EMAIL_EVENTS.processEmail,
     data,
   })

@@ -116,14 +116,18 @@ export abstract class GmailService {
     if (created.length > 0) {
       try {
         await Promise.all(
-          created.map(({ id, userId: uid }) =>
-            sendProcessEmailEvent({ aiExtractionId: id, userId: uid }),
+          created.map(({ id, userId }) =>
+            sendProcessEmailEvent({
+              aiExtractionId: id,
+              userId,
+            }),
           ),
         )
-      } catch {
+      } catch (err) {
         await prisma.aiExtraction.deleteMany({
           where: { id: { in: created.map((r) => r.id) } },
         })
+        logger.error({ err }, "Failed to send event to Inngest")
         createError("internal_server", "Failed to queue emails for processing. Please try again.")
       }
     }
