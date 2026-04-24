@@ -1,33 +1,37 @@
+import { Bank, BankAccount, Category } from "../../generated/prisma/client"
 import { HumanMessage } from "@langchain/core/messages"
 
-export interface GenerateHumanMessage {
+export interface EmailInput {
+  from: string
   subject: string
-  fromAddress: string
-  text?: string
-  html?: string
-  date?: string
+  snippet: string
+  body: string
 }
 
-export function generateHumanMessage({
-  subject,
-  fromAddress,
-  text,
-  html,
-  date,
-}: GenerateHumanMessage) {
-  const promptText = `Extract transaction details from the following email:
+type Categories = Pick<Category, "id" | "name" | "type">[]
+type BankAccounts = Pick<BankAccount, "id" | "balance" | "bankId"> & {
+  bank: Pick<Bank, "id" | "name" | "email">
+}
 
-<email>
-  <receipt-date>${date || "empty"}</receipt-date>
-  <from>${fromAddress}</from>
-  <subject>${subject}</subject>
-  <email-text>
-    ${text || "empty"}
-  </email-text>
-  <email-parsed-html>
-    ${html || "empty"}
-  </email-parsed-html>
-</email>`
+export function generateHumanMessage(
+  email: EmailInput,
+  categories: Categories,
+  bankAccounts: BankAccounts[],
+) {
+  return new HumanMessage(
+    `Analyze this email. If it is a transaction email, extract the transaction details.
 
-  return new HumanMessage({ content: promptText })
+## Available Categories
+${JSON.stringify(categories, null, 2)}
+
+## Available Bank Accounts
+${JSON.stringify(bankAccounts, null, 2)}
+
+## Email
+Email From: ${email.from}
+Subject: ${email.subject}
+Snippet: ${email.snippet}
+Body:
+${email.body}`,
+  )
 }

@@ -7,5 +7,6 @@ export const model = new ChatOpenRouter({
   siteUrl: ENV.LLM.httpReferer,
   siteName: ENV.LLM.xTitle,
   maxRetries: 1,
-  temperature: 0.1,
+  temperature: 0,
+  maxTokens: 5000,
 })

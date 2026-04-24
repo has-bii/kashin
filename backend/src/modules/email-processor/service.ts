@@ -1,44 +1,61 @@
 import { logger } from "../../lib/logger"
+import { prisma } from "../../lib/prisma"
 import { agent } from "./agent"
-import { GenerateHumanMessage, generateHumanMessage } from "./human-message"
-import { isValid } from "date-fns"
+import { EmailInput, generateHumanMessage } from "./human-message"
+import { LangChainTracer } from "@langchain/core/tracers/tracer_langchain"
 import { gmail_v1 } from "googleapis"
 import { convert } from "html-to-text"
 import PostalMime from "postal-mime"
 
-interface ProcessEmail extends GenerateHumanMessage {
+interface ProcessEmail extends EmailInput {
   userId: string
   aiExtractionId?: string
 }
 
+const tracer = new LangChainTracer()
+
 export abstract class EmailProcessorService {
   /* ---------------------------- Public Functions ---------------------------- */
-  static async parseEmail(messageData: gmail_v1.Schema$Message) {
+  static async getEmailBody(messageData: gmail_v1.Schema$Message) {
     const rawEmail = Buffer.from(messageData.raw!, "base64")
 
     const parsed = await PostalMime.parse(rawEmail)
 
-    const emailFrom =
-      parsed.headers.find((acc) => acc.key === "from")?.value ||
-      `${parsed.from?.name} <${parsed.from?.address}>`.trim()
-    const emailReceivedAt = !parsed.date
-      ? undefined
-      : isValid(new Date(parsed.date))
-        ? new Date(parsed.date)
-        : undefined
     const emailHtml = parsed.html ? this.convertHtmlToText(parsed.html).trim() : undefined
 
     return {
-      emailFrom,
-      emailSubject: parsed.subject,
       emailText: parsed.text,
       emailHtml,
-      emailReceivedAt,
     }
   }
 
   static async processEmail({ userId, aiExtractionId, ...email }: ProcessEmail) {
-    const humanMessage = generateHumanMessage(email)
+    const categories = await prisma.category.findMany({
+      where: { userId },
+      select: {
+        id: true,
+        name: true,
+        type: true,
+      },
+    })
+
+    const bankAccounts = await prisma.bankAccount.findMany({
+      where: { userId },
+      select: {
+        id: true,
+        balance: true,
+        bankId: true,
+        bank: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    })
+
+    const humanMessage = generateHumanMessage(email, categories, bankAccounts)
 
     try {
       const response = await agent.invoke(
@@ -46,10 +63,11 @@ export abstract class EmailProcessorService {
         {
           context: { userId },
           runName: "process-email",
-          tags: ["email-processor"],
+          tags: ["email-processor", email.from, email.subject],
           metadata: { userId, aiExtractionId },
           signal: AbortSignal.timeout(60_000),
           recursionLimit: 10,
+          callbacks: [tracer],
         },
       )
 
@@ -78,17 +96,13 @@ export abstract class EmailProcessorService {
   /* ---------------------------- Private Functions --------------------------- */
   private static convertHtmlToText(html: string) {
     return convert(html, {
-      wordwrap: 130,
+      baseElements: {
+        selectors: ["body"],
+      },
       selectors: [
-        {
-          selector: "img",
-          format: "skip",
-        },
-        {
-          selector: "a",
-          format: "skip",
-        },
+        { selector: "img", format: "skip" },
+        { selector: "a", format: "skip" },
       ],
-    })
+    }).trim()
   }
 }

@@ -82,35 +82,21 @@ export abstract class GmailService {
     )
     const fetchFailureCount = settled.length - successes.length
 
-    const created = await prisma.$transaction(async (tx) => {
-      const existing = await tx.aiExtraction.findMany({
-        where: { userId, status: { in: ["pending", "processing"] } },
-        select: { id: true },
-      })
-      if (existing.length > 0)
-        createError(
-          "bad_request",
-          "The system is still processing a previous import. Please wait until it finishes",
-        )
-
-      const rows = await tx.aiExtraction.createManyAndReturn({
-        skipDuplicates: true,
-        data: successes.map(({ gmailMessageId, result }) => {
-          const meta = GmailService.parseEmailMetadata(result.value.data)
-          return {
-            userId,
-            gmailMessageId,
-            status: "pending",
-            emailFrom: meta.from ?? "",
-            emailSubject: meta.subject ?? "",
-            emailSnippet: meta.snippet ?? "",
-            emailReceivedAt: meta.date ? new Date(meta.date) : null,
-          }
-        }),
-        select: { id: true, userId: true },
-      })
-
-      return rows
+    const created = await prisma.aiExtraction.createManyAndReturn({
+      skipDuplicates: true,
+      data: successes.map(({ gmailMessageId, result }) => {
+        const meta = GmailService.parseEmailMetadata(result.value.data)
+        return {
+          userId,
+          gmailMessageId,
+          status: "pending",
+          emailFrom: meta.from ?? "",
+          emailSubject: meta.subject ?? "",
+          emailSnippet: meta.snippet ?? "",
+          emailReceivedAt: meta.date ? new Date(meta.date) : null,
+        }
+      }),
+      select: { id: true, userId: true },
     })
 
     if (created.length > 0) {

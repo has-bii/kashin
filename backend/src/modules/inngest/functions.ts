@@ -12,7 +12,8 @@ export const processEmail = inngest.createFunction(
     id: "process-email",
     concurrency: { key: "event.data.userId", limit: 1 },
     triggers: { event: EMAIL_EVENTS.processEmail },
-    retries: 0,
+    retries: 2,
+    idempotency: "event.data.aiExtractionId",
     cancelOn: [
       {
         event: EMAIL_EVENTS.cancelEmail,
@@ -37,9 +38,19 @@ export const processEmail = inngest.createFunction(
     const record = await step.run("check-exist", async () => {
       const data = await prisma.aiExtraction.findUnique({
         where: { id: aiExtractionId },
-        select: { id: true, gmailMessageId: true },
+        select: {
+          id: true,
+          gmailMessageId: true,
+          emailFrom: true,
+          emailSubject: true,
+          emailSnippet: true,
+          status: true,
+        },
       })
       if (!data) throw new NonRetriableError("Email not found")
+      if (data.status === "processing") throw new NonRetriableError("Email is being processed")
+      if (data.status === "waitingApproval") throw new NonRetriableError("Email has been processed")
+      if (data.status === "confirmed") throw new NonRetriableError("Email has been processed")
       return data
     })
 
@@ -68,7 +79,7 @@ export const processEmail = inngest.createFunction(
     })
 
     const parsedEmail = await step.run("parse-email", async () => {
-      const data = await EmailProcessorService.parseEmail(rawEmail).catch((error) => {
+      const data = await EmailProcessorService.getEmailBody(rawEmail).catch((error) => {
         logger.error({ userId, aiExtractionId, error }, "process-email: failed to parse email")
         throw new NonRetriableError("Failed to parse email", { cause: error })
       })
@@ -83,7 +94,6 @@ export const processEmail = inngest.createFunction(
 
       if (!data.emailText && !data.emailHtml)
         throw new NonRetriableError("Failed to parse email body")
-      if (!data.emailSubject) throw new NonRetriableError("Failed to parse email subject")
 
       return data
     })
@@ -92,11 +102,10 @@ export const processEmail = inngest.createFunction(
       return EmailProcessorService.processEmail({
         userId,
         aiExtractionId,
-        fromAddress: parsedEmail.emailFrom,
-        subject: parsedEmail.emailSubject!,
-        text: parsedEmail.emailText,
-        html: parsedEmail.emailHtml,
-        date: parsedEmail.emailReceivedAt != null ? String(parsedEmail.emailReceivedAt) : undefined,
+        from: record.emailFrom,
+        subject: record.emailSubject,
+        snippet: record.emailSnippet,
+        body: parsedEmail.emailText || parsedEmail.emailHtml!,
       }).catch((error) => {
         logger.error({ userId, aiExtractionId, error }, "process-email: analyze-email failed")
         throw new Error("Failed to analyze email", { cause: error })
@@ -119,7 +128,7 @@ export const processEmail = inngest.createFunction(
           : null,
       ])
 
-      const isApproval = result.isTransaction && result.data != null
+      const isApproval = result?.isTransaction && result?.data != null
 
       await prisma.aiExtraction.update({
         where: { id: aiExtractionId },
@@ -127,6 +136,7 @@ export const processEmail = inngest.createFunction(
           tokenUsage,
           finishedAt: new Date(),
           aiResponse: JSON.stringify(result),
+          note: result.description,
           ...(isApproval && result.data
             ? {
                 status: "waitingApproval",
@@ -136,21 +146,19 @@ export const processEmail = inngest.createFunction(
                 extractedBankAccountId: bankAccount?.id,
                 extractedCategoryId: category?.id,
                 extractedCurrency: result.data.currency,
-                extractedDate: result.data.date,
-                confidenceScore: result.data.confidence,
                 suggestedCategory: result.data.suggestedCategory,
-                note: result.data.notes,
               }
             : {
                 rejectedAt: new Date(),
                 status: "rejected",
-                note: result.message,
               }),
         },
       })
     })
 
     logger.info({ userId, aiExtractionId, tokenUsage }, "process-email: completed")
+
+    await step.sleep("take-rest", "10s")
 
     return { message: "ok" }
   },

@@ -1,31 +1,27 @@
 import * as z from "zod"
 
 export const responseFormat = z.object({
-  isTransaction: z.boolean().describe("True if the email describes a financial transaction"),
-  message: z.string().optional().describe("Your response message"),
+  isTransaction: z.boolean().describe("Whether the email is a transaction"),
+  description: z.string().describe("Description of the email or transaction"),
   data: z
     .object({
-      merchant: z.string().nullable().describe("The name of the merchant or vendor or person"),
-      amount: z.number().nullable().describe("The numeric value of the transaction"),
-      currency: z.string().nullable().describe("3-letter currency code. E.g. IDR"),
-      bankAccountId: z.string().nullable().describe("id from getBankAccounts tool"),
-      categoryId: z.string().nullable().describe("id from getCategories tool"),
-      date: z.iso.datetime().nullable().describe("ISO formatted date of the transaction"),
-      type: z.enum(["expense", "income"]).nullable().describe("The type of transaction"),
-      notes: z
+      merchant: z.string().describe("The merchant name"),
+      amount: z.number().describe("The transaction amount"),
+      currency: z.string().describe("The transaction currency. Default is IDR"),
+      categoryId: z
         .string()
         .nullable()
-        .describe(
-          "The description of the transaction, e.g., Payment to Minimarket, or Transfer to Alex",
-        ),
-      confidence: z.number().min(0).max(1).describe("Certainty score of the extraction"),
+        .describe("Id from the Available Categories list. null if no match."),
+      bankAccountId: z
+        .string()
+        .nullable()
+        .describe("Id from the Available Bank Accounts list. null if no match."),
+      type: z.enum(["expense", "income"]).describe("Type of the transaction"),
       suggestedCategory: z
         .string()
         .nullable()
-        .describe(
-          "If categoryId is null, provide category suggestion, e.g., food, groceries, utilities, transport",
-        ),
+        .describe("If categoryId is null, suggest a short category name"),
     })
     .nullable()
-    .describe("The transaction detail. Set it null if isTransaction is false."),
+    .describe("The transaction data if the email is a transaction, otherwise null"),
 })
