@@ -13,6 +13,7 @@ export interface AiExtraction {
   status: AiExtractionStatus
   emailFrom: string
   emailSubject: string
+  emailSnippet: string
   emailReceivedAt: string | null
   extractedType: TransactionType | null
   extractedMerchant: string | null

@@ -1,3 +1,4 @@
+"use client"
 import { QueryErrorBoundary } from "@/components/query-error-boundary"
 import {
   MainPage,
@@ -6,6 +7,14 @@ import {
   MainPageTitle,
 } from "@/components/sidebar/main-page"
 import { SiteHeader } from "@/components/sidebar/site-header"
+import dynamic from "next/dynamic"
+
+const AiExtractionList = dynamic(
+  () => import("@/features/ai-extraction/components/ai-extraction-list"),
+  {
+    ssr: false,
+  },
+)
 
 export default function AiExtractionPage() {
   return (
@@ -14,7 +23,7 @@ export default function AiExtractionPage() {
       <MainPage className="@container/main">
         <MainPageHeader>
           <div className="space-y-2">
-            <MainPageTitle>AI Extraction</MainPageTitle>
+            <MainPageTitle>Email Imports</MainPageTitle>
             <MainPageDescripton>
               This is where we turn your receipts into data. Track every email we’ve found and see
               how the AI is doing.
@@ -22,9 +31,9 @@ export default function AiExtractionPage() {
           </div>
         </MainPageHeader>
 
-        {/* <QueryErrorBoundary> */}
-        {/* <BudgetList /> */}
-        {/* </QueryErrorBoundary> */}
+        <QueryErrorBoundary>
+          <AiExtractionList />
+        </QueryErrorBoundary>
       </MainPage>
     </>
   )

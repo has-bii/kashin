@@ -13,7 +13,10 @@ const AI_EXTRACTION_STATUSES: AiExtractionStatus[] = [
 export const useAiExtractionFilters = () => {
   const [filters, setFilters] = useQueryStates(
     {
-      status: parseAsStringEnum<AiExtractionStatus>(AI_EXTRACTION_STATUSES),
+      status:
+        parseAsStringEnum<AiExtractionStatus>(AI_EXTRACTION_STATUSES).withDefault(
+          "waitingApproval",
+        ),
       page: parseAsInteger.withDefault(1),
       limit: parseAsInteger.withDefault(20),
     },
