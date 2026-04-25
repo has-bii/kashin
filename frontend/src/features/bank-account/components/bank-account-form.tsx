@@ -14,6 +14,7 @@ import {
   FieldSet,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { currencyToNumber, formatCurrency } from "@/utils/format-amount"
 import { Loader2, Plus } from "lucide-react"
 import { Suspense } from "react"
 
@@ -43,11 +44,9 @@ export function BankAccountForm({ prevData, onSuccess }: Props) {
                   <FieldLabel htmlFor={field.name}>Initial Balance</FieldLabel>
                   <Input
                     id={field.name}
-                    type="number"
-                    value={field.state.value}
+                    value={formatCurrency(field.state.value || 0)}
                     onBlur={field.handleBlur}
-                    onChange={(e) => field.handleChange(Number(e.target.value))}
-                    placeholder="0"
+                    onChange={(e) => field.handleChange(currencyToNumber(e.target.value))}
                   />
                   {isInvalid && <FieldError errors={field.state.meta.errors} />}
                 </Field>

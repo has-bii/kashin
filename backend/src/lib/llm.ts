@@ -1,23 +1,12 @@
-import { ChatOpenAI } from "@langchain/openai"
 import { ENV } from "../config/env"
+import { ChatOpenRouter } from "@langchain/openrouter"
 
-export const model = new ChatOpenAI({
-  modelName: ENV.LLM.model,
-  apiKey: ENV.LLM.openAiApiKey,
-  configuration: {
-    baseURL: ENV.LLM.baseUrl,
-    defaultHeaders: {
-      "HTTP-Referer": ENV.LLM.httpReferer,
-      "X-Title": ENV.LLM.xTitle,
-    },
-  },
-  reasoning: {
-    effort: "high",
-    summary: "detailed",
-  },
-  modelKwargs: {
-    response_format: { type: "json_object" },
-  },
-  temperature: 0.7,
-  maxRetries: 0,
+export const model = new ChatOpenRouter({
+  apiKey: ENV.LLM.apiKey,
+  model: ENV.LLM.model,
+  siteUrl: ENV.LLM.httpReferer,
+  siteName: ENV.LLM.xTitle,
+  maxRetries: 1,
+  temperature: 0,
+  maxTokens: 5000,
 })

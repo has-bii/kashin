@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select"
 import { getCategoriesQueryOptions } from "@/features/category/query"
 import { TransactionType } from "@/types/enums"
+import { currencyToNumber, formatCurrency } from "@/utils/format-amount"
 import { useQuery } from "@tanstack/react-query"
 import { Loader2, Plus, SaveIcon } from "lucide-react"
 
@@ -88,13 +89,10 @@ export function RecurringTransactionForm({ prevData, onSuccess }: Props) {
                   <Input
                     id={field.name}
                     name={field.name}
-                    type="text"
-                    inputMode="decimal"
-                    value={field.state.value === 0 ? "" : String(field.state.value)}
+                    value={formatCurrency(field.state.value || 0)}
                     onBlur={field.handleBlur}
                     onChange={(e) => {
-                      const parsed = parseFloat(e.target.value)
-                      field.handleChange(isNaN(parsed) ? 0 : parsed)
+                      field.handleChange(currencyToNumber(e.target.value))
                     }}
                     aria-invalid={isInvalid}
                     autoComplete="off"

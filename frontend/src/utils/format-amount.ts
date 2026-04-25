@@ -23,3 +23,9 @@ export function formatCurrency(
     ...options,
   }).format(num)
 }
+
+export function currencyToNumber(amount: string) {
+  const cleanStr = amount.replace(/\./g, "").replace(/[^0-9.-]+/g, "")
+
+  return parseFloat(cleanStr || "0")
+}

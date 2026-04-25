@@ -10,6 +10,8 @@ export const webhookController = new Elysia({ prefix: "/webhook" })
 
     const token = authHeader.split(" ")
 
+    if (token.length !== 2 || !token[1]) return status(401)
+
     return WebhookService.handleGmailWebhook(token[1], request)
   })
   .post("/recurring-transaction", async ({ request, headers, status }) => {

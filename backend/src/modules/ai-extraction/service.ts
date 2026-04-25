@@ -29,13 +29,13 @@ export abstract class AiExtractionService {
           status: true,
           emailFrom: true,
           emailSubject: true,
+          emailSnippet: true,
           emailReceivedAt: true,
           extractedType: true,
           extractedMerchant: true,
           extractedAmount: true,
           extractedCurrency: true,
           extractedDate: true,
-          confidenceScore: true,
           suggestedCategory: true,
           note: true,
           createdAt: true,
@@ -54,12 +54,25 @@ export abstract class AiExtractionService {
   static async getById(userId: string, id: string) {
     const record = await prisma.aiExtraction.findUnique({
       where: { id, userId },
-      include: {
+      select: {
+        id: true,
+        status: true,
+        emailFrom: true,
+        emailSubject: true,
+        emailSnippet: true,
+        emailReceivedAt: true,
+        extractedType: true,
+        extractedMerchant: true,
+        extractedAmount: true,
+        extractedCurrency: true,
+        extractedDate: true,
+        suggestedCategory: true,
+        note: true,
+        createdAt: true,
         extractedCategory: { select: { id: true, name: true, icon: true, color: true } },
         extractedBankAccount: {
           select: { id: true, bank: { select: { name: true, imageUrl: true } } },
         },
-        transaction: { select: { id: true } },
       },
     })
 
@@ -142,7 +155,7 @@ export abstract class AiExtractionService {
     }
     await prisma.aiExtraction.update({
       where: { id },
-      data: { status: "pending", errorMessage: null, processedAt: null, finishedAt: null },
+      data: { status: "pending", processedAt: null, finishedAt: null },
     })
 
     await inngest.send({

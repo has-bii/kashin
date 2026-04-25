@@ -8,8 +8,8 @@ import { emailOTP } from "better-auth/plugins"
 
 export const auth = betterAuth({
   appName: "Kashin",
-  baseURL: ENV.AUTH.betterAuthUrl,
-  secret: ENV.AUTH.betterAuthSecret,
+  baseURL: ENV.AUTH.url,
+  secret: ENV.AUTH.secret,
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
@@ -57,25 +57,36 @@ export const auth = betterAuth({
     user: {
       create: {
         after: async (user) => {
+          const freePlan = await prisma.plan.findUnique({ where: { code: "free" } })
+
+          const now = new Date()
+          const farFuture = new Date("2099-12-31")
+
           await Promise.all([
-            prisma.userSettings.create({
-              data: {
-                userId: user.id,
-              },
-            }),
             prisma.gmailWatchConfig.create({
               data: {
                 userId: user.id,
                 gmailAddress: user.email,
               },
             }),
+            freePlan
+              ? prisma.subscription.create({
+                  data: {
+                    userId: user.id,
+                    planId: freePlan.id,
+                    status: "active",
+                    currentPeriodStart: now,
+                    currentPeriodEnd: farFuture,
+                  },
+                })
+              : Promise.resolve(),
           ])
           void sendWelcomeEmail(user.email, user.name)
         },
       },
     },
   },
-  trustedOrigins: [ENV.AUTH.frontendUrl],
+  trustedOrigins: [ENV.APP.frontendUrl],
   plugins: [
     emailOTP({
       changeEmail: {
@@ -92,7 +103,7 @@ export const auth = betterAuth({
       registration: {
         requireSession: true,
       },
-      rpID: new URL(ENV.AUTH.frontendUrl).hostname,
+      rpID: new URL(ENV.APP.frontendUrl).hostname,
       rpName: "Kashin",
       authenticatorSelection: {
         userVerification: "required",

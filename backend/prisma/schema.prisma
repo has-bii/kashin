@@ -83,8 +83,12 @@ model User {
   recurringTransactions RecurringTransaction[]
   budgets               Budget[]
   bankAccounts          BankAccount[]
-  settings              UserSettings?
   gmailWatchConfig      GmailWatchConfig?
+  subscription          Subscription?
+  aiUsageDaily          AiUsageDaily[]
+  paymentAccounts       PaymentAccount[]
+  payments              Payment[]
+
   @@unique([email])
   @@map("users")
 }
@@ -154,41 +158,11 @@ model Passkey {
   @@map("passkey")
 }
 
-model UserSettings {
-  id        String   @id @default(uuid(7)) @db.Uuid
-  userId    String   @unique @db.Uuid
-  createdAt DateTime @default(now()) @db.Timestamptz
-  updatedAt DateTime @updatedAt @db.Timestamptz
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@map("user_settings")
-}
-
-model GmailWatchConfig {
-  id              String    @id @default(uuid(7)) @db.Uuid
-  userId          String    @unique @db.Uuid
-  gmailAddress    String    @db.VarChar(255)
-  enabled         Boolean   @default(false)
-  historyId       String?   @db.VarChar(50)
-  expiresAt       DateTime? @db.Timestamptz
-  qstashMessageId String?   @db.Text
-  subjectKeywords String[]  @default([]) @db.VarChar(255)
-  gmailLabels     String[]  @default([]) @db.VarChar(100)
-  createdAt       DateTime  @default(now()) @db.Timestamptz
-  updatedAt       DateTime  @updatedAt @db.Timestamptz
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([gmailAddress])
-  @@map("gmail_watch_configs")
-}
-
 // -----------------------------------------------------------
 // App tables — User-facing (UUID v7, Char(36))
 // -----------------------------------------------------------
+
+// ---------- Transaction ----------
 
 model Category {
   id        String          @id @default(uuid(7)) @db.Uuid
@@ -207,7 +181,6 @@ model Category {
   budgets               Budget[]
 
   @@unique([name, userId])
-  @@index([userId])
   @@index([userId, type])
   @@map("categories")
 }
@@ -235,13 +208,11 @@ model Transaction {
   aiExtraction         AiExtraction?         @relation(fields: [aiExtractionId], references: [id], onDelete: SetNull)
   bankAccount          BankAccount?          @relation(fields: [bankAccountId], references: [id], onDelete: SetNull)
 
-  @@index([userId])
   @@index([categoryId])
   @@index([recurringTxnId])
   @@index([userId, transactionDate])
   @@index([userId, type])
   @@index([userId, categoryId])
-  @@index([userId, source])
   @@index([bankAccountId])
   @@map("transactions")
 }
@@ -267,7 +238,6 @@ model RecurringTransaction {
 
   @@index([userId])
   @@index([categoryId])
-  @@index([isActive, nextDueDate])
   @@map("recurring_transactions")
 }
 
@@ -288,6 +258,8 @@ model Budget {
   @@index([userId])
   @@map("budgets")
 }
+
+// ---------- Bank ----------
 
 model Bank {
   id             String   @id @default(uuid(7)) @db.Uuid
@@ -318,18 +290,40 @@ model BankAccount {
   @@map("bank_accounts")
 }
 
+// ---------- Gmail ----------
+
+model GmailWatchConfig {
+  id              String    @id @default(uuid(7)) @db.Uuid
+  userId          String    @unique @db.Uuid
+  gmailAddress    String    @db.VarChar(255)
+  enabled         Boolean   @default(false)
+  historyId       String?   @db.VarChar(50)
+  expiresAt       DateTime? @db.Timestamptz
+  qstashMessageId String?   @db.Text
+  subjectKeywords String[]  @default([]) @db.VarChar(255)
+  gmailLabels     String[]  @default([]) @db.VarChar(100)
+  createdAt       DateTime  @default(now()) @db.Timestamptz
+  updatedAt       DateTime  @updatedAt @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("gmail_watch_configs")
+}
+
+// ---------- AI Extraction ----------
+
 model AiExtraction {
-  id                 String             @id @default(uuid(7)) @db.Uuid
-  userId             String             @db.Uuid
-  status             AiExtractionStatus @default(pending)
+  id              String             @id @default(uuid(7)) @db.Uuid
+  userId          String             @db.Uuid
+  status          AiExtractionStatus @default(pending)
   // Email Data
   gmailMessageId  String             @unique @db.VarChar(255)
   emailFrom       String             @db.VarChar(255)
   emailSubject    String             @db.VarChar(255)
   emailSnippet    String             @db.VarChar(500)
+  emailReceivedAt DateTime           @db.Timestamptz
   emailText       String?            @db.Text
   emailHtml       String?            @db.Text
-  emailReceivedAt DateTime?          @db.Timestamptz
 
   // Extraction Data
   extractedType          TransactionType?
@@ -340,8 +334,6 @@ model AiExtraction {
   extractedCategoryId    String?          @db.Uuid
   extractedBankAccountId String?          @db.Uuid
   suggestedCategory      String?          @db.VarChar(255)
-  confidenceScore        Float?           @db.Real
-  errorMessage           String?          @db.Text
   note                   String?          @db.Text
 
   // Proces Timeline
@@ -352,18 +344,160 @@ model AiExtraction {
 
   // AI Process
   tokenUsage Int?
-  aiResponse String? @db.Text
 
   createdAt DateTime @default(now()) @db.Timestamptz
   updatedAt DateTime @updatedAt @db.Timestamptz
 
-  user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  extractedCategory    Category?         @relation(fields: [extractedCategoryId], references: [id], onDelete: SetNull)
+  user                 User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  extractedCategory    Category?    @relation(fields: [extractedCategoryId], references: [id], onDelete: SetNull)
   transaction          Transaction?
-  extractedBankAccount BankAccount?      @relation(fields: [extractedBankAccountId], references: [id], onDelete: SetNull)
+  extractedBankAccount BankAccount? @relation(fields: [extractedBankAccountId], references: [id], onDelete: SetNull)
 
   @@index([extractedBankAccountId])
   @@index([extractedCategoryId])
   @@index([userId, status])
   @@map("ai_extractions")
+}
+
+// ---------- Billing enums ----------
+
+enum SubscriptionStatus {
+  active
+  past_due
+  canceled
+  trialing
+}
+
+enum AiUsageKind {
+  email_extraction
+  receipt_ocr
+}
+
+enum PaymentProvider {
+  midtrans
+  xendit
+  doku
+  stripe
+  manual
+}
+
+enum PaymentStatus {
+  pending
+  paid
+  failed
+  refunded
+  expired
+}
+
+// ---------- Entitlement ----------
+
+model Plan {
+  id           String   @id @default(uuid(7)) @db.Uuid
+  code         String   @unique @db.VarChar(50)
+  name         String   @db.VarChar(100)
+  dailyAiLimit Int
+  priceCents   Int      @default(0)
+  currency     String   @default("IDR") @db.Char(3)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now()) @db.Timestamptz
+  updatedAt    DateTime @updatedAt @db.Timestamptz
+
+  subscriptions Subscription[]
+
+  @@map("plans")
+}
+
+model Subscription {
+  id                 String             @id @default(uuid(7)) @db.Uuid
+  userId             String             @unique @db.Uuid
+  planId             String             @db.Uuid
+  status             SubscriptionStatus @default(active)
+  currentPeriodStart DateTime           @db.Timestamptz
+  currentPeriodEnd   DateTime           @db.Timestamptz
+  cancelAtPeriodEnd  Boolean            @default(false)
+  createdAt          DateTime           @default(now()) @db.Timestamptz
+  updatedAt          DateTime           @updatedAt @db.Timestamptz
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan     Plan      @relation(fields: [planId], references: [id], onDelete: NoAction)
+  payments Payment[]
+
+  @@index([planId])
+  @@map("subscriptions")
+}
+
+// ---------- Consumption ----------
+
+model AiUsageDaily {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  userId    String   @db.Uuid
+  date      DateTime @db.Date
+  count     Int      @default(0)
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
+
+  user   User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  events AiUsageEvent[]
+
+  @@unique([userId, date])
+  @@map("ai_usage_daily")
+}
+
+model AiUsageEvent {
+  id        String      @id @default(uuid(7)) @db.Uuid
+  userId    String      @db.Uuid
+  usageDate DateTime    @db.Date
+  kind      AiUsageKind
+  refId     String?     @db.Uuid // FK to ai_extractions.id or other source record (polymorphic, no enforced FK)
+  createdAt DateTime    @default(now()) @db.Timestamptz
+
+  daily AiUsageDaily @relation(fields: [userId, usageDate], references: [userId, date], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([kind, createdAt])
+  @@map("ai_usage_events")
+}
+
+// ---------- Billing (gateway-agnostic) ----------
+
+model PaymentAccount {
+  id                 String          @id @default(uuid(7)) @db.Uuid
+  userId             String          @db.Uuid
+  provider           PaymentProvider
+  providerCustomerId String          @db.VarChar(255)
+  isDefault          Boolean         @default(false)
+  metadata           Json?
+  createdAt          DateTime        @default(now()) @db.Timestamptz
+  updatedAt          DateTime        @updatedAt @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerCustomerId])
+  @@index([userId])
+  @@map("payment_accounts")
+}
+
+model Payment {
+  id                String          @id @default(uuid(7)) @db.Uuid
+  userId            String          @db.Uuid
+  subscriptionId    String?         @db.Uuid
+  provider          PaymentProvider
+  providerPaymentId String          @db.VarChar(255)
+  providerInvoiceId String?         @db.VarChar(255)
+  status            PaymentStatus   @default(pending)
+  amountCents       Int
+  currency          String          @default("IDR") @db.Char(3)
+  method            String?         @db.VarChar(50)
+  paidAt            DateTime?       @db.Timestamptz
+  rawPayload        Json?
+  createdAt         DateTime        @default(now()) @db.Timestamptz
+  updatedAt         DateTime        @updatedAt @db.Timestamptz
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id])
+
+  @@unique([provider, providerPaymentId])
+  @@index([userId, status])
+  @@index([subscriptionId])
+  @@map("payments")
 }

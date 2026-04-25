@@ -188,6 +188,7 @@ export abstract class TransactionService {
       where,
       include: categoryInclude,
       orderBy: { transactionDate: "desc" },
+      take: 10_000,
     })
 
     const escapeCell = (value: string | null | undefined): string => {

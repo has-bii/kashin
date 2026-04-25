@@ -1,15 +1,17 @@
 import { ENV } from "../../config/env"
-import { createError } from "../../global/error"
+import { createError, QuotaExceededError } from "../../global/error"
 import { auth } from "../../lib/auth"
 import { logger } from "../../lib/logger"
 import { prisma } from "../../lib/prisma"
 import { qstash } from "../../lib/qstash"
+import { AiUsageService } from "../ai-usage/service"
 import { sendProcessEmailEvent } from "../inngest/events"
 import type { GetMessagesQuery, ImportMessagesBody, UpdateWatchFiltersBody } from "./dto"
 import { InternalServerError } from "elysia"
 import { gmail_v1, google } from "googleapis"
 
 export abstract class GmailService {
+  /* ------------------------------ API Endpoints ----------------------------- */
   static async getMessages(userId: string, query: GetMessagesQuery) {
     const accessToken = await auth.api
       .getAccessToken({ body: { userId, providerId: "google" } })
@@ -55,6 +57,9 @@ export abstract class GmailService {
     if (body.messageIds.length <= 0 || body.messageIds.length > 50)
       createError("bad_request", "Email is required and must be less than 50")
 
+    const { count, limit } = await AiUsageService.getDailyUsage(userId)
+    if (count >= limit) throw new QuotaExceededError("Daily AI quota exceeded")
+
     const accessToken = await auth.api
       .getAccessToken({ body: { userId, providerId: "google" } })
       .then((res) => res.accessToken)
@@ -82,48 +87,38 @@ export abstract class GmailService {
     )
     const fetchFailureCount = settled.length - successes.length
 
-    const created = await prisma.$transaction(async (tx) => {
-      const existing = await tx.aiExtraction.findMany({
-        where: { userId, status: { in: ["pending", "processing"] } },
-        select: { id: true },
-      })
-      if (existing.length > 0)
-        createError(
-          "bad_request",
-          "The system is still processing a previous import. Please wait until it finishes",
-        )
-
-      const rows = await tx.aiExtraction.createManyAndReturn({
-        skipDuplicates: true,
-        data: successes.map(({ gmailMessageId, result }) => {
-          const meta = GmailService.parseEmailMetadata(result.value.data)
-          return {
-            userId,
-            gmailMessageId,
-            status: "pending",
-            emailFrom: meta.from ?? "",
-            emailSubject: meta.subject ?? "",
-            emailSnippet: meta.snippet ?? "",
-            emailReceivedAt: meta.date ? new Date(meta.date) : null,
-          }
-        }),
-        select: { id: true, userId: true },
-      })
-
-      return rows
+    const created = await prisma.aiExtraction.createManyAndReturn({
+      skipDuplicates: true,
+      data: successes.map(({ gmailMessageId, result }) => {
+        const meta = GmailService.parseEmailMetadata(result.value.data)
+        return {
+          userId,
+          gmailMessageId,
+          status: "pending",
+          emailFrom: meta.from ?? "",
+          emailSubject: meta.subject ?? "",
+          emailSnippet: meta.snippet ?? "",
+          emailReceivedAt: meta.date ? new Date(meta.date) : new Date(),
+        }
+      }),
+      select: { id: true, userId: true },
     })
 
     if (created.length > 0) {
       try {
         await Promise.all(
-          created.map(({ id, userId: uid }) =>
-            sendProcessEmailEvent({ aiExtractionId: id, userId: uid }),
+          created.map(({ id, userId }) =>
+            sendProcessEmailEvent({
+              aiExtractionId: id,
+              userId,
+            }),
           ),
         )
-      } catch {
+      } catch (err) {
         await prisma.aiExtraction.deleteMany({
           where: { id: { in: created.map((r) => r.id) } },
         })
+        logger.error({ err }, "Failed to send event to Inngest")
         createError("internal_server", "Failed to queue emails for processing. Please try again.")
       }
     }
@@ -134,6 +129,25 @@ export abstract class GmailService {
       skippedImportEmail: successes.length - created.length,
       fetchFailureCount,
     }
+  }
+
+  static async getLabels(userId: string) {
+    const accessToken = await auth.api
+      .getAccessToken({ body: { userId, providerId: "google" } })
+      .then((res) => res.accessToken)
+      .catch(() => null)
+
+    if (!accessToken) return []
+
+    const gmail = this.createGmailClient(accessToken)
+    const response = await gmail.users.labels.list({ userId: "me" })
+
+    return (
+      response.data.labels?.map((label) => ({
+        id: label.id!,
+        name: label.name!,
+      })) ?? []
+    )
   }
 
   static async getWatchConfig(userId: string) {
@@ -156,24 +170,6 @@ export abstract class GmailService {
       data: { userId, gmailAddress: user.email },
       select,
     })
-  }
-
-  static async updateFilters(userId: string, body: UpdateWatchFiltersBody) {
-    await prisma.gmailWatchConfig.upsert({
-      where: { userId },
-      create: {
-        userId,
-        gmailAddress: "",
-        ...(body.subjectKeywords !== undefined && { subjectKeywords: body.subjectKeywords }),
-        ...(body.gmailLabels !== undefined && { gmailLabels: body.gmailLabels }),
-      },
-      update: {
-        ...(body.subjectKeywords !== undefined && { subjectKeywords: body.subjectKeywords }),
-        ...(body.gmailLabels !== undefined && { gmailLabels: body.gmailLabels }),
-      },
-    })
-
-    return this.getWatchConfig(userId)
   }
 
   static async enableWatch(userId: string) {
@@ -201,7 +197,7 @@ export abstract class GmailService {
     const watchResponse = await gmail.users.watch({
       userId: "me",
       requestBody: {
-        topicName: ENV.GOOGLE.topicName,
+        topicName: ENV.GOOGLE.pubsubTopicName,
         labelIds: ["INBOX"],
         labelFilterBehavior: "INCLUDE",
       },
@@ -214,7 +210,7 @@ export abstract class GmailService {
     let qstashMessageId: string
     try {
       const scheduled = await qstash.publishJSON({
-        url: `${ENV.SERVER.backendUrl}/api/webhook/gmail-watch-renew`,
+        url: `${ENV.SERVER.url}/api/webhook/gmail-watch-renew`,
         body: { userId },
         notBefore,
       })
@@ -276,6 +272,26 @@ export abstract class GmailService {
     return { enabled: false }
   }
 
+  static async updateFilters(userId: string, body: UpdateWatchFiltersBody) {
+    await prisma.gmailWatchConfig.upsert({
+      where: { userId },
+      create: {
+        userId,
+        gmailAddress: "",
+        ...(body.subjectKeywords !== undefined && { subjectKeywords: body.subjectKeywords }),
+        ...(body.gmailLabels !== undefined && { gmailLabels: body.gmailLabels }),
+      },
+      update: {
+        ...(body.subjectKeywords !== undefined && { subjectKeywords: body.subjectKeywords }),
+        ...(body.gmailLabels !== undefined && { gmailLabels: body.gmailLabels }),
+      },
+    })
+
+    return this.getWatchConfig(userId)
+  }
+
+  /* ---------------------------------- Utils --------------------------------- */
+
   static async createExtractionsAndQueue(
     userId: string,
     messages: Array<{
@@ -301,7 +317,7 @@ export abstract class GmailService {
         emailFrom: m.emailFrom,
         emailSubject: m.emailSubject,
         emailSnippet: m.emailSnippet,
-        emailReceivedAt: m.emailReceivedAt,
+        emailReceivedAt: m.emailReceivedAt!,
       })),
     })
 
@@ -326,25 +342,6 @@ export abstract class GmailService {
     }
 
     return created.count
-  }
-
-  static async getLabels(userId: string) {
-    const accessToken = await auth.api
-      .getAccessToken({ body: { userId, providerId: "google" } })
-      .then((res) => res.accessToken)
-      .catch(() => null)
-
-    if (!accessToken) return []
-
-    const gmail = this.createGmailClient(accessToken)
-    const response = await gmail.users.labels.list({ userId: "me" })
-
-    return (
-      response.data.labels?.map((label) => ({
-        id: label.id!,
-        name: label.name!,
-      })) ?? []
-    )
   }
 
   static createGmailClient(accessToken: string) {

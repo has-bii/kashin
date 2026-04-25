@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
 import { getCategoriesQueryOptions } from "@/features/category/query"
+import { currencyToNumber, formatCurrency } from "@/utils/format-amount"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { Loader2, Plus, SaveIcon } from "lucide-react"
 
@@ -90,14 +91,10 @@ export default function BudgetForm(props: Props) {
                   <FieldLabel htmlFor={field.name}>Amount</FieldLabel>
                   <Input
                     id={field.name}
-                    type="number"
-                    min={0.01}
-                    step={0.01}
                     aria-invalid={isInvalid}
-                    placeholder="e.g. Rp. 3.000.000"
-                    value={field.state.value}
+                    value={formatCurrency(field.state.value || 0)}
                     onBlur={field.handleBlur}
-                    onChange={(e) => field.handleChange(parseFloat(e.target.value))}
+                    onChange={(e) => field.handleChange(currencyToNumber(e.target.value))}
                   />
                   {isInvalid && <FieldError errors={field.state.meta.errors} />}
                 </Field>
