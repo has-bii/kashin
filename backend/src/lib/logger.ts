@@ -1,5 +1,5 @@
-import pino from "pino"
 import { ENV } from "../config/env"
+import pino from "pino"
 
 export const logger = pino({
   level: ENV.LOG.level,

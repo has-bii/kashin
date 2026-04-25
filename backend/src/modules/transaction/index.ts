@@ -1,6 +1,6 @@
 import { authMacro } from "../../macros/auth.macro"
+import { createBody, getAllQuery, updateBody } from "./dto"
 import { TransactionService } from "./service"
-import { getAllQuery, createBody, updateBody } from "./dto"
 import Elysia, { t } from "elysia"
 
 export const transactionController = new Elysia({ prefix: "/transaction" })

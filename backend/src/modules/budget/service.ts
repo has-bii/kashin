@@ -1,8 +1,8 @@
-import { createError } from "../../global/error"
 import { BudgetPeriod } from "../../generated/prisma/enums"
+import { createError } from "../../global/error"
 import { prisma } from "../../lib/prisma"
-import { status } from "elysia"
 import type { CreateInput, UpdateInput } from "./dto"
+import { status } from "elysia"
 
 function getUtcFromLocal(dateStr: string, time: string, timezone: string): Date {
   const fakeUtc = new Date(`${dateStr}T${time}Z`)
@@ -57,7 +57,12 @@ export abstract class BudgetService {
         const { gte, lte } = getPeriodRange(budget.period, timezone)
 
         const agg = await prisma.transaction.aggregate({
-          where: { userId, categoryId: budget.categoryId, type: "expense", transactionDate: { gte, lte } },
+          where: {
+            userId,
+            categoryId: budget.categoryId,
+            type: "expense",
+            transactionDate: { gte, lte },
+          },
           _sum: { amount: true },
         })
 
@@ -112,7 +117,9 @@ export abstract class BudgetService {
 
     if (input.categoryId || input.period) {
       const duplicate = await prisma.budget.findUnique({
-        where: { userId_categoryId_period: { userId, categoryId: newCategoryId, period: newPeriod } },
+        where: {
+          userId_categoryId_period: { userId, categoryId: newCategoryId, period: newPeriod },
+        },
       })
       if (duplicate && duplicate.id !== id)
         createError("conflict", "Budget for this category and period already exists")

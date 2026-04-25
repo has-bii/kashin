@@ -1,5 +1,5 @@
-import { Client, Receiver } from "@upstash/qstash"
 import { ENV } from "../config/env"
+import { Client, Receiver } from "@upstash/qstash"
 
 export const qstash = new Client({
   baseUrl: ENV.QSTASH.url,

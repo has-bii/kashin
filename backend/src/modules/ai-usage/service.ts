@@ -1,6 +1,6 @@
-import { prisma } from "../../lib/prisma"
-import { QuotaExceededError } from "../../global/error"
 import type { AiUsageKind } from "../../generated/prisma/client"
+import { QuotaExceededError } from "../../global/error"
+import { prisma } from "../../lib/prisma"
 
 export abstract class AiUsageService {
   static async assertQuotaAndRecord(

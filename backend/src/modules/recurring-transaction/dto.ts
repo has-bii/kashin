@@ -1,9 +1,9 @@
-import { t } from "elysia"
 import {
   RecurringTransactionPlainInputCreate,
   RecurringTransactionPlainInputUpdate,
 } from "../../generated/prismabox/RecurringTransaction"
 import { __nullable__ } from "../../generated/prismabox/__nullable__"
+import { t } from "elysia"
 
 export const getAllQuery = t.Object({
   page: t.Optional(t.Number({ minimum: 1, default: 1 })),

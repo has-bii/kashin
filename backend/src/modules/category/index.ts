@@ -1,6 +1,6 @@
 import { authMacro } from "../../macros/auth.macro"
+import { createBody, getAllQuery, updateBody } from "./dto"
 import { CategoryService } from "./service"
-import { getAllQuery, createBody, updateBody } from "./dto"
 import Elysia from "elysia"
 
 export const categoryController = new Elysia({ prefix: "/category" })

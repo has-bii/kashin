@@ -1,5 +1,5 @@
 import { prisma } from "../../lib/prisma"
-import type { SummaryQuery, CategoryBreakdownQuery } from "./dto"
+import type { CategoryBreakdownQuery, SummaryQuery } from "./dto"
 
 const categoryInclude = {
   category: { select: { id: true, name: true, type: true, icon: true, color: true } },

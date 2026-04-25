@@ -1,6 +1,6 @@
 import { authMacro } from "../../macros/auth.macro"
+import { createBody, getAllQuery, updateBody } from "./dto"
 import { RecurringTransactionService } from "./service"
-import { getAllQuery, createBody, updateBody } from "./dto"
 import Elysia from "elysia"
 
 export const recurringTransactionController = new Elysia({ prefix: "/recurring-transaction" })
@@ -13,9 +13,13 @@ export const recurringTransactionController = new Elysia({ prefix: "/recurring-t
     auth: true,
     body: createBody,
   })
-  .get("/:id", async ({ user, params }) => RecurringTransactionService.getById(user.id, params.id), {
-    auth: true,
-  })
+  .get(
+    "/:id",
+    async ({ user, params }) => RecurringTransactionService.getById(user.id, params.id),
+    {
+      auth: true,
+    },
+  )
   .put(
     "/:id",
     async ({ user, params, body }) => RecurringTransactionService.update(user.id, params.id, body),
@@ -24,9 +28,13 @@ export const recurringTransactionController = new Elysia({ prefix: "/recurring-t
       body: updateBody,
     },
   )
-  .delete("/:id", async ({ user, params }) => RecurringTransactionService.delete(user.id, params.id), {
-    auth: true,
-  })
+  .delete(
+    "/:id",
+    async ({ user, params }) => RecurringTransactionService.delete(user.id, params.id),
+    {
+      auth: true,
+    },
+  )
   .patch(
     "/:id/toggle",
     async ({ user, params }) => RecurringTransactionService.toggle(user.id, params.id),
