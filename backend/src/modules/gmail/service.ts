@@ -1,9 +1,10 @@
 import { ENV } from "../../config/env"
-import { createError } from "../../global/error"
+import { createError, QuotaExceededError } from "../../global/error"
 import { auth } from "../../lib/auth"
 import { logger } from "../../lib/logger"
 import { prisma } from "../../lib/prisma"
 import { qstash } from "../../lib/qstash"
+import { AiUsageService } from "../ai-usage/service"
 import { sendProcessEmailEvent } from "../inngest/events"
 import type { GetMessagesQuery, ImportMessagesBody, UpdateWatchFiltersBody } from "./dto"
 import { InternalServerError } from "elysia"
@@ -55,6 +56,9 @@ export abstract class GmailService {
   static async importMessages(userId: string, body: ImportMessagesBody) {
     if (body.messageIds.length <= 0 || body.messageIds.length > 50)
       createError("bad_request", "Email is required and must be less than 50")
+
+    const { count, limit } = await AiUsageService.getDailyUsage(userId)
+    if (count >= limit) throw new QuotaExceededError("Daily AI quota exceeded")
 
     const accessToken = await auth.api
       .getAccessToken({ body: { userId, providerId: "google" } })

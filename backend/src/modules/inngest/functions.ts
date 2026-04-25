@@ -1,6 +1,7 @@
 import { auth } from "../../lib/auth"
 import { logger } from "../../lib/logger"
 import { prisma } from "../../lib/prisma"
+import { AiUsageService } from "../ai-usage/service"
 import { EmailProcessorService } from "../email-processor/service"
 import { GmailService } from "../gmail/service"
 import { inngest } from "./client"
@@ -34,6 +35,13 @@ export const processEmail = inngest.createFunction(
     const { userId, aiExtractionId } = event.data as ProcessEmailEventData
 
     logger.info({ userId, aiExtractionId }, "process-email: starting")
+
+    await step.run("check-quota", async () => {
+      const { count, limit } = await AiUsageService.getDailyUsage(userId)
+      if (count >= limit) {
+        throw new NonRetriableError("Daily AI quota exceeded")
+      }
+    })
 
     const record = await step.run("check-exist", async () => {
       const data = await prisma.aiExtraction.findUnique({
@@ -154,6 +162,19 @@ export const processEmail = inngest.createFunction(
               }),
         },
       })
+
+      const today = new Date()
+      today.setUTCHours(0, 0, 0, 0)
+      await prisma.$transaction([
+        prisma.aiUsageDaily.upsert({
+          where: { userId_date: { userId, date: today } },
+          create: { userId, date: today, count: 1 },
+          update: { count: { increment: 1 } },
+        }),
+        prisma.aiUsageEvent.create({
+          data: { userId, kind: "email_extraction", refId: aiExtractionId, usageDate: today },
+        }),
+      ])
     })
 
     logger.info({ userId, aiExtractionId, tokenUsage }, "process-email: completed")
