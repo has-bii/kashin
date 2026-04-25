@@ -84,10 +84,11 @@ model User {
   budgets               Budget[]
   bankAccounts          BankAccount[]
   gmailWatchConfig      GmailWatchConfig?
-  subscription    Subscription?
-  aiUsageDaily    AiUsageDaily[]
-  paymentAccounts PaymentAccount[]
-  payments        Payment[]
+  subscription          Subscription?
+  aiUsageDaily          AiUsageDaily[]
+  paymentAccounts       PaymentAccount[]
+  payments              Payment[]
+
   @@unique([email])
   @@map("users")
 }
@@ -157,27 +158,11 @@ model Passkey {
   @@map("passkey")
 }
 
-model GmailWatchConfig {
-  id              String    @id @default(uuid(7)) @db.Uuid
-  userId          String    @unique @db.Uuid
-  gmailAddress    String    @db.VarChar(255)
-  enabled         Boolean   @default(false)
-  historyId       String?   @db.VarChar(50)
-  expiresAt       DateTime? @db.Timestamptz
-  qstashMessageId String?   @db.Text
-  subjectKeywords String[]  @default([]) @db.VarChar(255)
-  gmailLabels     String[]  @default([]) @db.VarChar(100)
-  createdAt       DateTime  @default(now()) @db.Timestamptz
-  updatedAt       DateTime  @updatedAt @db.Timestamptz
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("gmail_watch_configs")
-}
-
 // -----------------------------------------------------------
 // App tables — User-facing (UUID v7, Char(36))
 // -----------------------------------------------------------
+
+// ---------- Transaction ----------
 
 model Category {
   id        String          @id @default(uuid(7)) @db.Uuid
@@ -274,6 +259,8 @@ model Budget {
   @@map("budgets")
 }
 
+// ---------- Bank ----------
+
 model Bank {
   id             String   @id @default(uuid(7)) @db.Uuid
   name           String   @unique @db.VarChar(100)
@@ -303,18 +290,40 @@ model BankAccount {
   @@map("bank_accounts")
 }
 
+// ---------- Gmail ----------
+
+model GmailWatchConfig {
+  id              String    @id @default(uuid(7)) @db.Uuid
+  userId          String    @unique @db.Uuid
+  gmailAddress    String    @db.VarChar(255)
+  enabled         Boolean   @default(false)
+  historyId       String?   @db.VarChar(50)
+  expiresAt       DateTime? @db.Timestamptz
+  qstashMessageId String?   @db.Text
+  subjectKeywords String[]  @default([]) @db.VarChar(255)
+  gmailLabels     String[]  @default([]) @db.VarChar(100)
+  createdAt       DateTime  @default(now()) @db.Timestamptz
+  updatedAt       DateTime  @updatedAt @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("gmail_watch_configs")
+}
+
+// ---------- AI Extraction ----------
+
 model AiExtraction {
-  id                 String             @id @default(uuid(7)) @db.Uuid
-  userId             String             @db.Uuid
-  status             AiExtractionStatus @default(pending)
+  id              String             @id @default(uuid(7)) @db.Uuid
+  userId          String             @db.Uuid
+  status          AiExtractionStatus @default(pending)
   // Email Data
   gmailMessageId  String             @unique @db.VarChar(255)
   emailFrom       String             @db.VarChar(255)
   emailSubject    String             @db.VarChar(255)
   emailSnippet    String             @db.VarChar(500)
+  emailReceivedAt DateTime           @db.Timestamptz
   emailText       String?            @db.Text
   emailHtml       String?            @db.Text
-  emailReceivedAt DateTime?          @db.Timestamptz
 
   // Extraction Data
   extractedType          TransactionType?
@@ -325,8 +334,6 @@ model AiExtraction {
   extractedCategoryId    String?          @db.Uuid
   extractedBankAccountId String?          @db.Uuid
   suggestedCategory      String?          @db.VarChar(255)
-  confidenceScore        Float?           @db.Real
-  errorMessage           String?          @db.Text
   note                   String?          @db.Text
 
   // Proces Timeline
@@ -337,15 +344,14 @@ model AiExtraction {
 
   // AI Process
   tokenUsage Int?
-  aiResponse String? @db.Text
 
   createdAt DateTime @default(now()) @db.Timestamptz
   updatedAt DateTime @updatedAt @db.Timestamptz
 
-  user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  extractedCategory    Category?         @relation(fields: [extractedCategoryId], references: [id], onDelete: SetNull)
+  user                 User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  extractedCategory    Category?    @relation(fields: [extractedCategoryId], references: [id], onDelete: SetNull)
   transaction          Transaction?
-  extractedBankAccount BankAccount?      @relation(fields: [extractedBankAccountId], references: [id], onDelete: SetNull)
+  extractedBankAccount BankAccount? @relation(fields: [extractedBankAccountId], references: [id], onDelete: SetNull)
 
   @@index([extractedBankAccountId])
   @@index([extractedCategoryId])
@@ -442,7 +448,7 @@ model AiUsageEvent {
   userId    String      @db.Uuid
   usageDate DateTime    @db.Date
   kind      AiUsageKind
-  refId     String?     @db.Uuid   // FK to ai_extractions.id or other source record (polymorphic, no enforced FK)
+  refId     String?     @db.Uuid // FK to ai_extractions.id or other source record (polymorphic, no enforced FK)
   createdAt DateTime    @default(now()) @db.Timestamptz
 
   daily AiUsageDaily @relation(fields: [userId, usageDate], references: [userId, date], onDelete: Cascade)

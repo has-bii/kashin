@@ -58,7 +58,7 @@ function getRequired(key: string): string {
 
 export const ENV: Env = {
   DB: {
-    url: getRequired("DB_URL"),
+    url: getRequired("DATABASE_URL"),
   },
   AUTH: {
     url: getRequired("AUTH_URL"),

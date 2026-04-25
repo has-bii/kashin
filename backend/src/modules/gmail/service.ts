@@ -10,6 +10,7 @@ import { InternalServerError } from "elysia"
 import { gmail_v1, google } from "googleapis"
 
 export abstract class GmailService {
+  /* ------------------------------ API Endpoints ----------------------------- */
   static async getMessages(userId: string, query: GetMessagesQuery) {
     const accessToken = await auth.api
       .getAccessToken({ body: { userId, providerId: "google" } })
@@ -93,7 +94,7 @@ export abstract class GmailService {
           emailFrom: meta.from ?? "",
           emailSubject: meta.subject ?? "",
           emailSnippet: meta.snippet ?? "",
-          emailReceivedAt: meta.date ? new Date(meta.date) : null,
+          emailReceivedAt: meta.date ? new Date(meta.date) : new Date(),
         }
       }),
       select: { id: true, userId: true },
@@ -126,6 +127,25 @@ export abstract class GmailService {
     }
   }
 
+  static async getLabels(userId: string) {
+    const accessToken = await auth.api
+      .getAccessToken({ body: { userId, providerId: "google" } })
+      .then((res) => res.accessToken)
+      .catch(() => null)
+
+    if (!accessToken) return []
+
+    const gmail = this.createGmailClient(accessToken)
+    const response = await gmail.users.labels.list({ userId: "me" })
+
+    return (
+      response.data.labels?.map((label) => ({
+        id: label.id!,
+        name: label.name!,
+      })) ?? []
+    )
+  }
+
   static async getWatchConfig(userId: string) {
     const select = {
       enabled: true,
@@ -146,24 +166,6 @@ export abstract class GmailService {
       data: { userId, gmailAddress: user.email },
       select,
     })
-  }
-
-  static async updateFilters(userId: string, body: UpdateWatchFiltersBody) {
-    await prisma.gmailWatchConfig.upsert({
-      where: { userId },
-      create: {
-        userId,
-        gmailAddress: "",
-        ...(body.subjectKeywords !== undefined && { subjectKeywords: body.subjectKeywords }),
-        ...(body.gmailLabels !== undefined && { gmailLabels: body.gmailLabels }),
-      },
-      update: {
-        ...(body.subjectKeywords !== undefined && { subjectKeywords: body.subjectKeywords }),
-        ...(body.gmailLabels !== undefined && { gmailLabels: body.gmailLabels }),
-      },
-    })
-
-    return this.getWatchConfig(userId)
   }
 
   static async enableWatch(userId: string) {
@@ -266,6 +268,26 @@ export abstract class GmailService {
     return { enabled: false }
   }
 
+  static async updateFilters(userId: string, body: UpdateWatchFiltersBody) {
+    await prisma.gmailWatchConfig.upsert({
+      where: { userId },
+      create: {
+        userId,
+        gmailAddress: "",
+        ...(body.subjectKeywords !== undefined && { subjectKeywords: body.subjectKeywords }),
+        ...(body.gmailLabels !== undefined && { gmailLabels: body.gmailLabels }),
+      },
+      update: {
+        ...(body.subjectKeywords !== undefined && { subjectKeywords: body.subjectKeywords }),
+        ...(body.gmailLabels !== undefined && { gmailLabels: body.gmailLabels }),
+      },
+    })
+
+    return this.getWatchConfig(userId)
+  }
+
+  /* ---------------------------------- Utils --------------------------------- */
+
   static async createExtractionsAndQueue(
     userId: string,
     messages: Array<{
@@ -291,7 +313,7 @@ export abstract class GmailService {
         emailFrom: m.emailFrom,
         emailSubject: m.emailSubject,
         emailSnippet: m.emailSnippet,
-        emailReceivedAt: m.emailReceivedAt,
+        emailReceivedAt: m.emailReceivedAt!,
       })),
     })
 
@@ -316,25 +338,6 @@ export abstract class GmailService {
     }
 
     return created.count
-  }
-
-  static async getLabels(userId: string) {
-    const accessToken = await auth.api
-      .getAccessToken({ body: { userId, providerId: "google" } })
-      .then((res) => res.accessToken)
-      .catch(() => null)
-
-    if (!accessToken) return []
-
-    const gmail = this.createGmailClient(accessToken)
-    const response = await gmail.users.labels.list({ userId: "me" })
-
-    return (
-      response.data.labels?.map((label) => ({
-        id: label.id!,
-        name: label.name!,
-      })) ?? []
-    )
   }
 
   static createGmailClient(accessToken: string) {
