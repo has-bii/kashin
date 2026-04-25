@@ -1,7 +1,7 @@
 import { createError } from "../../global/error"
 import { prisma } from "../../lib/prisma"
-import { status } from "elysia"
 import type { CreateInput, GetAllQuery } from "./dto"
+import { status } from "elysia"
 
 export abstract class BankAccountService {
   static async getAll(userId: string, query: GetAllQuery) {
@@ -59,7 +59,10 @@ export abstract class BankAccountService {
       })
     } else {
       await prisma.$transaction(async (tx) => {
-        await tx.transaction.updateMany({ where: { bankAccountId: id, userId }, data: { bankAccountId: null } })
+        await tx.transaction.updateMany({
+          where: { bankAccountId: id, userId },
+          data: { bankAccountId: null },
+        })
         await tx.bankAccount.delete({ where: { id, userId } })
       })
     }

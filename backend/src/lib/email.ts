@@ -1,6 +1,6 @@
+import { ENV } from "../config/env"
 import { logger } from "./logger"
 import { Resend } from "resend"
-import { ENV } from "../config/env"
 
 const resend = new Resend(ENV.EMAIL.resendApiKey)
 

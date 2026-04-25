@@ -1,5 +1,5 @@
-import { prisma } from "../../lib/prisma"
 import { NotFoundError } from "../../global/error"
+import { prisma } from "../../lib/prisma"
 
 export abstract class BillingService {
   static async getUserStatus(userId: string) {
@@ -13,7 +13,13 @@ export abstract class BillingService {
           status: true,
           currentPeriodEnd: true,
           plan: {
-            select: { code: true, name: true, dailyAiLimit: true, priceCents: true, currency: true },
+            select: {
+              code: true,
+              name: true,
+              dailyAiLimit: true,
+              priceCents: true,
+              currency: true,
+            },
           },
         },
       }),

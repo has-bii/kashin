@@ -1,6 +1,6 @@
-import { t } from "elysia"
 import { AiExtractionStatus } from "../../generated/prismabox/AiExtractionStatus"
 import { __nullable__ } from "../../generated/prismabox/__nullable__"
+import { t } from "elysia"
 
 export const getAllQuery = t.Object({
   status: t.Optional(AiExtractionStatus),

@@ -1,5 +1,5 @@
-import Elysia from "elysia"
 import { HealthService } from "./service"
+import Elysia from "elysia"
 
 export const healthController = new Elysia({ prefix: "/health" }).get("/", async ({ set }) => {
   const health = await HealthService.check()
