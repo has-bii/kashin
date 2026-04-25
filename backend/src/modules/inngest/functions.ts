@@ -22,11 +22,16 @@ export const processEmail = inngest.createFunction(
       },
     ],
     onFailure: async ({ error, event, step }) => {
+      if (error.message === "Daily AI quota exceeded") return { status: "ok" }
+
       const { aiExtractionId } = event.data.event.data as ProcessEmailEventData
+
+      logger.error({ error }, "Failed to process email")
+
       await step.run("handle-failure", () =>
         prisma.aiExtraction.updateMany({
           where: { id: aiExtractionId },
-          data: { status: "failed", finishedAt: new Date(), errorMessage: error.message },
+          data: { status: "failed", finishedAt: new Date() },
         }),
       )
     },
@@ -38,6 +43,7 @@ export const processEmail = inngest.createFunction(
 
     await step.run("check-quota", async () => {
       const { count, limit } = await AiUsageService.getDailyUsage(userId)
+
       if (count >= limit) {
         throw new NonRetriableError("Daily AI quota exceeded")
       }
@@ -143,7 +149,6 @@ export const processEmail = inngest.createFunction(
         data: {
           tokenUsage,
           finishedAt: new Date(),
-          aiResponse: JSON.stringify(result),
           note: result.description,
           ...(isApproval && result.data
             ? {

@@ -36,7 +36,6 @@ export abstract class AiExtractionService {
           extractedAmount: true,
           extractedCurrency: true,
           extractedDate: true,
-          confidenceScore: true,
           suggestedCategory: true,
           note: true,
           createdAt: true,
@@ -67,7 +66,6 @@ export abstract class AiExtractionService {
         extractedAmount: true,
         extractedCurrency: true,
         extractedDate: true,
-        confidenceScore: true,
         suggestedCategory: true,
         note: true,
         createdAt: true,
@@ -157,7 +155,7 @@ export abstract class AiExtractionService {
     }
     await prisma.aiExtraction.update({
       where: { id },
-      data: { status: "pending", errorMessage: null, processedAt: null, finishedAt: null },
+      data: { status: "pending", processedAt: null, finishedAt: null },
     })
 
     await inngest.send({
