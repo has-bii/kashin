@@ -302,11 +302,7 @@ export abstract class GmailService {
       emailReceivedAt: Date | null
     }>,
   ): Promise<number> {
-    const existing = await prisma.aiExtraction.findMany({
-      where: { userId, status: { in: ["pending", "processing"] } },
-      select: { id: true },
-    })
-    if (existing.length > 0) return 0
+    const batchStart = new Date()
 
     const created = await prisma.aiExtraction.createMany({
       skipDuplicates: true,
@@ -321,12 +317,17 @@ export abstract class GmailService {
       })),
     })
 
+    logger.info({ userId, created: created.count }, "AI extractions created")
+
     if (created.count > 0) {
+      // Only query records inserted in this batch to avoid duplicate Inngest events
+      // when concurrent calls process the same history window
       const rows = await prisma.aiExtraction.findMany({
         where: {
           userId,
           gmailMessageId: { in: messages.map((m) => m.gmailMessageId) },
           status: "pending",
+          createdAt: { gte: batchStart },
         },
         select: { id: true, userId: true },
       })
@@ -336,7 +337,8 @@ export abstract class GmailService {
             sendProcessEmailEvent({ aiExtractionId: id, userId: uid }),
           ),
         )
-      } catch {
+      } catch (err) {
+        logger.error({ err, userId }, "Failed to send process email events — rolling back extractions")
         await prisma.aiExtraction.deleteMany({ where: { id: { in: rows.map((r) => r.id) } } })
       }
     }

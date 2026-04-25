@@ -41,10 +41,12 @@ export abstract class WebhookService {
 
       if (!userAccount) return status(200) // ack but ignore
 
-      // Queue to QStash for async processing
+      // Queue to QStash for async processing — dedup key prevents duplicate jobs
+      // when Gmail sends rapid successive push notifications for the same user
       await qstash.publishJSON({
         url: `${ENV.SERVER.url}/api/webhook/process-email`,
         body: { userId: userAccount.userId },
+        deduplicationId: `process-email-${userAccount.userId}`,
       })
 
       return status(200, { received: true })
@@ -65,6 +67,8 @@ export abstract class WebhookService {
       where: { userId },
       include: { bank: true },
     })
+
+    logger.info({ userId, historyId: config.historyId }, "Processing email webhook")
 
     const accessToken = await auth.api
       .getAccessToken({ body: { userId, providerId: "google" } })
@@ -96,16 +100,21 @@ export abstract class WebhookService {
       return
     }
 
-    if (historyData.historyId) {
-      await prisma.gmailWatchConfig.update({
-        where: { userId },
-        data: { historyId: historyData.historyId },
-      })
-    }
-
     const newMessages =
       historyData.history?.flatMap((h) => h.messagesAdded ?? []).map((m) => m.message!) ?? []
-    if (newMessages.length === 0) return
+
+    if (newMessages.length === 0) {
+      logger.info({ userId, historyId: config.historyId }, "No new messages in history")
+      if (historyData.historyId) {
+        await prisma.gmailWatchConfig.update({
+          where: { userId },
+          data: { historyId: historyData.historyId },
+        })
+      }
+      return
+    }
+
+    logger.info({ userId, total: newMessages.length }, "Fetched new messages — applying filters")
 
     const metaResults = await Promise.allSettled(
       newMessages.map((m) =>
@@ -113,7 +122,9 @@ export abstract class WebhookService {
       ),
     )
 
-    const allowedSenderEmails = new Set(bankAccounts.flatMap((a) => a.bank.email))
+    const allowedSenderEmails = new Set(
+      bankAccounts.flatMap((a) => a.bank.email).map((e) => e.toLowerCase()),
+    )
     const allowedKeywords = config.subjectKeywords.map((k) => k.toLowerCase())
     const allowedLabelIds = new Set(config.gmailLabels)
 
@@ -131,7 +142,9 @@ export abstract class WebhookService {
       const meta = GmailService.parseEmailMetadata(msg)
       const msgLabelIds = msg.labelIds ?? []
 
-      const senderEmail = meta.from?.match(/<([^>]+)>/)?.[1] ?? meta.from ?? ""
+      const senderEmail = (
+        meta.from?.match(/<([^>]+)>/)?.[1] ?? meta.from ?? ""
+      ).toLowerCase()
 
       const matchesSender = allowedSenderEmails.size > 0 && allowedSenderEmails.has(senderEmail)
       const matchesKeyword =
@@ -139,6 +152,13 @@ export abstract class WebhookService {
         allowedKeywords.some((k) => (meta.subject ?? "").toLowerCase().includes(k))
       const matchesLabel =
         allowedLabelIds.size > 0 && msgLabelIds.some((l) => allowedLabelIds.has(l))
+
+      const matchedBy = matchesSender ? "sender" : matchesKeyword ? "keyword" : matchesLabel ? "label" : null
+
+      logger.info(
+        { userId, messageId: msg.id, senderEmail, subject: meta.subject, matchedBy },
+        matchedBy ? "Message passed filter" : "Message filtered out",
+      )
 
       if (matchesSender || matchesKeyword || matchesLabel) {
         passing.push({
@@ -151,12 +171,25 @@ export abstract class WebhookService {
       }
     }
 
-    if (passing.length === 0) return
+    if (passing.length === 0) {
+      logger.info({ userId }, "All messages filtered out — no extractions created")
+      if (historyData.historyId) {
+        await prisma.gmailWatchConfig.update({
+          where: { userId },
+          data: { historyId: historyData.historyId },
+        })
+      }
+      return
+    }
 
-    const allowed = passing
+    await GmailService.createExtractionsAndQueue(userId, passing)
 
-    if (allowed.length > 0) {
-      await GmailService.createExtractionsAndQueue(userId, allowed)
+    if (historyData.historyId) {
+      await prisma.gmailWatchConfig.update({
+        where: { userId },
+        data: { historyId: historyData.historyId },
+      })
+      logger.info({ userId, historyId: historyData.historyId }, "historyId advanced")
     }
   }
 
