@@ -21,11 +21,16 @@ export abstract class EmailProcessorService {
 
     const parsed = await PostalMime.parse(rawEmail)
 
-    const emailHtml = parsed.html ? this.convertHtmlToText(parsed.html).trim() : undefined
+    let textCandidate = parsed.text?.trim()
+    if (textCandidate && this.looksLikeHtml(textCandidate)) {
+      textCandidate = this.convertHtmlToText(textCandidate)
+    }
+
+    const htmlCandidate = parsed.html ? this.convertHtmlToText(parsed.html) : undefined
 
     return {
-      emailText: parsed.text,
-      emailHtml,
+      emailText: this.isMeaningful(textCandidate) ? textCandidate : undefined,
+      emailHtml: this.isMeaningful(htmlCandidate) ? htmlCandidate : undefined,
     }
   }
 
@@ -94,6 +99,22 @@ export abstract class EmailProcessorService {
   }
 
   /* ---------------------------- Private Functions --------------------------- */
+  private static HTML_TAG_RE = /<\/?[a-z][\s\S]*?>/i
+  private static MEANINGLESS_RE = /^[-—_=\s]+$/
+  private static MIN_BODY_LEN = 5
+
+  private static looksLikeHtml(s: string): boolean {
+    return EmailProcessorService.HTML_TAG_RE.test(s)
+  }
+
+  private static isMeaningful(s: string | undefined | null): s is string {
+    if (!s) return false
+    const trimmed = s.trim()
+    if (trimmed.length < EmailProcessorService.MIN_BODY_LEN) return false
+    if (EmailProcessorService.MEANINGLESS_RE.test(trimmed)) return false
+    return true
+  }
+
   private static convertHtmlToText(html: string) {
     return convert(html, {
       baseElements: {
